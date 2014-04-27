@@ -1,0 +1,672 @@
+--------------- START ---------------
+Starting generator 1000 to 9999
+Tests ['is_tri', 'is_square', 'is_pent']
+1001 is is_pent
+	Starting generator 100 to 199
+	Tests ['is_tri', 'is_square']
+	Test range 100 to 199 done
+1024 is is_square
+	Starting generator 2400 to 2499
+	Tests ['is_tri', 'is_pent']
+	2415 is is_tri
+		Starting generator 1510
+		Tests ['is_pent']
+		Test range 1510 done
+	2485 is is_tri
+		Starting generator 8510
+		Tests ['is_pent']
+		Test range 8510 done
+	Test range 2400 to 2499 done
+1035 is is_tri
+	Starting generator 3500 to 3599
+	Tests ['is_square', 'is_pent']
+	3577 is is_pent
+		Starting generator 7710
+		Tests ['is_square']
+		Test range 7710 done
+	Test range 3500 to 3599 done
+1080 is is_pent
+	Starting generator 8000 to 8099
+	Tests ['is_tri', 'is_square']
+	8001 is is_tri
+		Starting generator 110
+		Tests ['is_square']
+		Test range 110 done
+	Test range 8000 to 8099 done
+1081 is is_tri
+	Starting generator 8100 to 8199
+	Tests ['is_square', 'is_pent']
+	8100 is is_square
+		Starting generator 10
+		Tests ['is_pent']
+		Test range 10 done
+	8177 is is_pent
+		Starting generator 7710
+		Tests ['is_square']
+		Test range 7710 done
+	Test range 8100 to 8199 done
+1089 is is_square
+	Starting generator 8900 to 8999
+	Tests ['is_tri', 'is_pent']
+	8911 is is_tri
+		Starting generator 1110
+		Tests ['is_pent']
+		Test range 1110 done
+	Test range 8900 to 8999 done
+1128 is is_tri
+	Starting generator 2800 to 2899
+	Tests ['is_square', 'is_pent']
+	2809 is is_square
+		Starting generator 911
+		Tests ['is_pent']
+		Test range 911 done
+	2882 is is_pent
+		Starting generator 8211
+		Tests ['is_square']
+		Test range 8211 done
+	Test range 2800 to 2899 done
+1156 is is_square
+	Starting generator 5600 to 5699
+	Tests ['is_tri', 'is_pent']
+	5671 is is_tri
+		Starting generator 7111
+		Tests ['is_pent']
+		Test range 7111 done
+	Test range 5600 to 5699 done
+1162 is is_pent
+	Starting generator 6200 to 6299
+	Tests ['is_tri', 'is_square']
+	6216 is is_tri
+		Starting generator 1611
+		Tests ['is_square']
+		Test range 1611 done
+	6241 is is_square
+		Starting generator 4111
+		Tests ['is_tri']
+		Test range 4111 done
+	Test range 6200 to 6299 done
+1176 is is_tri
+	Starting generator 7600 to 7699
+	Tests ['is_square', 'is_pent']
+	Test range 7600 to 7699 done
+1225 is is_tri
+	Starting generator 2500 to 2599
+	Tests ['is_square', 'is_pent']
+	2500 is is_square
+		Starting generator 12
+		Tests ['is_pent']
+		Test range 12 done
+	2501 is is_pent
+		Starting generator 112
+		Tests ['is_square']
+		Test range 112 done
+	Test range 2500 to 2599 done
+1225 is is_square
+	Starting generator 2500 to 2599
+	Tests ['is_tri', 'is_pent']
+	2501 is is_pent
+		Starting generator 112
+		Tests ['is_tri']
+		Test range 112 done
+	2556 is is_tri
+		Starting generator 5612
+		Tests ['is_pent']
+		Test range 5612 done
+	Test range 2500 to 2599 done
+1247 is is_pent
+	Starting generator 4700 to 4799
+	Tests ['is_tri', 'is_square']
+	4753 is is_tri
+		Starting generator 5312
+		Tests ['is_square']
+		Test range 5312 done
+	4761 is is_square
+		Starting generator 6112
+		Tests ['is_tri']
+		Test range 6112 done
+	Test range 4700 to 4799 done
+1275 is is_tri
+	Starting generator 7500 to 7599
+	Tests ['is_square', 'is_pent']
+	7526 is is_pent
+		Starting generator 2612
+		Tests ['is_square']
+		Test range 2612 done
+	7569 is is_square
+		Starting generator 6912
+		Tests ['is_pent']
+		Test range 6912 done
+	Test range 7500 to 7599 done
+1296 is is_square
+	Starting generator 9600 to 9699
+	Tests ['is_tri', 'is_pent']
+	Test range 9600 to 9699 done
+1326 is is_tri
+	Starting generator 2600 to 2699
+	Tests ['is_square', 'is_pent']
+	2601 is is_square
+		Starting generator 113
+		Tests ['is_pent']
+		Test range 113 done
+	2625 is is_pent
+		Starting generator 2513
+		Tests ['is_square']
+		Test range 2513 done
+	Test range 2600 to 2699 done
+1335 is is_pent
+	Starting generator 3500 to 3599
+	Tests ['is_tri', 'is_square']
+	3570 is is_tri
+		Starting generator 7013
+		Tests ['is_square']
+		Test range 7013 done
+	Test range 3500 to 3599 done
+1369 is is_square
+	Starting generator 6900 to 6999
+	Tests ['is_tri', 'is_pent']
+	6902 is is_pent
+		Starting generator 213
+		Tests ['is_tri']
+		Test range 213 done
+	6903 is is_tri
+		Starting generator 313
+		Tests ['is_pent']
+		Test range 313 done
+	Test range 6900 to 6999 done
+1378 is is_tri
+	Starting generator 7800 to 7899
+	Tests ['is_square', 'is_pent']
+	Test range 7800 to 7899 done
+1426 is is_pent
+	Starting generator 2600 to 2699
+	Tests ['is_tri', 'is_square']
+	2601 is is_square
+		Starting generator 114
+		Tests ['is_tri']
+		Test range 114 done
+	2628 is is_tri
+		Starting generator 2814
+		Tests ['is_square']
+		Test range 2814 done
+	Test range 2600 to 2699 done
+1431 is is_tri
+	Starting generator 3100 to 3199
+	Tests ['is_square', 'is_pent']
+	3136 is is_square
+		Starting generator 3614
+		Tests ['is_pent']
+		Test range 3614 done
+	3151 is is_pent
+		Starting generator 5114
+		Tests ['is_square']
+		Test range 5114 done
+	Test range 3100 to 3199 done
+1444 is is_square
+	Starting generator 4400 to 4499
+	Tests ['is_tri', 'is_pent']
+	4465 is is_tri
+		Starting generator 6514
+		Tests ['is_pent']
+		Test range 6514 done
+	Test range 4400 to 4499 done
+1485 is is_tri
+	Starting generator 8500 to 8599
+	Tests ['is_square', 'is_pent']
+	Test range 8500 to 8599 done
+1520 is is_pent
+	Starting generator 2000 to 2099
+	Tests ['is_tri', 'is_square']
+	2016 is is_tri
+		Starting generator 1615
+		Tests ['is_square']
+		Test range 1615 done
+	2025 is is_square
+		Starting generator 2515
+		Tests ['is_tri']
+		Test range 2515 done
+	2080 is is_tri
+		Starting generator 8015
+		Tests ['is_square']
+		Test range 8015 done
+	Test range 2000 to 2099 done
+1521 is is_square
+	Starting generator 2100 to 2199
+	Tests ['is_tri', 'is_pent']
+	2145 is is_tri
+		Starting generator 4515
+		Tests ['is_pent']
+		Test range 4515 done
+	2147 is is_pent
+		Starting generator 4715
+		Tests ['is_tri']
+		Test range 4715 done
+	Test range 2100 to 2199 done
+1540 is is_tri
+	Starting generator 4000 to 4099
+	Tests ['is_square', 'is_pent']
+	4030 is is_pent
+		Starting generator 3015
+		Tests ['is_square']
+		Test range 3015 done
+	4096 is is_square
+		Starting generator 9615
+		Tests ['is_pent']
+		Test range 9615 done
+	Test range 4000 to 4099 done
+1596 is is_tri
+	Starting generator 9600 to 9699
+	Tests ['is_square', 'is_pent']
+	9604 is is_square
+		Starting generator 415
+		Tests ['is_pent']
+		Test range 415 done
+	Test range 9600 to 9699 done
+1600 is is_square
+	Starting generator 0 to 99
+	Tests ['is_tri', 'is_pent']
+	Test range 0 to 99 done
+1617 is is_pent
+	Starting generator 1700 to 1799
+	Tests ['is_tri', 'is_square']
+	1711 is is_tri
+		Starting generator 1116
+		Tests ['is_square']
+		Test range 1116 done
+	1764 is is_square
+		Starting generator 6416
+		Tests ['is_tri']
+		Test range 6416 done
+	1770 is is_tri
+		Starting generator 7016
+		Tests ['is_square']
+		Test range 7016 done
+	Test range 1700 to 1799 done
+1653 is is_tri
+	Starting generator 5300 to 5399
+	Tests ['is_square', 'is_pent']
+	5329 is is_square
+		Starting generator 2916
+		Tests ['is_pent']
+		Test range 2916 done
+	5370 is is_pent
+		Starting generator 7016
+		Tests ['is_square']
+		Test range 7016 done
+	Test range 5300 to 5399 done
+1681 is is_square
+	Starting generator 8100 to 8199
+	Tests ['is_tri', 'is_pent']
+	8128 is is_tri
+		Starting generator 2816
+		Tests ['is_pent']
+		Test range 2816 done
+	8177 is is_pent
+		Starting generator 7716
+		Tests ['is_tri']
+		Test range 7716 done
+	Test range 8100 to 8199 done
+1711 is is_tri
+	Starting generator 1100 to 1199
+	Tests ['is_square', 'is_pent']
+	1156 is is_square
+		Starting generator 5617
+		Tests ['is_pent']
+		Test range 5617 done
+	1162 is is_pent
+		Starting generator 6217
+		Tests ['is_square']
+		Test range 6217 done
+	Test range 1100 to 1199 done
+1717 is is_pent
+	Starting generator 1700 to 1799
+	Tests ['is_tri', 'is_square']
+	1711 is is_tri
+		Starting generator 1117
+		Tests ['is_square']
+		Test range 1117 done
+	1764 is is_square
+		Starting generator 6417
+		Tests ['is_tri']
+		Test range 6417 done
+	1770 is is_tri
+		Starting generator 7017
+		Tests ['is_square']
+		Test range 7017 done
+	Test range 1700 to 1799 done
+1764 is is_square
+	Starting generator 6400 to 6499
+	Tests ['is_tri', 'is_pent']
+	6441 is is_tri
+		Starting generator 4117
+		Tests ['is_pent']
+		Test range 4117 done
+	Test range 6400 to 6499 done
+1770 is is_tri
+	Starting generator 7000 to 7099
+	Tests ['is_square', 'is_pent']
+	7056 is is_square
+		Starting generator 5617
+		Tests ['is_pent']
+		Test range 5617 done
+	Test range 7000 to 7099 done
+1820 is is_pent
+	Starting generator 2000 to 2099
+	Tests ['is_tri', 'is_square']
+	2016 is is_tri
+		Starting generator 1618
+		Tests ['is_square']
+		Test range 1618 done
+	2025 is is_square
+		Starting generator 2518
+		Tests ['is_tri']
+		Test range 2518 done
+	2080 is is_tri
+		Starting generator 8018
+		Tests ['is_square']
+		Test range 8018 done
+	Test range 2000 to 2099 done
+1830 is is_tri
+	Starting generator 3000 to 3099
+	Tests ['is_square', 'is_pent']
+	3015 is is_pent
+		Starting generator 1518
+		Tests ['is_square']
+		Test range 1518 done
+	3025 is is_square
+		Starting generator 2518
+		Tests ['is_pent']
+		Test range 2518 done
+	Test range 3000 to 3099 done
+1849 is is_square
+	Starting generator 4900 to 4999
+	Tests ['is_tri', 'is_pent']
+	4950 is is_tri
+		Starting generator 5018
+		Tests ['is_pent']
+		Test range 5018 done
+	Test range 4900 to 4999 done
+1891 is is_tri
+	Starting generator 9100 to 9199
+	Tests ['is_square', 'is_pent']
+	Test range 9100 to 9199 done
+1926 is is_pent
+	Starting generator 2600 to 2699
+	Tests ['is_tri', 'is_square']
+	2601 is is_square
+		Starting generator 119
+		Tests ['is_tri']
+		Test range 119 done
+	2628 is is_tri
+		Starting generator 2819
+		Tests ['is_square']
+		Test range 2819 done
+	Test range 2600 to 2699 done
+1936 is is_square
+	Starting generator 3600 to 3699
+	Tests ['is_tri', 'is_pent']
+	3655 is is_tri
+		Starting generator 5519
+		Tests ['is_pent']
+		Test range 5519 done
+	Test range 3600 to 3699 done
+1953 is is_tri
+	Starting generator 5300 to 5399
+	Tests ['is_square', 'is_pent']
+	5329 is is_square
+		Starting generator 2919
+		Tests ['is_pent']
+		Test range 2919 done
+	5370 is is_pent
+		Starting generator 7019
+		Tests ['is_square']
+		Test range 7019 done
+	Test range 5300 to 5399 done
+2016 is is_tri
+	Starting generator 1600 to 1699
+	Tests ['is_square', 'is_pent']
+	1600 is is_square
+		Starting generator 20
+		Tests ['is_pent']
+		Test range 20 done
+	1617 is is_pent
+		Starting generator 1720
+		Tests ['is_square']
+		Test range 1720 done
+	1681 is is_square
+		Starting generator 8120
+		Tests ['is_pent']
+		Test range 8120 done
+	Test range 1600 to 1699 done
+2025 is is_square
+	Starting generator 2500 to 2599
+	Tests ['is_tri', 'is_pent']
+	2501 is is_pent
+		Starting generator 120
+		Tests ['is_tri']
+		Test range 120 done
+	2556 is is_tri
+		Starting generator 5620
+		Tests ['is_pent']
+		Test range 5620 done
+	Test range 2500 to 2599 done
+2035 is is_pent
+	Starting generator 3500 to 3599
+	Tests ['is_tri', 'is_square']
+	3570 is is_tri
+		Starting generator 7020
+		Tests ['is_square']
+		Test range 7020 done
+	Test range 3500 to 3599 done
+2080 is is_tri
+	Starting generator 8000 to 8099
+	Tests ['is_square', 'is_pent']
+	Test range 8000 to 8099 done
+2116 is is_square
+	Starting generator 1600 to 1699
+	Tests ['is_tri', 'is_pent']
+	1617 is is_pent
+		Starting generator 1721
+		Tests ['is_tri']
+		Test range 1721 done
+	1653 is is_tri
+		Starting generator 5321
+		Tests ['is_pent']
+		Test range 5321 done
+	Test range 1600 to 1699 done
+2145 is is_tri
+	Starting generator 4500 to 4599
+	Tests ['is_square', 'is_pent']
+	4510 is is_pent
+		Starting generator 1021
+		Tests ['is_square']
+		Test range 1021 done
+	Test range 4500 to 4599 done
+2147 is is_pent
+	Starting generator 4700 to 4799
+	Tests ['is_tri', 'is_square']
+	4753 is is_tri
+		Starting generator 5321
+		Tests ['is_square']
+		Test range 5321 done
+	4761 is is_square
+		Starting generator 6121
+		Tests ['is_tri']
+		Test range 6121 done
+	Test range 4700 to 4799 done
+2209 is is_square
+	Starting generator 900 to 999
+	Tests ['is_tri', 'is_pent']
+	Test range 900 to 999 done
+2211 is is_tri
+	Starting generator 1100 to 1199
+	Tests ['is_square', 'is_pent']
+	1156 is is_square
+		Starting generator 5622
+		Tests ['is_pent']
+		Test range 5622 done
+	1162 is is_pent
+		Starting generator 6222
+		Tests ['is_square']
+		Test range 6222 done
+	Test range 1100 to 1199 done
+2262 is is_pent
+	Starting generator 6200 to 6299
+	Tests ['is_tri', 'is_square']
+	6216 is is_tri
+		Starting generator 1622
+		Tests ['is_square']
+		Test range 1622 done
+	6241 is is_square
+		Starting generator 4122
+		Tests ['is_tri']
+		Test range 4122 done
+	Test range 6200 to 6299 done
+2278 is is_tri
+	Starting generator 7800 to 7899
+	Tests ['is_square', 'is_pent']
+	Test range 7800 to 7899 done
+2304 is is_square
+	Starting generator 400 to 499
+	Tests ['is_tri', 'is_pent']
+	Test range 400 to 499 done
+2346 is is_tri
+	Starting generator 4600 to 4699
+	Tests ['is_square', 'is_pent']
+	4624 is is_square
+		Starting generator 2423
+		Tests ['is_pent']
+		Test range 2423 done
+	4676 is is_pent
+		Starting generator 7623
+		Tests ['is_square']
+		Test range 7623 done
+	Test range 4600 to 4699 done
+2380 is is_pent
+	Starting generator 8000 to 8099
+	Tests ['is_tri', 'is_square']
+	8001 is is_tri
+		Starting generator 123
+		Tests ['is_square']
+		Test range 123 done
+	Test range 8000 to 8099 done
+2401 is is_square
+	Starting generator 100 to 199
+	Tests ['is_tri', 'is_pent']
+	Test range 100 to 199 done
+2415 is is_tri
+	Starting generator 1500 to 1599
+	Tests ['is_square', 'is_pent']
+	1520 is is_pent
+		Starting generator 2024
+		Tests ['is_square']
+		Test range 2024 done
+	1521 is is_square
+		Starting generator 2124
+		Tests ['is_pent']
+		Test range 2124 done
+	Test range 1500 to 1599 done
+2485 is is_tri
+	Starting generator 8500 to 8599
+	Tests ['is_square', 'is_pent']
+	Test range 8500 to 8599 done
+2500 is is_square
+	Starting generator 0 to 99
+	Tests ['is_tri', 'is_pent']
+	Test range 0 to 99 done
+2501 is is_pent
+	Starting generator 100 to 199
+	Tests ['is_tri', 'is_square']
+	Test range 100 to 199 done
+2556 is is_tri
+	Starting generator 5600 to 5699
+	Tests ['is_square', 'is_pent']
+	5625 is is_square
+		Starting generator 2525
+		Tests ['is_pent']
+		Test range 2525 done
+	Test range 5600 to 5699 done
+2601 is is_square
+	Starting generator 100 to 199
+	Tests ['is_tri', 'is_pent']
+	Test range 100 to 199 done
+2625 is is_pent
+	Starting generator 2500 to 2599
+	Tests ['is_tri', 'is_square']
+	2500 is is_square
+		Starting generator 26
+		Tests ['is_tri']
+		Test range 26 done
+	2556 is is_tri
+		Starting generator 5626
+		Tests ['is_square']
+		Test range 5626 done
+	Test range 2500 to 2599 done
+2628 is is_tri
+	Starting generator 2800 to 2899
+	Tests ['is_square', 'is_pent']
+	2809 is is_square
+		Starting generator 926
+		Tests ['is_pent']
+		Test range 926 done
+	2882 is is_pent
+		Starting generator 8226
+		Tests ['is_square']
+		Test range 8226 done
+	Test range 2800 to 2899 done
+2701 is is_tri
+	Starting generator 100 to 199
+	Tests ['is_square', 'is_pent']
+	Test range 100 to 199 done
+2704 is is_square
+	Starting generator 400 to 499
+	Tests ['is_tri', 'is_pent']
+	Test range 400 to 499 done
+2752 is is_pent
+	Starting generator 5200 to 5299
+	Tests ['is_tri', 'is_square']
+	5253 is is_tri
+		Starting generator 5327
+		Tests ['is_square']
+		Test range 5327 done
+	Test range 5200 to 5299 done
+2775 is is_tri
+	Starting generator 7500 to 7599
+	Tests ['is_square', 'is_pent']
+	7526 is is_pent
+		Starting generator 2627
+		Tests ['is_square']
+		Test range 2627 done
+	7569 is is_square
+		Starting generator 6927
+		Tests ['is_pent']
+		Test range 6927 done
+	Test range 7500 to 7599 done
+2809 is is_square
+	Starting generator 900 to 999
+	Tests ['is_tri', 'is_pent']
+	Test range 900 to 999 done
+2850 is is_tri
+	Starting generator 5000 to 5099
+	Tests ['is_square', 'is_pent']
+	5017 is is_pent
+		Starting generator 1728
+		Tests ['is_square']
+		Test range 1728 done
+	5041 is is_square
+		Starting generator 4128
+		Tests ['is_pent']
+		Test range 4128 done
+	Test range 5000 to 5099 done
+2882 is is_pent
+	Starting generator 8200 to 8299
+	Tests ['is_tri', 'is_square']
+	8256 is is_tri
+		Starting generator 5628
+		Tests ['is_square']
+		Test range 5628 done
+	8281 is is_square
+		Starting generator 8128
+		Tests ['is_tri']
+		8128 is is_tri
+19291: [2882, 8281, 8128]
+That took 0.029393 seconds
