@@ -27,7 +27,7 @@ def prime_sieve(limit,primes=[]):
 		nums = [ True ] * extend
 	else: 
 		offset = primes[-1]+2
-		nums = primes_extener(primes,offset,limit)
+		nums = primes_extender(primes,limit)
 		extend = len(nums)
 	for i in range(extend):
 		if nums[i]:
@@ -51,7 +51,7 @@ def primes_extender(primes,end):
 		i_start = start % p
 		if i_start > 0: i_start = p - i_start // 2
 		for i in range(i_start, length, p):
-			print "prime: %d, number: %d" %( p, i*2+start)
+			#print "prime: %d, number: %d" %( p, i*2+start)
 			num[i] = False
 	return num
 
