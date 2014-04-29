@@ -11,6 +11,7 @@ def main():
     for n in count(1):
         ways = shift_counters(n,tree)
         stdout.write("%d: %d\r" %(n, ways))
+        stdout.flush()
         if ways == big_num:
             print "%d is the least value" %(n)
             return
