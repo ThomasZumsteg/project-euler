@@ -41,8 +41,8 @@ def make_counters(n,d):
 def cube_layer_gen_new(l,m,n):
 	for i in count(1):
 		tops = m * n
-		side = i * l * (m + n)
-		otter= 4 * sum(range(1,i))
+		side = (i + l - 1) * (m + n)
+		otter= 2 * ((l - 1) * (i - 1) + sum(range(1,i)))
 		yield 2 * (tops + side + otter)
 
 def cube_layer_gen(l,m,n):
