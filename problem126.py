@@ -41,9 +41,9 @@ def make_counters(n,d):
 def cube_layer_gen_new(l,m,n):
 	for i in count(1):
 		tops = m * n
-		side = (i + l - 1) * (m + n)
-		otter= 2 * ((l - 1) * (i - 1) + sum(range(1,i)))
-		yield 2 * (tops + side + otter)
+		side = (l - 2) * (m + n + 2 * i - 2)
+		otter= i * (m + n) + 2 * sum(range(1,i))
+		yield 2 * (tops + side + 2 * otter)
 
 def cube_layer_gen(l,m,n):
 	#yield l*m*n
@@ -75,7 +75,7 @@ def test_gen(a,b,args):
 if __name__ == "__main__":
 	start = time()
 #	main()
-	box = (3,3,3)
+	box = (1,1,1)
 	for i,(v_a,v_b) in enumerate(test_gen(cube_layer_gen,cube_layer_gen_new,box)):
 		print "%d: (%d, %d)" %(i,v_a,v_b)
 		if i > 4: break
