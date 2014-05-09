@@ -8,12 +8,23 @@ from sys import stdout
 def main():
 	big_num = 1000
 	tree = {}
-	for n in range(1,40):
+	max_ways = 0
+	flag = False
+	for n in count(1):
 		ways = shift_counters(n,tree)
+		if ways > max_ways:
+			print "%d: %d" %(n, ways)
+			max_ways = ways
+		stdout.write("%d: %d\r" %(n, max_ways))
+		stdout.flush()
 		if ways == big_num:
 			print "%d is the least value" %(n)
 			return
-		if n%2==0: print "%d: %d" %(n, ways)
+		if not flag and ways == 10:
+			print "%d: %d" %(n, ways)
+			flag = True
+		if n in tree:
+			del tree[n]
 		make_counters(n,tree)
 
 def shift_counters(n,d):
@@ -31,7 +42,7 @@ def shift_counters(n,d):
 
 def make_counters(n,d):
 	for c,(l,m,n) in enumerate(block_gen(n)):
-		f = cube_layer_gen(l,m,n)
+		f = cube_layer_gen_new(l,m,n)
 		v = f.next()
 		if v in d: d[v].append(f)
 		else: d[v] = [f]
@@ -74,9 +85,9 @@ def test_gen(a,b,args):
 
 if __name__ == "__main__":
 	start = time()
-#	main()
-	box = (1,1,1)
-	for i,(v_a,v_b) in enumerate(test_gen(cube_layer_gen,cube_layer_gen_new,box)):
-		print "%d: (%d, %d)" %(i,v_a,v_b)
-		if i > 4: break
+	main()
+#	box = (3,3,3)
+#	for i,(v_a,v_b) in enumerate(test_gen(cube_layer_gen,cube_layer_gen_new,box)):
+#		print "%d: (%d, %d)" %(i,v_a,v_b)
+#		if i > 4: break
 	print "That took %f seconds" %(time() - start)
