@@ -7,16 +7,15 @@ from sys import stdout
 
 def main():
 	big_num = 100
-	tree = {}
-	lim = 300000
+	lim = 5000
+	tree = [0] * lim
 	for ways in ways_gen(lim):
 		try: tree[ways] += 1
 		except KeyError: tree[ways] = 1
-	for k in sorted(tree.keys()):
-		if tree[k] == big_num:
-			print "%d: %d" %(k, tree[k])
-			return
-
+		except IndexError: pass
+	i = tree.index(big_num)
+	print "\n%d: %d" %(i, tree[i])
+	
 def ways_gen(lim):
 	for l in count(1):
 		if cube_layer(1,1,1,l) > lim: break
@@ -26,7 +25,7 @@ def ways_gen(lim):
 				if cube_layer(x,y,1,l) > lim: break
 				for z in range(1,y+1):
 					cl = cube_layer(x,y,z,l)
-					stdout.write("(%d, %d, %d, %d): %d\r" %(x,y,z,l,cl))
+					stdout.write("(%3d, %3d, %2d, %3d): %7d     \r" %(x,y,z,l,cl))
 					stdout.flush()
 					if cl > lim: break
 					yield cl
