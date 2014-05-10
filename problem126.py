@@ -6,26 +6,36 @@ from itertools import count
 from sys import stdout
 
 def main():
-	big_num = 1000
+	big_num = 100
 	tree = {}
-	max_ways = 0
-	flag = False
-	for n in count(1):
-		ways = shift_counters(n,tree)
-		if ways > max_ways:
-			print "%d: %d" %(n, ways)
-			max_ways = ways
-		stdout.write("%d: %d\r" %(n, max_ways))
-		stdout.flush()
-		if ways == big_num:
-			print "%d is the least value" %(n)
+	lim = 300000
+	for ways in ways_gen(lim):
+		try: tree[ways] += 1
+		except KeyError: tree[ways] = 1
+	for k in sorted(tree.keys()):
+		if tree[k] == big_num:
+			print "%d: %d" %(k, tree[k])
 			return
-		if not flag and ways == 10:
-			print "%d: %d" %(n, ways)
-			flag = True
-		if n in tree:
-			del tree[n]
-		make_counters(n,tree)
+
+def ways_gen(lim):
+	for l in count(1):
+		if cube_layer(1,1,1,l) > lim: break
+		for x in count(1):
+			if cube_layer(x,1,1,l) > lim: break
+			for y in range(1,x+1):
+				if cube_layer(x,y,1,l) > lim: break
+				for z in range(1,y+1):
+					cl = cube_layer(x,y,z,l)
+					stdout.write("(%d, %d, %d, %d): %d\r" %(x,y,z,l,cl))
+					stdout.flush()
+					if cl > lim: break
+					yield cl
+
+def cube_gen(lim):
+	for x in range(1,lim):
+		for y in range(1,x+1):
+			for z in range(1,y+1):
+				yield (x,y,z)
 
 def shift_counters(n,d):
 	if n not in d:
@@ -49,12 +59,16 @@ def make_counters(n,d):
 		#print "Created (%d,%d,%d)=%d" %(l,m,n,v)
 	#return c + 1
 
+def cube_layer(x,y,z,l):
+	top  = (x * y) + (x * z) + (y * z)
+	side = x + y + z + (l - 2)
+	return 2 * top + 4 * (l - 1) * side
+
 def cube_layer_gen_new(l,m,n):
 	for i in count(1):
-		tops = m * n
-		side = (l - 2) * (m + n + 2 * i - 2)
-		otter= i * (m + n) + 2 * sum(range(1,i))
-		yield 2 * (tops + side + 2 * otter)
+		top = (l * m) + (l * n) + (m * n)
+		side = l + m + n + (i - 2)
+		yield 2 * top + 4 * (i - 1) * side
 
 def cube_layer_gen(l,m,n):
 	#yield l*m*n
@@ -86,8 +100,8 @@ def test_gen(a,b,args):
 if __name__ == "__main__":
 	start = time()
 	main()
-#	box = (3,3,3)
-#	for i,(v_a,v_b) in enumerate(test_gen(cube_layer_gen,cube_layer_gen_new,box)):
-#		print "%d: (%d, %d)" %(i,v_a,v_b)
-#		if i > 4: break
+	#box = (1,1,1)
+	#for i,(a,b) in enumerate(test_gen(cube_layer_gen, cube_layer_gen_new, box)):
+	#	print "%d: (%d, %d)" %(i,a,b)
+	#	if i > 10: break
 	print "That took %f seconds" %(time() - start)
