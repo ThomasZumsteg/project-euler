@@ -6,8 +6,8 @@ from itertools import count
 from sys import stdout
 
 def main():
-	big_num = 100
-	lim = 5000
+	big_num = 1000
+	lim = 50000
 	tree = [0] * lim
 	for ways in ways_gen(lim):
 		try: tree[ways] += 1

@@ -14,13 +14,13 @@ def main():
 		stdout.flush()
 		for b in range(c//2+1,c):
 			a = c - b
-#			(A,B,C) = (fact[a],fact[b],fact[c])
-#			if hit(A,B,C,c):
-##				print "(%d, %d, %d)" %(c,b,a),
-##				print "(%s, %s, %s)" %(gcd(A,B),gcd(A,C),gcd(B,C)),
-##				print "%d" %(rad(A,B,C))
-#				c_sum += c
-#	print c_sum
+			(A,B,C) = (fact[a],fact[b],fact[c])
+			if hit(A,B,C,c):
+				#print "(%d, %d, %d)" %(c,b,a),
+				#print "(%s, %s, %s)" %(gcd(A,B),gcd(A,C),gcd(B,C)),
+				#print "%d" %(rad(A,B,C))
+				c_sum += c
+	print c_sum
 
 def hit(a,b,c,lim):
 	if gcd(a,b) or gcd(a,c) or gcd(b,c):
