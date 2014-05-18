@@ -1,6 +1,7 @@
 #!/usr/bin/python
 from math import sqrt
 from re import sub
+from itertools import count
 
 def is_prime(n):
 	if n<2:
@@ -28,12 +29,10 @@ def prime_factors(num):
 
 def prime_generator(block=100000):
 	primes = []
-	i = 0
-	while True:
-		if len(primes) <= i:
+	for i in count(0):
+		if len(primes) <= i+1:
 			primes.extend(prime_sieve(block, primes))
 		yield primes[i]
-		i += 1
 
 def prime_sieve(limit,primes=[]):
 	if not primes: 
