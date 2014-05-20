@@ -30,18 +30,21 @@ def prime_factors(num):
 def prime_generator(block=100000):
 	primes = []
 	for i in count(0):
-		if len(primes) <= i+1:
+		if len(primes) <= i:
+			#print "Extended"
 			primes.extend(prime_sieve(block, primes))
 		yield primes[i]
 
-def prime_sieve(limit,primes=[]):
-	if not primes: 
+def prime_sieve(block,primes=[]):
+	"""Sieves a block of prime numbers"""
+	if not primes:
 		offset = 3
-		extend = (limit - offset) // 2 + 1
+		extend = (block - offset) // 2 + 1
 		nums = [ True ] * extend
 	else: 
-		offset = primes[-1]+2
-		nums = primes_extender(primes,limit)
+		offset = primes[-1] + 2
+		nums = primes_extender(primes,block)
+		#print nums
 		extend = len(nums)
 	for i in range(extend):
 		if nums[i]:
@@ -55,13 +58,13 @@ def prime_sieve(limit,primes=[]):
 	else:
 		return [2]+[2*i+offset for i in range(len(nums)) if nums[i]]
 
-def primes_extender(primes,end):
+def primes_extender(primes,block):
 	start = primes[-1] + 2
-	length = (end - start + 1) // 2
+	length = block
 	num = [ True ] * length
-	if 2 in primes: l = 1
-	else: l = 0
-	for p in primes[l:]:
+	if 2 == primes[0]: first = 1
+	else: first = 0
+	for p in primes[first:]:
 		i_start = start % p
 		if i_start > 0: i_start = p - i_start // 2
 		for i in range(i_start, length, p):
