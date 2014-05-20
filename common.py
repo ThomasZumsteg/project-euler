@@ -42,6 +42,7 @@ def prime_sieve(block,primes=[]):
 		extend = (block - offset) // 2 + 1
 		nums = [ True ] * extend
 	else: 
+		# Problem extending, 100133 and 100135 are not prime
 		offset = primes[-1] + 2
 		nums = primes_extender(primes,block)
 		#print nums
