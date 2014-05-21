@@ -31,8 +31,11 @@ def get_s(p1, p2):
 	return n
 
 def diophantine(a, b, c):
-
-	
+	rem = [a, b]
+	for i in count(0):
+		rem.append(rem[i] % rem[i+1])
+		if rem[-1] == 0: break
+	print rem
 
 def get_ord(n):
 	for i in count(1):
@@ -41,5 +44,6 @@ def get_ord(n):
 
 if __name__ == "__main__":
 	start = time()
-	main()
+#	main()
+	diophantine(-100,23,19)
 	print "That took %f seconds" %(time() - start)
