@@ -2,9 +2,12 @@
 
 from time import time
 from sys import stdout
+from itertools import count
 
 def main():
-	slow_find(100)
+	slow_find(10)
+	nums = fast_find(10)
+	print "There are %d solutions" %(nums.count(1))
 	#n = 10000000
 	#factors = factor_sieve(n)
 #	print factors
@@ -20,6 +23,19 @@ def factor_sieve(n):
 				stdout.flush()
 	return factors
 
+def fast_find(big_num):
+	nums = [0] * big_num
+	for y in range(2, big_num - 1):
+		for s in count((y - 1) % 4 + 1, 4):
+			try:
+				nums[y * s] += 1
+				a = (s + y) // 4
+				print "(%d, %d) (%d, %d, %d) = %d" %(a,y,y + a, y, y - a, s * y)
+			except IndexError:
+				#print "Done (%d, %d) = %d" %(y,s,y*s)
+				break
+	return nums
+
 def slow_find(big_num):
 	target = 1
 	nums = [set() for _ in range(big_num)]
@@ -34,7 +50,7 @@ def slow_find(big_num):
 		if target == len(n):
 			print "%d: %d: %s" %(i, len(n), n)
 			values += 1
-		else: print "%d: %d: %s" %(i, len(n), n)
+		#else: print "%d: %d: %s" %(i, len(n), n)
 	print "There are %d solutions" %(values)
 
 def gap_range(m, big_num):
