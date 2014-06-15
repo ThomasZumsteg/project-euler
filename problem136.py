@@ -3,14 +3,14 @@
 from time import time
 from sys import stdout
 from itertools import count
+from progressbar import ProgressBar
 
 def main():
-	slow_find(10)
-	nums = fast_find(10)
-	print "There are %d solutions" %(nums.count(1))
-	#n = 10000000
-	#factors = factor_sieve(n)
-#	print factors
+	n = 50000000
+	slow_find(n)
+#	nums = fast_find(n)
+#	print "ding"
+#	print "There are %d solutions" %(nums.count(1))
 
 def factor_sieve(n):
 	factors = [True] * n
@@ -26,32 +26,35 @@ def factor_sieve(n):
 def fast_find(big_num):
 	nums = [0] * big_num
 	for y in range(2, big_num - 1):
-		for s in count((y - 1) % 4 + 1, 4):
+		stdout.write("%d\r" %(y))
+		stdout.flush()
+		for s in range(4 - (y%4), 3 * y , 4):
+#			a = (s + y) // 4
 			try:
 				nums[y * s] += 1
-				a = (s + y) // 4
-				print "(%d, %d) (%d, %d, %d) = %d" %(a,y,y + a, y, y - a, s * y)
+#				print "(%d, %d, %d) (%d, %d, %d) = %d" %(y,s,(y+s)%4,y + a, y, y - a, s * y)
 			except IndexError:
-				#print "Done (%d, %d) = %d" %(y,s,y*s)
 				break
+#				#print "Done (%d, %d) = %d" %(y,s,y*s)
 	return nums
 
 def slow_find(big_num):
 	target = 1
-	nums = [set() for _ in range(big_num)]
-	for m in range(1, big_num // 2 + 1):
+	nums = [0]*big_num
+	p = ProgressBar()
+	for m in p(range(1, big_num // 2 + 1)):
 		for b in gap_range(m, big_num):
-			(x,y,z) = (b+m, b, b-m)
+#			(x,y,z) = (b+m, b, b-m)
 			n = 4 * m * b - b ** 2
 #			print "%3d = %2d^2 - %2d^2 - %2d^2" %(n,x,y,z)
-			nums[n].add((x,y,z))
-	values = 0
-	for i,n in enumerate(nums):
-		if target == len(n):
-			print "%d: %d: %s" %(i, len(n), n)
-			values += 1
-		#else: print "%d: %d: %s" %(i, len(n), n)
-	print "There are %d solutions" %(values)
+			nums[n] += 1
+#	values = 0
+#	for i,n in enumerate(nums):
+#		if target == len(n):
+##			print "%d: %d: %s" %(i, len(n), n)
+#			values += 1
+#		#else: print "%d: %d: %s" %(i, len(n), n)
+	print "There are %d solutions" %(nums.count(target))
 
 def gap_range(m, big_num):
 	diff =  4 * m ** 2 - big_num
