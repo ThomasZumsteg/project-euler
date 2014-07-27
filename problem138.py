@@ -32,6 +32,15 @@ def pell_gen(x,y):
 
 def brute():
 	"""Solves the problem slowly by iterating though L"""
+	# Sample output (took 20+ minutes)
+	# length: base: height
+	# 17: 16: 15
+	# 305: 272: 273
+	# 5473: 4896: 4895
+	# 98209: 87840: 87841
+	# 1762289: 1576240: 1576239
+	# 31622993: 28284464: 28284465
+
 	for length in count(2):
 		# Run status, size of length
 		stdout.write("%d\r" %(length))
