@@ -15,9 +15,9 @@ from sys import stdout
 def main():
 	"""Wrapper for timing quick_brute"""
 	s = set()
-	for case in quick_brute(10**12):
+	for n in quick_brute(10**12):
 		# Checks for redundant cases
-		s.add(case[0])
+		s.add(n)
 	return sum(s)
 
 def quick_brute(lim):
