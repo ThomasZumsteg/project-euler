@@ -18,6 +18,10 @@ def is_prime(n):
 		divisor += 6
 	return True
 
+def is_square(N):
+	n = int(N**0.5)
+	return n**2 == N
+
 def prime_factors(num):
 	factors = []
 	for prime in prime_generator():
@@ -30,9 +34,11 @@ def prime_factors(num):
 def prime_generator(block=100000):
 	primes = []
 	for i in count(0):
-		if len(primes) <= i:
+		n = 1
+		while len(primes) <= i:
 			#print "Extended"
-			primes.extend(prime_sieve(block, primes))
+			primes.extend(prime_sieve(block*n, primes))
+			n += 1
 		yield primes[i]
 
 def prime_sieve(block,primes=[]):
@@ -45,13 +51,14 @@ def prime_sieve(block,primes=[]):
 		# Problem extending, 100133 and 100135 are not prime
 		offset = primes[-1] + 2
 		nums = primes_extender(primes,block)
-		#print nums
+		#for i,n in enumerate(nums):
+		#	print "%d: %s" %(offset + 2 * i,n)
 		extend = len(nums)
 	for i in range(extend):
 		if nums[i]:
-#			print "Found %d, i:%d" % (2*i+offset,i)
+			#print "Found %d, i:%d" % (2*i+offset,i)
 			for j in range(3*i+offset,extend,2*i+offset):
-#				print "%d is not prime (%d * %d),j:%d" %(2*j+offset,2*i+offset,(2*j+offset)/(2*i+offset),j)
+				#print "%d is not prime (%d * %d),j:%d" %(2*j+offset,2*i+offset,(2*j+offset)/(2*i+offset),j)
 				nums[j] = False
 #	print nums
 	if primes:
@@ -66,14 +73,13 @@ def primes_extender(primes,block):
 	if 2 == primes[0]: first = 1
 	else: first = 0
 	for p in primes[first:]:
-		i_start = start % p
-		if i_start > 0: i_start = p - i_start // 2
+		i_start = ((2 * -((p-start)//(2*p)) + 1) * p - start) / 2
 		for i in range(i_start, length, p):
 			#print "prime: %d, number: %d" %( p, i*2+start)
 			num[i] = False
 	return num
 
-def prime_generator_old():
+def prime_generator_old(block=100):
 	list_of_primes = [2,3,5,7,11,13]
 	for prime in list_of_primes:
 		yield prime
@@ -149,5 +155,7 @@ def reorder(indexes):
 	return (swap_next, indexes)
 
 if __name__ == "__main__":
-	primes = [2,3,5,7]
-	print primes_extender(primes,30)
+	from sys import stdout
+	for p in prime_generator():
+		stdout.write("%d\r" %(p))
+		stdout.flush()
