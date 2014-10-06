@@ -71,7 +71,7 @@ def brute(gen):
 	return smallest
 
 def sub_triangle_sum(row, element, size, triangle):
-	"""The sum of a sub triangle within [triangle] with the lower left corner at [element] in [row] containing [size] rows""""
+	"""The sum of a sub triangle within [triangle] with the lower left corner at [element] in [row] containing [size] rows"""
 	if row - element < size: raise SizeError("Sub triangle to large")
 	s = 0
 	for i,r in enumerate(range(row-size, row+1),1):
