@@ -1,8 +1,0 @@
-Ok here's the shortcut: the number of paths to any given node is the sum of paths to the node on the left and the node above. The top and left rows have only one path. It's Pascal’s Triangle with the top in the upper left.
-
-<---width--->
-1  1  1  1  1  ^  
-1  2  3  4  5  |
-1  3  6 10 15  height
-1  4 10 20 35  |
-1  5 15 35 70  v
