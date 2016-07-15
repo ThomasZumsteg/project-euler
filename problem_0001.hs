@@ -1,12 +1,21 @@
-module Main where
+{-# LANGUAGE DeriveDataTypeable #-}
 
+-- import Test.HUnit (Assertion, (@=?), runTestTT, Test(..), Counts(..))
 import Text.Printf
+import System.Console.CmdArgs
 
-problem0001 :: Int -> [Int] -> Int
-problem0001 limit factors = sum ( filter ( divisibleByAny factors ) [1..( limit - 1)])
+data EulerArgs = EulerArgs { limit :: Integer }
+    deriving (Show, Data, Typeable)
 
-divisibleByAny :: [Int] -> Int -> Bool
-divisibleByAny factors num = any (\f -> mod num f == 0) factors
+euler = EulerArgs { limit = 100 }
 
+problem0001 :: (Integral a) => [a] -> a -> a
+problem0001 factors limit = sum (filter divisibleByAny [1..(limit-1)])
+    where
+        divisibleByAny num = any (\f -> mod num f == 0) factors
+
+main :: IO ()
 main = do
-    print (problem0001 1000 [3, 5])
+    args <- cmdArgs euler
+    let EulerArgs{ limit = l } = args
+    print (problem0001 [3, 5] l)
