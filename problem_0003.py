@@ -43,4 +43,4 @@ def prime_generator():
 			new_prime += 2
 
 if __name__ == "__main__":
-	print prime_factors(600851475143)
+	print prime_factors(600851475144)
