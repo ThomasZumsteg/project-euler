@@ -25,4 +25,4 @@ def get_n_digit_group(n, digits):
 		if i+n > len(text): break
 
 if __name__ == "__main__":
-	print consecutive_digit_product(5,"problem8.txt") # 180
+	print consecutive_digit_product(13,"problem_0008.txt") # 180
