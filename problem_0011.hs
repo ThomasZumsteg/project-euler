@@ -5,7 +5,8 @@ import System.Console.CmdArgs
 import Data.Time
 import System.IO
 import Data.Char
-import Test.HUnit
+import Test.HUnit ((@=?), runTestTT, Test(..))
+import Data.List
 
 -- In the 20×20 grid below, four numbers along a diagonal line have been marked in red.
 -- The product of these numbers is 26 × 63 × 78 × 14 = 1788696.
@@ -26,19 +27,36 @@ euler = Euler{}
 problem0011 :: String -> [Direction] -> Integer
 problem0011 path ds = 0
 
-getSlices :: (Integral a) => [[a]] -> Direction -> [[a]]
-getSlices grid Horizontal = grid
-getSlices [] Vertical = []
-getSlices grid Vertical = map head grid : getSlices ( map tail grid ) Vertical
-getSlices grid DiagonalDown = [[]]
-getSlices grid DiagonalUp = [[]]
+data Coord = Coord { row :: Int, col :: Int }
 
-tests :: [Test]
-tests = [ TestCase (assertEqual "Empty grid" [[]] (getSlices [[]] Horizontal))
-    ,TestCase (assertEqual "Easy grid" [[1,2],[3,4]] (getSlices [[1,2],[3,4]] Horizontal))
-    ,TestCase (assertEqual "Easy Vertical" [[1,3],[2,4]] (getSlices [[1,2],[3,4]] Vertical))
-    ,TestCase (assertEqual "Easy DiagonalUp" [[1],[2,3],[4]] (getSlices [[1,2],[3,4]] DiagonalUp))
-    ,TestCase (assertEqual "Easy DiagonalDown" [[2],[1,3],[4]] (getSlices [[1,2],[3,4]] DiagonalDown))]
+getSlices :: (Integral a) => Direction -> [[a]] -> [[a]]
+getSlices Horizontal = id
+getSlices Vertical = transpose
+getSlices DiagonalDown = map (getCoords diagonalDown) 
+    where
+        getCoords Coord{row=r, col=c} matrix = matrix !! r !! c
+getSlices DiagonalUp = map (getCoords diagonalUp)
+    where
+        getCoords Coord{row=r, col=c} matrix = matrix !! r !! c
+
+diagonalDown :: [[Coord]]
+diagonalDown = map ( map (\(r, c) -> Coord{row=r,col=c}) ) [ [(0,1)],
+    [(0,0), (1,1)],
+    [(1,0)] ]
+
+diagonalUp :: [[Coord]]
+diagonalUp = map (map (\(r, c) -> Coord{row=r,col=c})) [ [(0,0)],
+    [(1,0), (0,1)],
+    [(1,1)] ]
+
+getSlicesTests :: [Test]
+getSlicesTests = map TestCase 
+    [ [[]] @=? getSlices Horizontal [[]],
+    [[1,2], [3,4]] @=? getSlices Horizontal [[1,2],[3,4]],
+    [[1,3], [2,4]] @=? getSlices Vertical [[1,2],[3,4]],
+    [[1], [3,2], [4]] @=? getSlices DiagonalUp [[1,2],[3,4]],
+    [[3], [1,4], [2]] @=? getSlices DiagonalDown [[1,2],[3,4]]
+    ]
 
 parseFile :: String -> IO [[Integer]]
 parseFile name = do
@@ -50,7 +68,7 @@ exec :: EulerArgs -> IO ()
 exec Diagonal{..} = print $ problem0011 path [DiagonalUp, DiagonalDown]
 exec Euler = print $ problem0011 "problem_0011.txt" [DiagonalUp, DiagonalDown, Horizontal, Vertical]
 exec UnitTests = do
-    runTestTT $ TestList tests
+    runTestTT $ TestList getSlicesTests
     return ()
 
 main :: IO ()
