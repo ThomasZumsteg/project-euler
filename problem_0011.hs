@@ -24,13 +24,12 @@ diag = Diagonal { path = "problem_0011.txt" }
 unittest = UnitTests{}
 euler = Euler{}
 
-problem0011 :: (Integral a) => [[a]] -> a -> [Direction] -> Maybe a
+problem0011 :: (Integral a) => [[a]] -> Int -> [Direction] -> Maybe a
 problem0011 [[]] _ _ = error "Empty matrix"
-problem0011 _ [] _ = Nothing
-problem0011 grid l dirs = maximum $ map (maximum . getSlices grid l) dirs
-
-getSlices :: (Integral a) => [[a]] -> a -> Direction -> a
-getSlices _ _ _ = 0
+problem0011 _ _ [] = Nothing
+problem0011 grid l dirs = Just $ maximum $ map product slices
+    where
+        slices = concat $ filter ((==) l . length) $ map (slice grid) dirs
 
 testGridSmall :: [[Integer]]
 testGridSmall = [[1,2],[3,4]]
@@ -39,12 +38,25 @@ testGridLarge :: [[Integer]]
 testGridLarge = [[n..(n+9)] | n <- [0,10..90]]
 
 problem0011Test :: [Test]
-problem0011Test = map TestCase 
-    [ Just 1 @=? problem0011 [[1]] 1 [Vertical] ,
+problem0011Test = map TestCase [ 
+    Just 1 @=? problem0011 [[1]] 1 [Vertical] ,
     Just 1 @=? problem0011 [[1]] 1 [Horizontal] ,
     Just 1 @=? problem0011 [[1]] 1 [DiagonalUp] ,
-    Just 1 @=? problem0011 [[1]] 1 [DiagonalDown]
+    Just 1 @=? problem0011 [[1]] 1 [DiagonalDown],
+    Just 8 @=? problem0011 testGridSmall 2 [Vertical] ,
+    Just 12 @=? problem0011 testGridSmall 2 [Horizontal] ,
+    Just 6 @=? problem0011 testGridSmall 2 [DiagonalUp] ,
+    Just 4 @=? problem0011 testGridSmall 2 [DiagonalDown],
+    Just 12 @=? problem0011 testGridSmall 2 
+        [Vertical, Horizontal, DiagonalUp, DiagonalDown]
     ] 
+
+slice :: (Integral a) => [[a]] -> Direction -> [[a]]
+slice _ _ = [[1]]
+
+-- getSlicesTest :: [Test]
+-- getSlicesTest = map TestCase [
+--     Just 1 @=? getSlices
 
 parseFile :: String -> IO [[Integer]]
 parseFile name = do
@@ -56,12 +68,12 @@ exec :: EulerArgs -> IO ()
 exec Diagonal{..} = do
     grid <- parseFile path
     let directions = [DiagonalUp, DiagonalDown]
-    result <- problem0011 grid 4 directions 
+        result = problem0011 grid 4 directions 
     print result
 exec Euler = do
     grid <- parseFile "problem_0011.txt"
     let directions = [DiagonalUp, DiagonalDown, Horizontal, Vertical]
-    result <- problem0011 grid 4 directions
+        result = problem0011 grid 4 directions
     print result
 exec UnitTests = do 
     runTestTT $ TestList problem0011Test
