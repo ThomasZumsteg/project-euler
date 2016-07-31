@@ -29,7 +29,10 @@ problem0011 [[]] _ _ = error "Empty matrix"
 problem0011 _ _ [] = Nothing
 problem0011 grid l dirs = Just $ maximum $ map product slices
     where
-        slices = concat $ filter ((==) l . length) $ map (slice grid) dirs
+        rows = length grid
+        cols = length $ head grid
+        points = [(r,c) | r <- [0..(rows - 1 - l)], c <- [0..(cols - 1 - l)]]
+        slices = map (map (getSlice grid l) dirs) points
 
 testGridSmall :: [[Integer]]
 testGridSmall = [[1,2],[3,4]]
@@ -51,12 +54,21 @@ problem0011Test = map TestCase [
         [Vertical, Horizontal, DiagonalUp, DiagonalDown]
     ] 
 
-slice :: (Integral a) => [[a]] -> Direction -> [[a]]
-slice _ _ = [[1]]
+type Point = (Int, Int)
 
--- getSlicesTest :: [Test]
--- getSlicesTest = map TestCase [
---     Just 1 @=? getSlices
+getSlice :: (Integral a) => [[a]] -> a -> Direction -> Point -> [a]
+getSlice grid l Vertical (r, c) = [grid !! r + n !! c | n <- [0..l]]
+getSlice grid l Horizontal (r, c) = [grid !! r !! c + n | n <- [0..l]]
+getSlice grid l DiagonalDown (r, c) = [grid !! r + n !! c + n | n <- [0..l]]
+getSlice grid l DiagonalUp (r, c) = [grid !! r + n !! c - n | n <- [0..l]]
+
+getSliceTest :: [Test]
+getSliceTest = map TestCase [
+    [1,3] @=? getSlice testGridSmall 2 Vertical (0,0), 
+    [1,2] @=? getSlice testGridSmall 2 Horizontal (0,0), 
+    [2,3] @=? getSlice testGridSmall 2 DiagonalUp (0,1),
+    [1,4] @=? getSlice testGridSmall 2 DiagonalDown (0,0)
+    ]
 
 parseFile :: String -> IO [[Integer]]
 parseFile name = do
@@ -76,7 +88,7 @@ exec Euler = do
         result = problem0011 grid 4 directions
     print result
 exec UnitTests = do 
-    runTestTT $ TestList problem0011Test
+    runTestTT $ TestList $ problem0011Test ++ sliceTest
     return ()
 
 main :: IO ()
