@@ -14,15 +14,7 @@ import Data.List
 
 data Direction = Horizontal | Vertical | DiagonalUp | DiagonalDown
 
-data EulerArgs = 
-    Diagonal { path :: String }
-    | UnitTests 
-    | Euler 
-        deriving (Show, Data, Typeable)
-    
-diag = Diagonal { path = "problem_0011.txt" }
-unittest = UnitTests{}
-euler = Euler{}
+type Point = (Int, Int)
 
 problem0011 :: (Integral a) => [[a]] -> Int -> [Direction] -> Maybe a
 problem0011 [[]] _ _ = error "Empty matrix"
@@ -31,8 +23,31 @@ problem0011 grid l dirs = Just $ maximum $ map product slices
     where
         rows = length grid
         cols = length $ head grid
-        points = [(r,c) | r <- [0..(rows - 1 - l)], c <- [0..(cols - 1 - l)]]
+        points = concat [
+            [(r, c) | c <- [0..(pred $ length $ grid !! r)]] 
+                | r <- [0..(pred $ length grid)]
+            ]
         slices = [[1]]
+
+getSlice :: (Integral a) => [[a]] -> Int -> Direction -> Point -> Maybe [a]
+getSlice _ 0 _ _ = Just []
+getSlice grid l d p@(r, c) = (:) <$> element <*> elements
+    where
+        l' = pred l 
+        element = getElement grid p
+        elements = case d of 
+            Vertical -> getSlice grid l' Vertical (succ r, c)
+            Horizontal -> getSlice grid l' Horizontal (r, succ c)
+            DiagonalUp -> getSlice grid l' DiagonalUp (succ r, pred c)
+            DiagonalDown -> getSlice grid l' DiagonalDown (succ r, succ c)
+
+getElement :: (Integral a) => [[a]] -> Point -> Maybe a
+getElement grid (r, c)
+    | (0 <= r && r < rs) && (0 <= c && c < cs) = Just $ grid !! r !! c
+    | otherwise = Nothing
+    where
+        rs = length grid
+        cs = length $ grid !! r
 
 testGridSmall :: [[Integer]]
 testGridSmall = [[1,2],[3,4]]
@@ -54,23 +69,40 @@ problem0011Test = map TestCase [
         [Vertical, Horizontal, DiagonalUp, DiagonalDown]
     ] 
 
-type Point = (Int, Int)
-
-getSlice :: (Integral a) => [[a]] -> Int -> Direction -> Point -> [a]
-getSlice _ 0 _ _ = []
-getSlice grid l Vertical (r, c) = grid !! r !! c : getSlice grid Vertical (l - 1) (r, c+1)
-getSlice grid l Horizontal (r, c) = [grid !! r !! ( c + n ) | n <- [0..l]]
-getSlice grid l DiagonalDown (r, c) = [grid !! ( r + n ) !! ( c + n ) | n <- [0..l]]
-getSlice grid l DiagonalUp (r, c) = [grid !! ( r + n ) !! ( c - n ) | n <- [0..l]]
-
 getSliceTest :: [Test]
 getSliceTest = map TestCase [
-    [1,3] @=? getSlice testGridSmall 1 Vertical (0,0), 
-    [1,3] @=? getSlice testGridSmall 2 Vertical (0,0), 
-    [1,2] @=? getSlice testGridSmall 2 Horizontal (0,0), 
-    [2,3] @=? getSlice testGridSmall 2 DiagonalUp (0,1),
-    [1,4] @=? getSlice testGridSmall 2 DiagonalDown (0,0)
+    Just [1]   @=? getSlice testGridSmall 1 Vertical (0,0), 
+    Just [1,3] @=? getSlice testGridSmall 2 Vertical (0,0), 
+    Just [1,2] @=? getSlice testGridSmall 2 Horizontal (0,0), 
+    Just [2,3] @=? getSlice testGridSmall 2 DiagonalUp (0,1),
+    Just [1,4] @=? getSlice testGridSmall 2 DiagonalDown (0,0),
+    Nothing    @=? getSlice testGridSmall 2 DiagonalUp (1,1),
+    Nothing    @=? getSlice testGridSmall 3 DiagonalDown (0,0),
+    Just [00,10,20,30] @=? getSlice testGridLarge 4 Vertical (0,0), 
+    Just [00,01,02,03] @=? getSlice testGridLarge 4 Horizontal (0,0), 
+    Just [03,12,21,30] @=? getSlice testGridLarge 4 DiagonalUp (0,3),
+    Just [00,11,22,33] @=? getSlice testGridLarge 4 DiagonalDown (0,0)
     ]
+
+getElementTest :: [Test]
+getElementTest = map TestCase [
+    Just 1  @=? getElement testGridSmall ( 0, 0),
+    Just 4  @=? getElement testGridSmall ( 1, 1),
+    Nothing @=? getElement testGridSmall (-1, 0),
+    Nothing @=? getElement testGridSmall ( 3, 0),
+    Nothing @=? getElement testGridSmall ( 0,-1),
+    Nothing @=? getElement testGridSmall ( 0, 3)
+    ]
+
+data EulerArgs = 
+    Diagonal { path :: String }
+    | UnitTests 
+    | Euler 
+        deriving (Show, Data, Typeable)
+    
+diag = Diagonal { path = "problem_0011.txt" }
+unittest = UnitTests{}
+euler = Euler{}
 
 parseFile :: String -> IO [[Integer]]
 parseFile name = do
@@ -90,7 +122,7 @@ exec Euler = do
         result = problem0011 grid 4 directions
     print result
 exec UnitTests = do 
-    runTestTT $ TestList $ getSliceTest
+    runTestTT $ TestList $ getElementTest ++ getSliceTest
     return ()
 
 main :: IO ()
