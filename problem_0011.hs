@@ -1,12 +1,11 @@
 {-# LANGUAGE DeriveDataTypeable, RecordWildCards #-}
 
-import Text.Printf
+import Text.Printf (printf)
 import System.Console.CmdArgs
-import Data.Time
-import System.IO
-import Data.Char
+import Data.Time (getCurrentTime, diffUTCTime)
+import System.IO( IOMode(ReadMode), openFile, hGetContents)
 import Test.HUnit ((@=?), runTestTT, Test(..))
-import Data.List
+import Data.Maybe (fromJust, isJust)
 
 -- In the 20×20 grid below, four numbers along a diagonal line have been marked in red.
 -- The product of these numbers is 26 × 63 × 78 × 14 = 1788696.
@@ -17,9 +16,9 @@ data Direction = Horizontal | Vertical | DiagonalUp | DiagonalDown
 type Point = (Int, Int)
 
 problem0011 :: (Integral a) => [[a]] -> Int -> [Direction] -> Maybe a
-problem0011 [[]] _ _ = error "Empty matrix"
+piroblem0011 [[]] _ _ = error "Empty matrix"
 problem0011 _ _ [] = Nothing
-problem0011 grid l dirs = Just $ maximum $ map product slices
+problem0011 grid l dirs = maximum $ map ((<$>) product) slices
     where
         rows = length grid
         cols = length $ head grid
@@ -27,7 +26,7 @@ problem0011 grid l dirs = Just $ maximum $ map product slices
             [(r, c) | c <- [0..(pred $ length $ grid !! r)]] 
                 | r <- [0..(pred $ length grid)]
             ]
-        slices = [[1]]
+        slices = concat $ map (\d -> map (getSlice grid l d) points) dirs
 
 getSlice :: (Integral a) => [[a]] -> Int -> Direction -> Point -> Maybe [a]
 getSlice _ 0 _ _ = Just []
@@ -95,12 +94,12 @@ getElementTest = map TestCase [
     ]
 
 data EulerArgs = 
-    Diagonal { path :: String }
+    Diagonal { sliceLength :: Int, path :: String }
     | UnitTests 
     | Euler 
         deriving (Show, Data, Typeable)
     
-diag = Diagonal { path = "problem_0011.txt" }
+diag = Diagonal { sliceLength = 4, path = "problem_0011.txt" }
 unittest = UnitTests{}
 euler = Euler{}
 
@@ -114,15 +113,18 @@ exec :: EulerArgs -> IO ()
 exec Diagonal{..} = do
     grid <- parseFile path
     let directions = [DiagonalUp, DiagonalDown]
-        result = problem0011 grid 4 directions 
+        result = problem0011 grid sliceLength directions 
     print result
 exec Euler = do
     grid <- parseFile "problem_0011.txt"
     let directions = [DiagonalUp, DiagonalDown, Horizontal, Vertical]
         result = problem0011 grid 4 directions
-    print result
+    if isJust result
+        then printf "Answer: %d\n" $ fromJust result
+        else print "No slices in the grid"
+    
 exec UnitTests = do 
-    runTestTT $ TestList $ getElementTest ++ getSliceTest
+    runTestTT $ TestList $ getElementTest ++ getSliceTest ++ problem0011Test
     return ()
 
 main :: IO ()
