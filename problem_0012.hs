@@ -23,12 +23,21 @@ import Data.Maybe (fromJust)
 problem0012 :: (Integral a) => a -> a
 problem0012 n = fromJust $ find ((<=) n . numFactors) triangleNums
     where
-        numFactors = fromIntegral . length . factors
+        numFactors = fromIntegral . ((^) 2) . length . primeFactors [2..]
 
 factors :: (Integral a) => a -> [a]
 factors n
     | n <= 0 = error "n cannot be a negative number"
 factors n = [f | f <- [1..n], 0 == rem n f]
+
+primeFactors :: (Integral a) => [a] -> a -> [a]
+primeFactors _ 1 = []
+primeFactors factors@(f:fs) n 
+    | r == 0 = f : primeFactors factors q
+    | f * f > n = [n]
+    | otherwise = primeFactors fs n
+    where
+        (q, r) = quotRem n f
 
 triangleNums :: (Integral a) => [a]
 triangleNums = scanl1 (+) [1..]
@@ -51,6 +60,14 @@ factorsTest = map TestCase [
     [1,2,4,7,14,28] @=? factors 28 
     ]
 
+primeFactorsTest :: [Test]
+primeFactorsTest = map TestCase [
+    [] @=? primeFactors [2..] 1,
+    [2] @=? primeFactors [2..] 2,
+    [2,2] @=? primeFactors [2..] 4,
+    [2,2,3] @=? primeFactors [2..] 12,
+    [2,2,7] @=? primeFactors [2..] 28 
+    ]
 triangleNumsTest :: [Test]
 triangleNumsTest = map TestCase [
     [1,3,6,10,15,21,28,36,45,55] @=? take 10 triangleNums
@@ -64,12 +81,12 @@ data EulerArgs =
 
 exec :: EulerArgs -> IO ()
 exec AdHoc{..} = do
-    printf "%d is the first triangle number to have %d factors or more" (problem0012 size) size
+    printf "%d is the first triangle number to have %d factors or more\n" (problem0012 size) size
 exec Euler = do
     let result = problem0012 500::Integer
     printf "Answer: %d\n" result
 exec UnitTest = do 
-    runTestTT $ TestList $ factorsTest ++ triangleNumsTest ++ problem0012Test
+    runTestTT $ TestList $ factorsTest ++ triangleNumsTest ++ problem0012Test ++ primeFactorsTest
     return ()
 
 adHoc = AdHoc{ size = 4 }
