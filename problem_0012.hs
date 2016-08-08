@@ -17,27 +17,30 @@ import Text.Printf (printf)
 import Test.HUnit ((@=?), runTestTT, Test(..))
 import System.Console.CmdArgs
 import Data.Time (getCurrentTime, diffUTCTime)
-import Data.List (find)
+import Data.List (find,sort, group)
 import Data.Maybe (fromJust)
 
 problem0012 :: (Integral a) => a -> a
-problem0012 n = fromJust $ find ((<=) n . numFactors) triangleNums
+problem0012 n = ((!!) triangleNums) $ fromJust $ find ((<=) n . numFactors) [1..]
     where
-        numFactors = fromIntegral . ((^) 2) . length . primeFactors [2..]
+        numFactors = product $ group $ sort $ primeFactors n ++ primeFactors (n+1)
 
 factors :: (Integral a) => a -> [a]
 factors n
     | n <= 0 = error "n cannot be a negative number"
 factors n = [f | f <- [1..n], 0 == rem n f]
 
-primeFactors :: (Integral a) => [a] -> a -> [a]
-primeFactors _ 1 = []
-primeFactors factors@(f:fs) n 
-    | r == 0 = f : primeFactors factors q
-    | f * f > n = [n]
-    | otherwise = primeFactors fs n
+primeFactors :: (Integral a) => a -> [a]
+primeFactors = primeFactorsWorker [2..]
     where
-        (q, r) = quotRem n f
+        primeFactorsWorker _ 1 = []
+        primeFactorsWorker factors@(f:fs) n 
+            | r == 0 = f : primeFactors factors q
+            | f * f > n = [n]
+            | otherwise = primeFactors fs n
+            where
+                (q, r) = quotRem n f
+
 
 triangleNums :: (Integral a) => [a]
 triangleNums = scanl1 (+) [1..]
@@ -62,11 +65,11 @@ factorsTest = map TestCase [
 
 primeFactorsTest :: [Test]
 primeFactorsTest = map TestCase [
-    [] @=? primeFactors [2..] 1,
-    [2] @=? primeFactors [2..] 2,
-    [2,2] @=? primeFactors [2..] 4,
-    [2,2,3] @=? primeFactors [2..] 12,
-    [2,2,7] @=? primeFactors [2..] 28 
+    [] @=? primeFactors 1,
+    [2] @=? primeFactors 2,
+    [2,2] @=? primeFactors 4,
+    [2,2,3] @=? primeFactors 12,
+    [2,2,7] @=? primeFactors 28 
     ]
 triangleNumsTest :: [Test]
 triangleNumsTest = map TestCase [
