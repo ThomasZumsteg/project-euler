@@ -17,27 +17,31 @@ import Text.Printf (printf)
 import Test.HUnit ((@=?), runTestTT, Test(..))
 import System.Console.CmdArgs
 import Data.Time (getCurrentTime, diffUTCTime)
-import Data.List (find,sort, group)
+import Data.List (find, sort, group, delete)
 import Data.Maybe (fromJust)
 
-problem0012 :: (Integral a) => a -> a
-problem0012 n = ((!!) triangleNums) $ fromJust $ find ((<=) n . numFactors) [1..]
+problem0012 :: (Integral a, Ord a) => a -> a
+problem0012 n = triangleNums !! firstLargerThen
     where
-        numFactors = product $ group $ sort $ primeFactors n ++ primeFactors (n+1)
+        primeFactorsOfT t = delete 2 $ primeFactors t ++ primeFactors (t+1)
+        firstLargerThen = pred $ fromJust $ find ((<=) n . fromIntegral . totalFactors . primeFactorsOfT) [1..]
+
+totalFactors :: (Integral a) => [a] -> Int
+totalFactors = product . map ((+) 1 . length) . group . sort 
 
 factors :: (Integral a) => a -> [a]
-factors n
-    | n <= 0 = error "n cannot be a negative number"
+factors n | n <= 0 = error "n cannot be a negative number"
 factors n = [f | f <- [1..n], 0 == rem n f]
 
 primeFactors :: (Integral a) => a -> [a]
-primeFactors = primeFactorsWorker [2..]
+primeFactors 0 = []
+primeFactors num = primeFactorsWorker [2..] num
     where
         primeFactorsWorker _ 1 = []
         primeFactorsWorker factors@(f:fs) n 
-            | r == 0 = f : primeFactors factors q
+            | r == 0 = f : primeFactorsWorker factors q
             | f * f > n = [n]
-            | otherwise = primeFactors fs n
+            | otherwise = primeFactorsWorker fs n
             where
                 (q, r) = quotRem n f
 
