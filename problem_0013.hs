@@ -9,20 +9,14 @@ import Data.Time (getCurrentTime, diffUTCTime)
 import System.IO (IOMode( ReadMode), hGetContents, openFile)
 import Data.Char (digitToInt)
 
-problem0013 :: (Integral a) => a -> [a] -> a
-problem0013 digits = foldl (\n total -> rem (n + total) (10 ^ digits)) 0 
+problem0013 :: (Integral a, Show a) => Int -> [a] -> String
+problem0013 digits = take digits . show . sum
 
-lastN :: Int -> [a] -> [a]
-lastN l items = drop firstN items
-    where
-        firstN = (length items) - l
-
-readFirstNDigits :: String -> Int -> [Int]
-readFirstNDigits fileName _ = do
+getNumberList :: String -> IO [Integer]
+getNumberList fileName = do
     handle <- openFile fileName ReadMode
     contents <- hGetContents handle
-    let numberList = map (fromIntegral . read . lastN digits) $ lines contents
-    return numberList
+    return $ map (fromIntegral . read) $ lines contents
 
 data EulerArgs = 
     AdHoc { 
@@ -34,11 +28,13 @@ data EulerArgs =
 
 exec :: EulerArgs -> IO ()
 exec AdHoc{..} = do
-    let numberList = readFirstNDigits "problem_0013.txt" 10
-    printf "The first %d digits is: %d\n" digits (problem0013 digits numberList)
+    numberList <- getNumberList fileName 
+    let answer = problem0013 digits numberList
+    printf "The first %d digits is: %s\n" digits answer
 exec Euler = do
-    -- let result = problem0013 10 numberList 
-    printf "Answer: %d\n" (problem0013 (10::Integer) [123, 456, 789])
+    numberList <- getNumberList "problem_0013.txt"
+    let answer = problem0013 10 numberList
+    printf "Answer: %s\n" answer 
 exec UnitTest = do 
     runTestTT $ TestList $ []
     return ()
