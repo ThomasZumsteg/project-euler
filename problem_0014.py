@@ -36,4 +36,4 @@ def collatz_seq_gen(start):
 			start = start * 3 + 1
 
 if __name__ == "__main__":
-   main() 
+   main()

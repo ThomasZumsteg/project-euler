@@ -21,8 +21,8 @@ import Data.Char (digitToInt)
 
 -- NOTE: Once the chain starts the terms are allowed to go above one million.
 
-problem0014 :: (Integral a) => a -> a
-problem0014 l = maximum $ take (fromIntegral l) $ map length collatzSequence
+problem0014 :: Int -> Int
+problem0014 l = maximum $ take l $ map length collatzSequence
 
 collatzSequence :: [[Integer]]
 collatzSequence = map collatz [1..]
@@ -54,7 +54,7 @@ collatzTest = map TestCase [
     ]
 
 data EulerArgs = 
-    AdHoc { limit :: Integer }
+    AdHoc { limit :: Int }
     | Euler 
     | UnitTest
         deriving (Show, Data, Typeable)
@@ -63,8 +63,9 @@ exec :: EulerArgs -> IO ()
 exec AdHoc{..} = do
     let answer = problem0014 limit
     printf "The longest Collatz sequence under %d is: %d\n" limit answer
+    printf "It has %d entries\n" (length $ collatzSequence !! answer)
 exec Euler = do
-    let answer = problem0014 ((10::Integer)^6)
+    let answer = problem0014 (10^6)
     printf "Answer: %d\n" answer 
 exec UnitTest = do 
     runTestTT $ TestList $ collatzTest ++ problem0014Test
