@@ -22,7 +22,14 @@ import Data.Char (digitToInt)
 -- NOTE: Once the chain starts the terms are allowed to go above one million.
 
 problem0014 :: Int -> Int
-problem0014 l = maximum $ take l $ map length collatzSequence
+problem0014 l = maximum $ map collatzLength [1..l]
+
+collatzLength :: (Integral a) => a -> a
+collatzLength 1 = 1
+collatzLength n = 1 + if even n then evenVal else oddVal
+    where
+        evenVal = collatzLength (div n 2)
+        oddVal = collatzLength (3 * n + 1)
 
 collatzSequence :: [[Integer]]
 collatzSequence = map collatz [1..]
@@ -44,6 +51,9 @@ problem0014Test = map TestCase [
     8 @=? problem0014 5
     ]
 
+collatzLengthTest :: [Test]
+collatzLengthTest = map (\n -> TestCase ((length $ collatzSequence !! (n-1)) @=? collatzLength n)) [1..10]
+    
 collatzTest :: [Test]
 collatzTest = map TestCase [
     [1] @=? collatz 1,
@@ -68,7 +78,7 @@ exec Euler = do
     let answer = problem0014 (10^6)
     printf "Answer: %d\n" answer 
 exec UnitTest = do 
-    runTestTT $ TestList $ collatzTest ++ problem0014Test
+    runTestTT $ TestList $ collatzTest ++ problem0014Test ++ collatzLengthTest
     return ()
 
 adHoc = AdHoc{ limit = 100 }
