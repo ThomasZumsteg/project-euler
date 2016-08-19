@@ -11,11 +11,23 @@ import Data.Char (digitToInt)
 
 -- How many such routes are there through a 20×20 grid?
 
-problem0015 :: (Integral a) => (a, a) -> Integer
-problem0015 (0, 0) = 0
-problem0015 (_, 0) = 1
-problem0015 (0, _) = 1
-problem0015 (x, y) = problem0015 (x-1, y) + problem0015 (x, y-1)
+problem0015 :: (Int, Int) -> Integer
+problem0015 (x, y) = paths !! x !! y
+
+paths :: [[Integer]]
+paths = firstRow : [ otherRows y | y <- [1..]]
+    where
+        firstRow = 0 : [1,1..]
+        otherRows y = 1 : [ oneLeft x y + oneUp x y | x <- [1..]]
+        oneUp x y = paths !! (x - 1) !! y
+        oneLeft x y = paths !! x !! (y -1)
+
+pathsTest :: [Test]
+pathsTest = map TestCase [
+    0 @=? paths !! 0 !! 0, 
+    1 @=? paths !! 1 !! 0, 
+    1 @=? paths !! 0 !! 1
+    ]
 
 problem0015Test :: [Test]
 problem0015Test = map TestCase [
@@ -42,7 +54,7 @@ exec Euler = do
     let answer = problem0015 (20, 20)
     printf "Answer: %d\n" answer 
 exec UnitTest = do 
-    runTestTT $ TestList $ problem0015Test
+    runTestTT $ TestList $ problem0015Test ++ pathsTest
     return ()
 
 adHoc = AdHoc{ gridSize = (2,2) }
