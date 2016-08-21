@@ -1,10 +1,14 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
+
+from time import time
 
 def main():
-	exp = 1000
-	number = list(str(2**exp))
-	number = [int(x) for x in number]
-	print sum(number)
+    exp = 1000
+    base = 2
+    answer = sum(int(d) for d in str(base**exp))
+    print('Answer: {}'.format(answer))
 
 if __name__ == "__main__":
-	main()
+    start = time()
+    main()
+    print('That took {:0.4} seconds'.format(time() - start))
