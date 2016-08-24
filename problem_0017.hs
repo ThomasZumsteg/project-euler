@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable, RecordWildCards #-}
 
-import Text.Printf (printf)
+import Text.Printf (printf, PrintfArg)
 import Test.HUnit ((@=?), runTestTT, Test(..))
 import System.Console.CmdArgs
 import Data.Time (getCurrentTime, diffUTCTime)
@@ -14,84 +14,47 @@ import Data.Maybe (fromJust)
 
 -- NOTE: Do not count spaces or hyphens. For example, 342 (three hundred and forty-two) contains 23 letters and 115 (one hundred and fifteen) contains 20 letters. The use of "and" when writing out numbers is in compliance with British usage.
 
-
 problem0017 :: (Integral a) => a -> a -> Int
-problem0017 start stop = sum $ map (countLetters . fromJust . inEnglish) [start..stop]
+problem0017 start stop = sum $ map countLetters [start..stop]
 
-countLetters :: String -> Int
-countLetters = length . filter isAlpha
+countLetters :: (Integral a) => a -> Int
+countLetters = length . filter isAlpha . fromJust . inEnglish . fromIntegral
 
-inEnglish :: Integral a => a -> Maybe String
+inEnglish :: Integer -> Maybe String
 inEnglish n
+  | n < 0 || 1000 < n = Nothing
   | n == 0 = Just "zero"
-  | n < 0 || (truncate (1e12::Double)) <= n = Nothing
-  | otherwise =  Just $ unwords 
-    $ map (\(num, mag) -> digits num ++ mag) magnitudes
+  | n == 1000 = Just "one thousand"
+  | h == 0 && t == 0 && o /= 0 = Just $ one
+  | h == 0 && t == 1 && o /= 0 = Just $ teen
+  | h == 0 && t /= 0 && o == 0 = Just $ ten
+  | h /= 0 && t == 0 && o == 0 = Just $ hundred
+  | h == 0 && t /= 0 && o /= 0 = Just $ printf "%s-%s" ten one
+  | h /= 0 && t == 1 && o /= 0 = Just $ printf "%s and %s" hundred teen
+  | h /= 0 && t /= 0 && o == 0 = Just $ printf "%s and %s" hundred ten
+  | h /= 0 && t == 0 && o /= 0 = Just $ printf "%s and %s" hundred one
+  | otherwise = Just $ printf "%s and %s-%s" hundred ten one
   where
-    magnitudes = reverse 
-      $ filter ((/= 0) . fst) 
-      $ zip (groups n) ["", " thousand", " million", " billion"]
+    (h:t:o:_) = map digitToInt $ printf "%03d" n
+    one = ones !! o
+    teen = teens !! o
+    ten = tens !! t
+    hundred = hundreds !! h
 
-groups :: Integral a => a -> [a]
-groups 0 = []
-groups g = re: groups quo
-  where
-    (quo, re) = divMod g 1000
+ones :: [String]
+ones = [ "", "one", "two", "three", "four", "five", 
+    "six", "seven", "eight", "nine" ]
 
-digits :: Integral a => a -> String
-digits n
-  | 10 < n && n < 20 = teens n
-  | otherwise = joinDigits (h,t,o)
-  where
-    (h, teen) = divMod n 100
-    (t, o) = divMod teen 10
+teens :: [String]
+teens = [ "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", 
+    "sixteen", "seventeen", "eighteen", "nineteen"]
 
-joinDigits :: Integral a => (a, a, a) -> String
-joinDigits (0, 0, n) = ones n
-joinDigits (0, t, 0) = tens t
-joinDigits (h, 0, 0) = ones h ++ " hundred"
-joinDigits (0, t, n) = tens t ++ "-" ++ ones n
-joinDigits (h, t, 0) = ones h ++ " hundred " ++ tens t
-joinDigits (h, t, n) = ones h ++ " hundred " ++ tens t ++ "-" ++ ones n
+tens :: [String]
+tens = [ "", "ten", "twenty", "thirty", "forty", "fifty",
+    "sixty", "seventy", "eighty", "ninety" ]
 
-ones :: Integral a => a -> String
-ones n = case n of 
-  1 -> "one"
-  2 -> "two"
-  3 -> "three"
-  4 -> "four"
-  5 -> "five"
-  6 -> "six"
-  7 -> "seven"
-  8 -> "eight"
-  9 -> "nine"
-  _ -> ""
-
-teens :: Integral a => a -> String
-teens n = case n of
-  11 -> "eleven"
-  12 -> "twelve"
-  13 -> "thirteen"
-  14 -> "fourteen"
-  15 -> "fifteen"
-  16 -> "sixteen"
-  17 -> "seventeen"
-  18 -> "eighteen"
-  19 -> "nineteen"
-  _ -> ""
-
-tens :: Integral a => a -> String
-tens n = case n of
-  1 -> "ten"
-  2 -> "twenty"
-  3 -> "thirty"
-  4 -> "forty"
-  5 -> "fifty"
-  6 -> "sixty"
-  7 -> "seventy"
-  8 -> "eighty"
-  9 -> "ninety"
-  _ -> ""
+hundreds :: [String]
+hundreds = "": ( map (flip (++) " hundred") $ tail ones )
 
 problem0017Test :: [Test]
 problem0017Test = map TestCase [
@@ -100,7 +63,18 @@ problem0017Test = map TestCase [
 
 inEnglishTest :: [Test]
 inEnglishTest = map TestCase [
+    Nothing @=? inEnglish ( -1 ),
+    Nothing @=? inEnglish 1001,
+    "zero" @=? (fromJust $ inEnglish 0),
+    "one thousand" @=? (fromJust $ inEnglish 1000),
+    "one" @=? (fromJust $ inEnglish 1),
+    "ten" @=? (fromJust $ inEnglish 10),
+    "eleven" @=? (fromJust $ inEnglish 11),
+    "one hundred" @=? (fromJust $ inEnglish 100),
     "three hundred and forty-two" @=? (fromJust $ inEnglish 342),
+    "forty-three" @=? (fromJust $ inEnglish 43),
+    "one hundred and ten" @=? (fromJust $ inEnglish 110),
+    "one hundred and one" @=? (fromJust $ inEnglish 101),
     "one hundred and fifteen" @=? (fromJust $ inEnglish 115)
     ]
 
