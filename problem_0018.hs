@@ -42,18 +42,15 @@ problem0018 = maximum . bruteForce
 
 bruteForce :: [[Integer]] -> [Integer]
 bruteForce [] = error "Empty triangle"
-bruteForce (r:rs) = concat $ foldl triangleFolder firstRow rs
-    where
-        firstRow = map (flip (:) []) r
+bruteForce triangle = concat $ foldl triangleFolder [] triangle
 
 triangleFolder :: [[Integer]] -> [Integer] -> [[Integer]]
-triangleFolder _ [] = []
-triangleFolder [] _ = []
-triangleFolder (x:xs) (y:y':ys) = leftPath : rightPath : otherNodes
+triangleFolder [] row = map (flip (:) []) row
+triangleFolder nodes row = [[firstNode]] ++ nodes ++ [[lastNode]]
     where
-        leftPath = map ((+) y) x 
-        rightPath = map ((+) y') x 
-        otherNodes = triangleFolder xs (y':ys)
+        firstNode = (head $ head nodes) + (head row)
+        lastNode = (last $ last nodes) + (last row)
+        paths = zip (init row) (tail row)
 
 readRows :: String -> IO [[Integer]]
 readRows filename = do
@@ -81,8 +78,8 @@ triangleFolderTest = map TestCase [
     [] @=? triangleFolder [[1,2,3]] [],
     [] @=? triangleFolder [] [],
     [[3],[4]] @=? triangleFolder [[1]] [2, 3],
-    [] @=? triangleFolder [] [1, 2],
-    [] @=? triangleFolder [] [1]
+    [[1], [2]] @=? triangleFolder [] [1, 2],
+    [[1]] @=? triangleFolder [] [1]
     ]
 
 data EulerArgs = 
