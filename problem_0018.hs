@@ -38,27 +38,36 @@ import Data.Char (digitToInt, isAlpha)
 import Data.Maybe (fromJust)
 
 problem0018 :: [[Integer]] -> Integer
-problem0018 = maximum . bruteForce 
-
-bruteForce :: [[Integer]] -> [Integer]
-bruteForce [] = error "Empty triangle"
-bruteForce triangle = concat $ foldl triangleFolder [] triangle
-
-triangleFolder :: [[Integer]] -> [Integer] -> [[Integer]]
-triangleFolder [] row = map (flip (:) []) row
-triangleFolder nodes row = [[firstNode]] ++ nodes ++ [[lastNode]]
+problem0018 rows = maxPath triangleTree
     where
-        firstNode = (head $ head nodes) + (head row)
-        lastNode = (last $ last nodes) + (last row)
-        paths = zip (init row) (tail row)
+        triangleTree = buildTriangleTree rows
+
+maxPath :: Maybe TreeNode -> Integer
+maxPath Nothing = 0
+maxPath (Just TreeNode {left=left, right=right, node=node}) =
+    node + (max (maxPath left) (maxPath right))
 
 readRows :: String -> IO [[Integer]]
 readRows filename = do
     handle <- openFile filename ReadMode
     contents <- hGetContents handle
     let triangle = map (map read . words) $ lines contents
-    print triangle
     return triangle
+
+data TreeNode = TreeNode { 
+    left :: Maybe TreeNode, 
+    right :: Maybe TreeNode,
+    node :: Integer }
+    deriving (Eq, Show)
+
+buildTriangleTree :: [[Integer]] -> Maybe TreeNode
+buildTriangleTree [] = Nothing
+buildTriangleTree ([]:_) = Nothing
+buildTriangleTree (row:rows) = Just $ TreeNode left right value
+    where
+        value = head row
+        left = buildTriangleTree rows
+        right = buildTriangleTree $ map tail rows
 
 testTriangle :: [[Integer]]
 testTriangle = [ [ 3 ],
@@ -68,18 +77,35 @@ testTriangle = [ [ 3 ],
 
 problem0018Test :: [Test]
 problem0018Test = map TestCase [
-    -- 23 @=? problem0018 testTriangle
+    23 @=? problem0018 testTriangle
     ]
 
-triangleFolderTest :: [Test]
-triangleFolderTest = map TestCase [
-    [[187], [217, 186], [221]] @=? triangleFolder [[170], [139]] [17,47,82],
-    [[170], [139]] @=? triangleFolder [[75]] [95,64],
-    [] @=? triangleFolder [[1,2,3]] [],
-    [] @=? triangleFolder [] [],
-    [[3],[4]] @=? triangleFolder [[1]] [2, 3],
-    [[1], [2]] @=? triangleFolder [] [1, 2],
-    [[1]] @=? triangleFolder [] [1]
+buildTriangleTreeTest :: [Test]
+buildTriangleTreeTest = map TestCase [
+    Just ( TreeNode 
+        (Just $ TreeNode 
+            (Just $ TreeNode Nothing Nothing 4)
+            (Just $ TreeNode Nothing Nothing 5)
+            2)
+        (Just $ TreeNode 
+            (Just $ TreeNode Nothing Nothing 5)
+            (Just $ TreeNode Nothing Nothing 6)
+            3)
+        1) @=? buildTriangleTree [[1],[2,3],[4,5,6]],
+    Just ( TreeNode 
+        (Just $ TreeNode Nothing Nothing 2)
+        (Just $ TreeNode Nothing Nothing 3)
+        1) @=? buildTriangleTree [[1],[2,3]],
+    Just (TreeNode Nothing Nothing 1) @=? buildTriangleTree [[1]],
+    Nothing @=? buildTriangleTree []
+    ]
+
+maxPathTest :: [Test]
+maxPathTest = map TestCase [
+    23 @=? (maxPath $ buildTriangleTree testTriangle),
+    4 @=? (maxPath $ buildTriangleTree [[1],[2,3]]),
+    1 @=? (maxPath $ buildTriangleTree [[1]]),
+    0 @=? (maxPath $ buildTriangleTree [[]])
     ]
 
 data EulerArgs = 
@@ -98,7 +124,7 @@ exec Euler = do
     let answer = problem0018 rows
     printf "Answer: %d\n" answer 
 exec UnitTest = do 
-    runTestTT $ TestList $ problem0018Test ++ triangleFolderTest
+    runTestTT $ TestList $ problem0018Test ++ buildTriangleTreeTest ++ maxPathTest
     return ()
 
 adHoc = AdHoc{ file="problem_0018.txt" }
