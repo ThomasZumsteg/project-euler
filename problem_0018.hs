@@ -38,9 +38,7 @@ import Data.Char (digitToInt, isAlpha)
 import Data.Maybe (fromJust)
 
 problem0018 :: [[Integer]] -> Integer
-problem0018 rows = maxPath triangleTree
-    where
-        triangleTree = buildTriangleTree rows
+problem0018 = fastSolve
 
 maxPath :: Maybe TreeNode -> Integer
 maxPath Nothing = 0
@@ -68,6 +66,20 @@ buildTriangleTree (row:rows) = Just $ TreeNode left right value
         value = head row
         left = buildTriangleTree rows
         right = buildTriangleTree $ map tail rows
+
+fastSolve :: [[Integer]] -> Integer
+fastSolve [[]] = 0
+fastSolve rows = maximum $ foldr1 maxRowPath rows
+
+maxRowPath :: [Integer] -> [Integer] -> [Integer]
+maxRowPath rowM@(m:ms) rowN@(nl:nr:ns)
+    | lenM + 1 == lenN && lenM /= 0 = node:rest
+    where
+        lenN = length rowN
+        lenM = length rowM
+        node = max (m + nl) (m + nr) 
+        rest = maxRowPath ms (nr:ns)
+maxRowPath _ _ = []
 
 testTriangle :: [[Integer]]
 testTriangle = [ [ 3 ],
@@ -108,6 +120,23 @@ maxPathTest = map TestCase [
     0 @=? (maxPath $ buildTriangleTree [[]])
     ]
 
+fastSolveTest :: [Test]
+fastSolveTest = map TestCase [
+    23 @=? fastSolve testTriangle,
+    10 @=? fastSolve [[1],[2,3],[4,5,6]],
+    4 @=? fastSolve [[1],[2,3]],
+    1 @=? fastSolve [[1]],
+    0 @=? fastSolve [[]]
+    ]
+
+maxRowPathTest :: [Test]
+maxRowPathTest = map TestCase [
+    [6,8,10] @=? maxRowPath [1,2,3] [4,5,6,7],
+    [7,9] @=? maxRowPath [2,3] [4,5,6],
+    [4] @=? maxRowPath [1] [2,3],
+    [] @=? maxRowPath [] [1]
+    ]
+
 data EulerArgs = 
     AdHoc { file :: String }
     | Euler 
@@ -118,13 +147,13 @@ exec :: EulerArgs -> IO ()
 exec AdHoc{..} = do
     rows <- readRows file
     let answer = problem0018 rows
-    printf "The maximum path is %d" answer
+    printf "The maximum path is %d\n" answer
 exec Euler = do
     rows <- readRows "problem_0018.txt"
     let answer = problem0018 rows
     printf "Answer: %d\n" answer 
 exec UnitTest = do 
-    runTestTT $ TestList $ problem0018Test ++ buildTriangleTreeTest ++ maxPathTest
+    runTestTT $ TestList $ problem0018Test ++ buildTriangleTreeTest ++ maxPathTest ++ fastSolveTest ++ maxRowPathTest
     return ()
 
 adHoc = AdHoc{ file="problem_0018.txt" }
