@@ -25,6 +25,10 @@ data Date = Date {
     day :: Int
     } deriving (Eq, Show)
 
+instance Enum Date where
+    fromEnum _ = 0
+    toEnum _ = Date 1900 JAN 1
+
 data WeekDay = Mon | Tues | Wed | Thurs | Fri | Sat | Sun
     deriving (Eq, Show, Enum)
 
@@ -37,13 +41,46 @@ problem0019 start stop test = length $ filter test dates
         dates = dateRange start stop
 
 dateRange :: Date -> Date -> [Date]
-dateRange start stop = []
+dateRange start stop 
+    | start == stop = []
+    | otherwise = start : dateRange (succ start) stop
 
 firstSundayOfTheMonth :: Date -> Bool
-firstSundayOfTheMonth _ = True
+firstSundayOfTheMonth date = (day date == 1) && (weekday date == Sun)
+    where
+        weekday d = toEnum (mod daysBetween 7) :: WeekDay
+        daysBetween = (fromEnum date) - (fromEnum earliest)
+        earliest = Date 1900 JAN 1
 
 parseDate :: String -> Maybe Date
 parseDate _ = Just $ Date 1900 JAN 1
+
+daysInMonth :: Integer -> Month -> Integer
+daysInMonth year month 
+    | month `elem` [SEP, APR, JUN, NOV] = 30
+    | month == FEB = if leapYear year then 29 else 28
+    | otherwise = 31
+    where
+        leapYear y = (mod year 4 == 0) && (mod year 100 /= 0 || mod year 400 == 0)
+
+daysInMonthTest :: [ Test ]
+daysInMonthTest = map TestCase [
+    31 @=? daysInMonth 1900 JAN,
+    28 @=? daysInMonth 1900 FEB,
+    28 @=? daysInMonth 1901 FEB,
+    29 @=? daysInMonth 2000 FEB,
+    28 @=? daysInMonth 2001 FEB,
+    31 @=? daysInMonth 1900 MAR,
+    30 @=? daysInMonth 1900 APR,
+    31 @=? daysInMonth 1900 MAY,
+    30 @=? daysInMonth 1900 JUN,
+    31 @=? daysInMonth 1900 JUL,
+    31 @=? daysInMonth 1900 AUG,
+    30 @=? daysInMonth 1900 SEP,
+    31 @=? daysInMonth 1900 OCT,
+    30 @=? daysInMonth 1900 NOV,
+    31 @=? daysInMonth 1900 DEC
+    ]
 
 data EulerArgs = 
     AdHoc { start :: String, stop :: String }
@@ -65,7 +102,7 @@ exec Euler = do
         answer = problem0019 startDate stopDate firstSundayOfTheMonth
     printf "Answer: %d\n" answer 
 exec UnitTest = do 
-    runTestTT $ TestList $ []
+    runTestTT $ TestList $ daysInMonthTest
     return ()
 
 adHoc = AdHoc{ start = "", stop = "" }
