@@ -26,13 +26,20 @@ data Date = Date {
     } deriving (Eq, Show)
 
 instance Enum Date where
-    fromEnum _ = 0
-    toEnum _ = Date 1900 JAN 1
+    fromEnum Date {year=year, day=day, month=month}
+        | daysInMonth year month < day = error "Not a valid date"
+        | otherwise = fromIntegral $ years + months + day
+        where
+            years = sum [if leapYear y then 365 else 366 | y <- [1900 .. pred year]]
+            months = sum [daysInMonth year m | m <- [JAN .. pred month]]
+    toEnum i = Date 1900 JAN 1
+
+type Year = Int
+data Month = JAN | FEB | MAR | APR | MAY | JUN | JUL | AUG | SEP | OCT | NOV | DEC
+    deriving (Eq, Show, Enum)
+type Day = Int
 
 data WeekDay = Mon | Tues | Wed | Thurs | Fri | Sat | Sun
-    deriving (Eq, Show, Enum)
-
-data Month = JAN | FEB | MAR | APR | MAY | JUN | JUL | AUG | SEP | OCT | NOV | DEC
     deriving (Eq, Show, Enum)
 
 problem0019 :: Date -> Date -> (Date -> Bool) -> Int
@@ -55,13 +62,14 @@ firstSundayOfTheMonth date = (day date == 1) && (weekday date == Sun)
 parseDate :: String -> Maybe Date
 parseDate _ = Just $ Date 1900 JAN 1
 
-daysInMonth :: Integer -> Month -> Integer
+daysInMonth :: Year -> Month -> Year
 daysInMonth year month 
     | month `elem` [SEP, APR, JUN, NOV] = 30
     | month == FEB = if leapYear year then 29 else 28
     | otherwise = 31
-    where
-        leapYear y = (mod year 4 == 0) && (mod year 100 /= 0 || mod year 400 == 0)
+
+leapYear :: Year -> Bool
+leapYear year = (mod year 4 == 0) && (mod year 100 /= 0 || mod year 400 == 0)
 
 daysInMonthTest :: [ Test ]
 daysInMonthTest = map TestCase [
@@ -80,6 +88,11 @@ daysInMonthTest = map TestCase [
     31 @=? daysInMonth 1900 OCT,
     30 @=? daysInMonth 1900 NOV,
     31 @=? daysInMonth 1900 DEC
+    ]
+
+fromEnumDateTest :: [Test]
+fromEnumDateTest = map TestCase [
+    0 @=? fromEnum (Date 1900 JAN 1)
     ]
 
 data EulerArgs = 
@@ -102,7 +115,7 @@ exec Euler = do
         answer = problem0019 startDate stopDate firstSundayOfTheMonth
     printf "Answer: %d\n" answer 
 exec UnitTest = do 
-    runTestTT $ TestList $ daysInMonthTest
+    runTestTT $ TestList $ daysInMonthTest ++ fromEnumDateTest
     return ()
 
 adHoc = AdHoc{ start = "", stop = "" }
