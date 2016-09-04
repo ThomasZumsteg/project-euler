@@ -25,18 +25,29 @@ data Date = Date {
     day :: Int
     } deriving (Eq, Show)
 
-instance Enum Date where
-    fromEnum Date {year=year, day=day, month=month}
-        | daysInMonth year month < day = error "Not a valid date"
-        | otherwise = fromIntegral $ years + months + day
-        where
-            years = sum [if leapYear y then 365 else 366 | y <- [1900 .. pred year]]
-            months = sum [daysInMonth year m | m <- [JAN .. pred month]]
-    toEnum i = Date 1900 JAN 1
+instance Ord Date where
+    compare (Date year1 month1 date1) (Date year2 month2 date2)
+        | year1 /= year2 = compare year1 year2
+        | month1 /= month2 = compare month1 month2
+        | otherwise = compare date1 date2
+
+tomorrow :: Date -> Date
+tomorrow (Date year month date) 
+    | daysInMonth year month < succ date = if month == DEC 
+        then Date (succ year) JAN 1
+        else Date year (succ month) 1
+    | otherwise = Date year month (succ date)
+
+yesterday :: Date -> Date
+yesterday (Date year month date) 
+    | pred date <= 0 = if month == JAN
+        then Date (pred year) DEC 31
+        else Date year (pred month) (daysInMonth year (pred month))
+    | otherwise = Date year month (pred date)
 
 type Year = Int
 data Month = JAN | FEB | MAR | APR | MAY | JUN | JUL | AUG | SEP | OCT | NOV | DEC
-    deriving (Eq, Show, Enum)
+    deriving (Eq, Show, Enum, Ord)
 type Day = Int
 
 data WeekDay = Mon | Tues | Wed | Thurs | Fri | Sat | Sun
@@ -49,20 +60,16 @@ problem0019 start stop test = length $ filter test dates
 
 dateRange :: Date -> Date -> [Date]
 dateRange start stop 
-    | start == stop = []
-    | otherwise = start : dateRange (succ start) stop
+    | stop <= start = []
+    | otherwise = start : dateRange (tomorrow start) stop 
 
 firstSundayOfTheMonth :: Date -> Bool
-firstSundayOfTheMonth date = (day date == 1) && (weekday date == Sun)
-    where
-        weekday d = toEnum (mod daysBetween 7) :: WeekDay
-        daysBetween = (fromEnum date) - (fromEnum earliest)
-        earliest = Date 1900 JAN 1
+firstSundayOfTheMonth date = error "Not implemented yet"
 
 parseDate :: String -> Maybe Date
 parseDate _ = Just $ Date 1900 JAN 1
 
-daysInMonth :: Year -> Month -> Year
+daysInMonth :: Year -> Month -> Int
 daysInMonth year month 
     | month `elem` [SEP, APR, JUN, NOV] = 30
     | month == FEB = if leapYear year then 29 else 28
@@ -90,9 +97,26 @@ daysInMonthTest = map TestCase [
     31 @=? daysInMonth 1900 DEC
     ]
 
-fromEnumDateTest :: [Test]
-fromEnumDateTest = map TestCase [
-    0 @=? fromEnum (Date 1900 JAN 1)
+tomorrowTest :: [Test] 
+tomorrowTest = map TestCase [
+    (Date 1900 JAN 2) @=? tomorrow (Date 1900 JAN 1),
+    (Date 1900 FEB 1) @=? tomorrow (Date 1900 JAN 31),
+    (Date 1901 JAN 1) @=? tomorrow (Date 1900 DEC 31)
+    ]
+
+yesterdayTest :: [Test]
+yesterdayTest = map TestCase [
+    (Date 1900 JAN 1) @=? yesterday (Date 1900 JAN 2),
+    (Date 1900 JAN 31) @=? yesterday (Date 1900 FEB 1),
+    (Date 1900 DEC 31) @=? yesterday (Date 1901 DEC 31)
+    ]
+
+ordDateTest :: [Test]
+ordDateTest = map TestCase [
+    EQ @=? compare (Date 1900 JAN 1) (Date 1900 JAN 1),
+    LT @=? compare (Date 1900 JAN 1) (Date 1900 JAN 2),
+    LT @=? compare (Date 1900 JAN 1) (Date 1900 FEB 1),
+    LT @=? compare (Date 1900 JAN 1) (Date 1901 JAN 1)
     ]
 
 data EulerArgs = 
@@ -115,7 +139,7 @@ exec Euler = do
         answer = problem0019 startDate stopDate firstSundayOfTheMonth
     printf "Answer: %d\n" answer 
 exec UnitTest = do 
-    runTestTT $ TestList $ daysInMonthTest ++ fromEnumDateTest
+    runTestTT $ TestList $ daysInMonthTest ++ tomorrowTest ++ ordDateTest
     return ()
 
 adHoc = AdHoc{ start = "", stop = "" }
