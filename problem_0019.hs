@@ -18,6 +18,8 @@ import Data.Maybe (fromJust)
 --     A leap year occurs on any year evenly divisible by 4, but not on a century unless it is divisible by 400.
 
 -- How many Sundays fell on the first of the month during the twentieth century (1 Jan 1901 to 31 Dec 2000)?
+--
+-- let firstSundays = takeWhile (\d -> d < (DateTime 2001 1 1 0 0 0)) $ filter (\d -> day d == 1) $ iterate (flip addInterval (Days 7)) (DateTime 1901 1 6 0 0 0)
 
 data Date = Date {
     year :: Int,
@@ -50,7 +52,7 @@ data Month = JAN | FEB | MAR | APR | MAY | JUN | JUL | AUG | SEP | OCT | NOV | D
     deriving (Eq, Show, Enum, Ord)
 type Day = Int
 
-data WeekDay = Mon | Tues | Wed | Thurs | Fri | Sat | Sun
+data WeekDay = MON | TUES | WED | THURS | FRI | SAT | SUN
     deriving (Eq, Show, Enum)
 
 problem0019 :: Date -> Date -> (Date -> Bool) -> Int
@@ -64,10 +66,10 @@ dateRange start stop
     | otherwise = start : dateRange (tomorrow start) stop 
 
 firstSundayOfTheMonth :: Date -> Bool
-firstSundayOfTheMonth date = error "Not implemented yet"
+firstSundayOfTheMonth date = (SUN == weekDay date) && (day date == 1)
 
 parseDate :: String -> Maybe Date
-parseDate _ = Just $ Date 1900 JAN 1
+parseDate _ = Just firstMonday
 
 daysInMonth :: Year -> Month -> Int
 daysInMonth year month 
@@ -77,6 +79,17 @@ daysInMonth year month
 
 leapYear :: Year -> Bool
 leapYear year = (mod year 4 == 0) && (mod year 100 /= 0 || mod year 400 == 0)
+
+weekDay :: Date -> WeekDay
+weekDay d = toEnum (mod diff 7)
+    where
+        diff = daysBetween firstMonday d
+
+daysBetween :: Date -> Date -> Int
+daysBetween start stop = length $ dateRange start stop
+
+firstMonday :: Date
+firstMonday = Date 1900 JAN 1
 
 daysInMonthTest :: [ Test ]
 daysInMonthTest = map TestCase [
@@ -119,6 +132,33 @@ ordDateTest = map TestCase [
     LT @=? compare (Date 1900 JAN 1) (Date 1901 JAN 1)
     ]
 
+dateRangeTest :: [Test]
+dateRangeTest = map TestCase [
+    dates @=? dateRange (Date 1900 JAN 1) (Date 1900 FEB 1),
+    [a, b, c] @=? dateRange (Date 1900 JAN 1) (Date 1900 JAN 4)
+    ]
+    where
+        a = Date 1900 JAN 1
+        b = Date 1900 JAN 2
+        c = Date 1900 JAN 3
+        dates = take 31 $ iterate tomorrow a
+
+daysBetweenTest :: [Test]
+daysBetweenTest = map TestCase [
+    365 @=? daysBetween (Date 1900 JAN 1) (Date 1901 JAN 1),
+    31 @=? daysBetween (Date 1900 JAN 1) (Date 1900 FEB 1), 
+    1 @=? daysBetween (Date 1900 JAN 1) (Date 1900 JAN 2),
+    0 @=? daysBetween firstMonday firstMonday
+    ]
+
+weekDayTest :: [Test]
+weekDayTest = map TestCase [
+    THURS @=? weekDay (Date 1900 JAN 4),
+    WED @=? weekDay (Date 1900 JAN 3),
+    TUES @=? weekDay (Date 1900 JAN 2),
+    MON @=? weekDay firstMonday
+    ]
+
 data EulerArgs = 
     AdHoc { start :: String, stop :: String }
     | Euler 
@@ -134,12 +174,13 @@ exec AdHoc{..} = do
     printf "Sunday is the first day of the month between %s and %s, %d times\n" start stop answer
 exec Euler = do
     let 
-        startDate = Date 1900 JAN 1
-        stopDate = Date 2000 DEC 31 
+        startDate = firstMonday
+        stopDate = Date 2001 JAN 1 
         answer = problem0019 startDate stopDate firstSundayOfTheMonth
     printf "Answer: %d\n" answer 
 exec UnitTest = do 
-    runTestTT $ TestList $ daysInMonthTest ++ tomorrowTest ++ ordDateTest
+    runTestTT $ TestList $ daysInMonthTest ++ tomorrowTest ++ ordDateTest 
+        ++ dateRangeTest ++ daysBetweenTest ++ weekDayTest
     return ()
 
 adHoc = AdHoc{ start = "", stop = "" }
