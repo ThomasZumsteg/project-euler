@@ -40,17 +40,18 @@ data EulerArgs =
 type EitherDate = Either ParseError DateTime
 
 printAnswer :: EitherDate -> EitherDate -> Either ParseError Int -> IO ()
+printAnswer (Left s) _ (Left e) = do printf "Bad start date: %s\nError: %s\n" (show s) (show e)
+printAnswer _ (Left s) (Left e) = do printf "Bad end date: %s\nError: %s\n" (show s) (show e)
 printAnswer (Right start) (Right stop) (Right answer) = do 
     printf "Between %s and %s the first of the month is a Sunday %d times\n" (show start) (show stop) answer
-printAnswer _ _ (Left e) = do printf "Error: %s\n" $ show e
 
 exec :: EulerArgs -> IO ()
 exec AdHoc{..} = do
+    now <- getCurrentDateTime
     let 
-        now = DateTime 1800 1 1 0 0 0
-        startDate = parseDate now start
+        startDate = parseDate (DateTime 1901 1 1 0 0 0) start
         stopDate = parseDate now stop
-        answer = problem0019 firstSundayOfTheMonth <$> stopDate <*> stopDate 
+        answer = problem0019 firstSundayOfTheMonth <$> startDate <*> stopDate
     printAnswer startDate stopDate answer
 exec Euler = do
     let 
@@ -62,7 +63,7 @@ exec UnitTest = do
     runTestTT $ TestList $ []
     return ()
 
-adHoc = AdHoc{ start = "1/1/1901", stop = "1/1/2001" }
+adHoc = AdHoc{ start = "today", stop = "1/1/2001" }
 unittest = UnitTest{}
 euler = Euler{}
 
