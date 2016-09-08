@@ -1,12 +1,10 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
+
+from time import time
 
 def main():
 	big_num = factorial(100)
-	big_num = list(str(big_num))
-	big_sum = 0
-	for num in big_num:
-		big_sum += int(num)
-	print big_sum
+	return sum(int(d) for d in str(big_num))
 
 def factorial(n):
 	result = 1
@@ -15,4 +13,6 @@ def factorial(n):
 	return result
 
 if __name__ == "__main__":
-	main()
+    start = time()
+    print('Answer: {}'.format(main()))
+    print('That took {:0.3} seconds'.format(time() - start))
