@@ -8,3 +8,7 @@
 -- Evaluate the sum of all the amicable numbers under 10000.
 
 import Common
+
+main = euler_main [AdHoc 100 "Hello World", Euler 101, []]
+
+
