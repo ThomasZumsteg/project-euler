@@ -43,7 +43,6 @@ exec AdHoc{..} = do
 exec Euler = do
     let answer = problem0020 100
     printf "Answer: %d\n" answer 
-
 exec UnitTest = do 
     runTestTT $ TestList $ problem0020Test
     return ()
