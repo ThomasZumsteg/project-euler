@@ -5,30 +5,35 @@ module Common where
 import Text.Printf (printf, PrintfArg)
 import Test.HUnit ((@=?), runTestTT, Test(..))
 import System.Console.CmdArgs
+import Data.Map
 import Data.Time (getCurrentTime, diffUTCTime)
 
-data EulerArgs  = 
-    AdHoc Integer String
-    | Euler Integer
-    | UnitTest [Test]
-        deriving (Show, Data, Typeable)
+data EulerArgs a = AdHoc a | Euler | UnitTest
+    deriving (Show, Data, Typeable)
 
-exec :: EulerArgs -> IO ()
-exec (AdHoc problem message) = do
-    let answer = problem
-    printf message answer
-exec (Euler problem) = do
-    let answer = problem
+data EulerFuncs a = EulerFuncs {
+    problem :: (a -> Integer),
+    euler :: Integer,
+    tests :: [Test],
+    message :: String,
+    defaults :: [EulerArgs a]
+    }
+        
+exec :: EulerFuncs a -> EulerArgs a -> IO ()
+exec funcs (AdHoc args)= do
+    let answer = (problem funcs) args
+    printf (message funcs) answer
+exec funcs Euler = do
+    let answer = (euler funcs)
     printf "Answer: %d\n" answer 
-exec (UnitTest tests) = do 
-    runTestTT $ TestList tests 
+exec funcs UnitTest = do 
+    runTestTT $ TestList $ tests funcs
     return ()
 
-euler_main :: [EulerArgs] -> IO ()
-euler_main ms = do
-    args <- cmdArgs $ modes ms
+euler_main :: EulerFuncs a -> IO ()
+euler_main funcs = do
+    args <- cmdArgs $ modes $ defaults funcs
     start <- getCurrentTime
-    exec args
+    exec funcs args
     stop <- getCurrentTime
     print $ diffUTCTime stop start
-
