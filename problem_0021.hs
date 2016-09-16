@@ -8,10 +8,11 @@
 -- Evaluate the sum of all the amicable numbers under 10000.
 
 import Common
+import Test.HUnit ((@=?), runTestTT, Test(..))
 import qualified Data.Map.Lazy as M
 
 problem0021 :: Integer -> Integer
-problem0021 limit = foldl addPairs $ takeWhile belowLimit amicablePairs
+problem0021 limit = foldl addPairs 0 $ takeWhile belowLimit amicablePairs
     where
         addPairs acc (a, b) = acc + a + b 
         belowLimit (a, b) = a < limit && b < limit
@@ -19,27 +20,29 @@ problem0021 limit = foldl addPairs $ takeWhile belowLimit amicablePairs
 problem0021Test = map TestCase [ ] 
 
 amicablePairs :: (Integral a) => [(a, a)]
-amicablePairs = amicablePairsWorker M.null 1
+amicablePairs = amicablePairsWorker M.empty 1
 
 amicablePairsTest = map TestCase [ ]
 
 amicablePairsWorker :: (Integral a) => M.Map a [a] -> a -> [(a, a)]
-amicablePairsWorker cache n = pairs : more
+amicablePairsWorker cache n = pairs ++ more
     where
         factorSum = sum $ factors n
         pairs = map (\n' -> (n', n)) (M.findWithDefault [] n cache)
         cache' = error "Not Implemented"
-        more = amicablePairsWorker 
+        more = error "Not Implemented"
 
 amicablePairsWorkerTest = map TestCase [ ]
 
 factors :: (Integral a) => a -> [a]
-factors n = error "Not implemented"
+factors 1 = [1]
+factors n = filter ((==) 0 . mod n) [1..(n-1)]
 
 factorsTest :: [Test]
 factorsTest = map TestCase [
     [1] @=? factors 1,
-    [1,2] @=? factors 2,
+    [1] @=? factors 2,
+    [1] @=? factors 3,
     [1,2] @=? factors 4,
     [1,2,4,5,10,11,20,22,44,55,110] @=? factors 220
     ]
@@ -49,9 +52,11 @@ unitTests = problem0021Test ++
     amicablePairsTest ++ 
     factorsTest
 
-main = euler_main [
-    AdHoc 100 "Hello World %d\n",
-    Euler 101,
-    UnitTest unitTests
-    ]
+main = euler_main $ EulerFuncs {
+    problem = problem0021,
+    euler = problem0021 10000,
+    tests = unitTests,
+    message = "Hello world: %d",
+    defaults = [AdHoc 10000, Euler, UnitTest]
+    }
 

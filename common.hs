@@ -19,7 +19,7 @@ data EulerFuncs a = EulerFuncs {
     defaults :: [EulerArgs a]
     }
         
-exec :: EulerFuncs a -> EulerArgs a -> IO ()
+exec :: (Data a) => EulerFuncs a -> EulerArgs a -> IO ()
 exec funcs (AdHoc args)= do
     let answer = (problem funcs) args
     printf (message funcs) answer
@@ -30,7 +30,7 @@ exec funcs UnitTest = do
     runTestTT $ TestList $ tests funcs
     return ()
 
-euler_main :: EulerFuncs a -> IO ()
+euler_main :: (Data a) => EulerFuncs a -> IO ()
 euler_main funcs = do
     args <- cmdArgs $ modes $ defaults funcs
     start <- getCurrentTime
