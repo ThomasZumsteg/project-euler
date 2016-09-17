@@ -8,7 +8,7 @@
 -- Evaluate the sum of all the amicable numbers under 10000.
 
 import Common
-import Test.HUnit ((@=?), runTestTT, Test(..))
+import Test.HUnit ((@=?), assertBool, runTestTT, Test(..))
 import qualified Data.Map.Lazy as M
 
 problem0021 :: Integer -> Integer
@@ -28,11 +28,16 @@ amicablePairsWorker :: (Integral a) => M.Map a [a] -> a -> [(a, a)]
 amicablePairsWorker cache n = pairs ++ more
     where
         factorSum = sum $ factors n
-        pairs = map (\n' -> (n', n)) (M.findWithDefault [] n cache)
-        cache' = error "Not Implemented"
-        more = error "Not Implemented"
+        pairs = map (\n' -> (n', n)) (M.findWithDefault [] factorSum cache)
+        more = amicablePairsWorker cache' (n+1)
+        cache' =  if M.member factorSum cache
+            then M.insertWith (++) factorSum [n] cache
+            else M.insert factorSum [n] cache
 
-amicablePairsWorkerTest = map TestCase [ ]
+amicablePairsWorkerTest = map TestCase [ 
+    [(1, 2)] @=? (take 1 $ amicablePairsWorker M.empty 1),
+    assertBool "Contains (29, 43)" $ elem (29, 43) $ amicablePairsWorker M.empty 1
+    ]
 
 factors :: (Integral a) => a -> [a]
 factors 1 = [1]
@@ -44,7 +49,13 @@ factorsTest = map TestCase [
     [1] @=? factors 2,
     [1] @=? factors 3,
     [1,2] @=? factors 4,
-    [1,2,4,5,10,11,20,22,44,55,110] @=? factors 220
+    [1,2,4,5,10,11,20,22,44,55,110] @=? factors 220,
+    [1,2,3,4,6] @=? factors 12,
+    [1,2,4,8] @=? factors 16,
+    [1] @=? factors 29,
+    [1] @=? factors 43,
+    (sum $ factors 1) @=? (sum $ factors 2),
+    (sum $ factors 29) @=? (sum $ factors 43)
     ]
 
 unitTests = problem0021Test ++ 
