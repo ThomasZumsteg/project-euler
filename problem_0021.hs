@@ -12,38 +12,36 @@ import Test.HUnit ((@=?), assertBool, runTestTT, Test(..))
 import qualified Data.Map.Lazy as M
 
 problem0021 :: Integer -> Integer
-problem0021 limit = foldl addPairs 0 $ takeWhile belowLimit amicablePairs
+problem0021 limit = sum $ filter isAmicable [1..limit]
+
+problem0021Test = map TestCase [ 
+    ( sum [220,284,1184,1210,2620] ) @=? problem0021 2620,
+    ( sum [220,284] ) @=? problem0021 300,
+    ( sum [] ) @=? problem0021 0
+    ] 
+
+isAmicable :: (Integral a) => a -> Bool
+isAmicable n = (d $ d n) == n && (d n) /= n
     where
-        addPairs acc (a, b) = acc + a + b 
-        belowLimit (a, b) = a < limit && b < limit
+        d = sum . factors
 
-problem0021Test = map TestCase [ ] 
-
-amicablePairs :: (Integral a) => [(a, a)]
-amicablePairs = amicablePairsWorker M.empty 1
-
-amicablePairsTest = map TestCase [ ]
-
-amicablePairsWorker :: (Integral a) => M.Map a [a] -> a -> [(a, a)]
-amicablePairsWorker cache n = pairs ++ more
-    where
-        factorSum = sum $ factors n
-        pairs = map (\n' -> (n', n)) (M.findWithDefault [] factorSum cache)
-        more = amicablePairsWorker cache' (n+1)
-        cache' =  if M.member factorSum cache
-            then M.insertWith (++) factorSum [n] cache
-            else M.insert factorSum [n] cache
-
-amicablePairsWorkerTest = map TestCase [ 
-    [(1, 2)] @=? (take 1 $ amicablePairsWorker M.empty 1),
-    assertBool "Contains (29, 43)" $ elem (29, 43) $ amicablePairsWorker M.empty 1
+isAmicableTest = map TestCase [
+    assertBool "220 is Amicable" $ isAmicable 220,
+    assertBool "6 is no Amicable" $ not $ isAmicable 6,
+    assertBool "110 is not Amicable" $ not $ isAmicable 110
     ]
 
 factors :: (Integral a) => a -> [a]
-factors 1 = [1]
-factors n = filter ((==) 0 . mod n) [1..(n-1)]
+factors n = 1 : (factorWorker 2)
+    where
+        factorWorker factor 
+            | n < factor^2 = []
+            | n == factor^2 = [factor]
+            | remainer == 0 = [factor] ++ (factorWorker (factor+1)) ++ [quotent]
+            | otherwise = factorWorker (factor+1)
+            where 
+                (quotent, remainer) = divMod n factor
 
-factorsTest :: [Test]
 factorsTest = map TestCase [
     [1] @=? factors 1,
     [1] @=? factors 2,
@@ -59,15 +57,14 @@ factorsTest = map TestCase [
     ]
 
 unitTests = problem0021Test ++ 
-    amicablePairsWorkerTest ++ 
-    amicablePairsTest ++ 
+    isAmicableTest ++
     factorsTest
 
 main = euler_main $ EulerFuncs {
     problem = problem0021,
     euler = problem0021 10000,
     tests = unitTests,
-    message = "Hello world: %d",
+    message = "Hello world: %d\n",
     defaults = [AdHoc 10000, Euler, UnitTest]
     }
 
