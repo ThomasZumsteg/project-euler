@@ -11,10 +11,10 @@ def main():
     print('Answer: {}'.format(amicable_sum))
 
 def is_amicable(num):
-    a_pair = sum(int(n) for n in factors_of_num(num))
+    a_pair = sum(factors_of_num(num))
     if a_pair == num: return False
-    b_pair = sum(int(n) for n in factors_of_num(a_pair))
-    return b_pair == a_pair
+    b_pair = sum(factors_of_num(a_pair))
+    return b_pair == num
 
 if __name__ == "__main__":
     start = time()
