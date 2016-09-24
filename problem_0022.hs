@@ -8,16 +8,42 @@
 
 import Common
 import Test.HUnit ((@=?), assertBool, runTestTT, Test(..))
+import Data.Char (ord)
 
-type Names = String
+import Data.List (sort)
+
+type Name = String
 
 problem0022 :: String -> Integer
-problem0022 _ = 0
+problem0022 fileName = foldl nameScore 0 $ zip [1..] $ sort names
+    where
+        nameScore total (index, name) = total + index * (scoreName name)
+        names = readNamesFile fileName
 
 problem0022Test = map TestCase [
     ]
 
-unitTests = problem0022Test
+readNamesFile :: String -> [Name]
+readNamesFile _ = [ ]
+
+readNamesFileTest = map TestCase [
+    ]
+
+scoreName :: Name -> Integer
+scoreName = toInteger . sum . map letterValue 
+    where
+        letterValue l = (ord l) - (ord 'A') + 1
+
+scoreNameTest = map TestCase [
+    1 @=? scoreName "A",
+    2 @=? scoreName "B",
+    3 @=? scoreName "AB",
+   53 @=? scoreName "COLIN"
+    ]
+
+unitTests = problem0022Test ++
+    readNamesFileTest ++
+    scoreNameTest
 
 main = euler_main $ EulerFuncs {
     problem = problem0022,
