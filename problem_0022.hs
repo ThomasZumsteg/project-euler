@@ -8,25 +8,32 @@
 
 import Common
 import Test.HUnit ((@=?), assertBool, runTestTT, Test(..))
-import Data.Char (ord)
 
+import Data.Char (ord)
 import Data.List (sort)
 
 type Name = String
+type NameData = String
 
-problem0022 :: String -> Integer
-problem0022 fileName = foldl nameScore 0 $ zip [1..] $ sort names
+problem0022 :: NameData -> Integer
+problem0022 = foldl nameScore 0 . zip [1..] . sort . splitNames ""
     where
         nameScore total (index, name) = total + index * (scoreName name)
-        names = readNamesFile fileName
 
 problem0022Test = map TestCase [
     ]
 
-readNamesFile :: String -> [Name]
-readNamesFile _ = [ ]
+splitNames :: Name -> NameData -> [Name]
+splitNames _ "" = []
+splitNames name (c:cs) 
+    | 'A' <= c && c <= 'Z' = splitNames (name ++ [c]) cs
+    | name == "" = splitNames "" cs
+    | otherwise = name : splitNames "" cs 
 
-readNamesFileTest = map TestCase [
+splitNamesTest = map TestCase [
+    ["SAM"] @=? splitNames "" "\"SAM\"",
+    ["SAM", "JACK"] @=? splitNames "" "\"SAM\",\"JACK\"",
+    ["ALICE","BOB","EVE"] @=? splitNames "" "\"ALICE\",\"BOB\",\"EVE\""
     ]
 
 scoreName :: Name -> Integer
@@ -42,8 +49,8 @@ scoreNameTest = map TestCase [
     ]
 
 unitTests = problem0022Test ++
-    readNamesFileTest ++
-    scoreNameTest
+    scoreNameTest ++
+    splitNamesTest
 
 main = euler_main $ EulerFuncs {
     problem = problem0022,
