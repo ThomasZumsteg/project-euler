@@ -21,6 +21,9 @@ problem0022 = foldl nameScore 0 . zip [1..] . sort . splitNames ""
         nameScore total (index, name) = total + index * (scoreName name)
 
 problem0022Test = map TestCase [
+    68 @=? problem0022 "\"BOB\",\"ALICE\"",
+     0 @=? problem0022 "",
+    19 @=? problem0022 "\"BOB\""
     ]
 
 splitNames :: Name -> NameData -> [Name]
@@ -45,6 +48,9 @@ scoreNameTest = map TestCase [
     1 @=? scoreName "A",
     2 @=? scoreName "B",
     3 @=? scoreName "AB",
+   19 @=? scoreName "BOB",
+   30 @=? scoreName "ALICE",
+   32 @=? scoreName "EVE",
    53 @=? scoreName "COLIN"
     ]
 
