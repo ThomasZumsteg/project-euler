@@ -6,11 +6,20 @@
 
 -- What is the total of all the name scores in the file?
 
-import Common
 import Test.HUnit ((@=?), assertBool, runTestTT, Test(..))
+import Text.Printf (printf, PrintfArg)
+import System.Console.CmdArgs
+import qualified Data.Map as M
+import Data.Time (getCurrentTime, diffUTCTime)
 
 import Data.Char (ord)
 import Data.List (sort)
+
+data EulerArgs = 
+    AdHoc { file_name::String }
+    | Euler 
+    | UnitTest
+    deriving (Show, Data, Typeable)
 
 type Name = String
 type NameData = String
@@ -58,10 +67,21 @@ unitTests = problem0022Test ++
     scoreNameTest ++
     splitNamesTest
 
-main = euler_main $ EulerFuncs {
-    problem = problem0022,
-    euler = problem0022 "problem_0022_names.txt",
-    tests = unitTests,
-    message = "Hello world: %d\n",
-    defaults = [AdHoc "problem_0022_names.txt", Euler, UnitTest]
-    }
+exec :: EulerArgs -> IO ()
+exec AdHoc{..}= do
+    let answer = problem0022 file_name
+    printf  "Hello world: %d\n" answer
+exec Euler = do
+    let answer = problem0022 "problem_0022_names.txt"
+    printf "Answer: %d\n" answer 
+exec UnitTest = do 
+    runTestTT $ TestList unitTests
+    return ()
+
+main :: IO ()
+main = do
+    args <- cmdArgs $ modes [AdHoc{ file_name = "problem_0022_names.txt" }, Euler, UnitTest]
+    start <- getCurrentTime
+    exec args
+    stop <- getCurrentTime
+    print $ diffUTCTime stop start
