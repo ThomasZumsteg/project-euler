@@ -69,10 +69,12 @@ unitTests = problem0022Test ++
 
 exec :: EulerArgs -> IO ()
 exec AdHoc{..}= do
-    let answer = problem0022 file_name
-    printf  "Hello world: %d\n" answer
+    names <- readFile file_name 
+    let answer = problem0022 names
+    printf  "\"%s\" has a score of: %d\n" file_name answer
 exec Euler = do
-    let answer = problem0022 "problem_0022_names.txt"
+    names <- readFile "problem_0022_names.txt"
+    let answer = problem0022 names
     printf "Answer: %d\n" answer 
 exec UnitTest = do 
     runTestTT $ TestList unitTests
