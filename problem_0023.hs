@@ -26,7 +26,32 @@ problem0023 limit = error "Not implemented"
 abundantPairs :: [(Integer, Integer)]
 abundantPairs = error "Not implemented"
 
-unitTests = []
+primeFactors :: Integer -> Integer -> [Integer]
+primeFactors n d  
+    | n == 1 = []
+    | d < 2 = error "Divisor needs to be 2 or larger"
+    | d * d > n = [n]
+    | d /= 2 && r == 0 = d : primeFactors q d
+    | d /= 2 && r /= 0 = primeFactors n (d + 2)
+    | d == 2 && even n = 2 : primeFactors (div n 2) 2 
+    | otherwise = primeFactors n 3
+    where
+        (q, r) = divMod n d
+
+primeFactorsTest = map TestCase [
+    [97] @=? primeFactors 97 2,
+    [3, 37] @=? primeFactors 111 2,
+    [2,2,5,5] @=? primeFactors 100 2,
+    [2,2,3] @=? primeFactors 12 2,
+    [2,3] @=? primeFactors 6 2,
+    [5] @=? primeFactors 5 2,
+    [2,2] @=? primeFactors 4 2,
+    [3] @=? primeFactors 3 2,
+    [2] @=? primeFactors 2 2,
+    [] @=? primeFactors 1 2
+    ]
+
+unitTests = primeFactorsTest
 
 exec :: EulerArgs -> IO ()
 exec AdHoc{..}= do
