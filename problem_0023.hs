@@ -26,6 +26,18 @@ problem0023 limit = error "Not implemented"
 abundantPairs :: [(Integer, Integer)]
 abundantPairs = error "Not implemented"
 
+properDivisors :: Integer -> [Integer]
+properDivisors 1 = [1]
+properDivisors n = filter (\f -> rem n f == 0) [1..(n-1)]
+
+properDivisorsTest = map TestCase [
+    [1,2,3,4,6] @=? properDivisors 12,
+    [1,2] @=? properDivisors 4,
+    [1] @=? properDivisors 3,
+    [1] @=? properDivisors 2,
+    [1] @=? properDivisors 1
+    ]
+
 primeFactors :: Integer -> Integer -> [Integer]
 primeFactors n d  
     | n == 1 = []
@@ -51,7 +63,8 @@ primeFactorsTest = map TestCase [
     [] @=? primeFactors 1 2
     ]
 
-unitTests = primeFactorsTest
+unitTests = primeFactorsTest ++
+    properDivisorsTest
 
 exec :: EulerArgs -> IO ()
 exec AdHoc{..}= do
