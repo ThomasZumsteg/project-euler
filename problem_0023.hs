@@ -36,7 +36,9 @@ abundantPairsTest = map TestCase [
     ]
 
 abundantNums :: [Integer]
-abundantNums = filter (\n -> (sum $ properDivisors n) > n) [1..]
+abundantNums = filter isAbundant [1..28124]
+    where
+        isAbundant a = a < (sum $ properDivisors a)
 
 abundantNumsTest = map TestCase [
     [12,18,20,24,30,36,40,42,48,54] @=? take 10 abundantNums,
