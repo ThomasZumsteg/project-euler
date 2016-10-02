@@ -24,7 +24,16 @@ problem0023 :: Integer -> Integer
 problem0023 limit = error "Not implemented"
 
 abundantPairs :: [(Integer, Integer)]
-abundantPairs = error "Not implemented"
+abundantPairs = concat [[(a, b) | a <- subset b] | b <- abundantNums]
+    where
+        subset s = takeWhile ((>=) s) abundantNums
+
+abundantPairsTest = map TestCase [
+    (12, 12) @=? head abundantPairs,
+    (18, 18) @=? (head $ drop 2 abundantPairs),
+    (12, 30) @=? (head $ drop 10 abundantPairs),
+    (12, 18) @=? (head $ drop 1 abundantPairs)
+    ]
 
 abundantNums :: [Integer]
 abundantNums = filter (\n -> (sum $ properDivisors n) > n) [1..]
@@ -74,6 +83,7 @@ primeFactorsTest = map TestCase [
 
 unitTests = primeFactorsTest ++
     properDivisorsTest ++
+    abundantPairsTest ++
     abundantNumsTest
 
 exec :: EulerArgs -> IO ()
