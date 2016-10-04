@@ -21,26 +21,44 @@ data EulerArgs =
     deriving (Show, Data, Typeable)
 
 problem0023 :: Integer -> Integer
-problem0023 limit = error "Not implemented"
+problem0023 limit = sum $ filter (not . hasPair) [1..limit]
+
+hasPair :: Integer -> Bool
+hasPair n = any isAbundant [n - a | a <- pairs]
+    where
+        pairs = takeWhile ((>=) limit) abundantNums
+        limit = div n 2
+
+hasPairTest =  [
+    assertBool "1 does not have an abundant pair" $ not $ hasPair 1,
+    assertBool "24 has an abundant pair (12,12)" $ hasPair 24,
+    assertBool "20 does not have an abundant pair" $ not $ hasPair 20
+    ]
+
+isAbundant :: Integer -> Bool
+isAbundant a = a < (sum $ properDivisors a)
+
+isAbundantTest = [
+    assertBool "12 is abundant" $ isAbundant 12,
+    assertBool "13 is not abundant" $ not $ isAbundant 13
+    ]
 
 abundantPairs :: [(Integer, Integer)]
 abundantPairs = concat [[(a, b) | a <- subset b] | b <- abundantNums]
     where
         subset s = takeWhile ((>=) s) abundantNums
 
-abundantPairsTest = map TestCase [
+abundantPairsTest =  [
     (12, 12) @=? head abundantPairs,
+    (12, 18) @=? (head $ drop 1 abundantPairs),
     (18, 18) @=? (head $ drop 2 abundantPairs),
-    (12, 30) @=? (head $ drop 10 abundantPairs),
-    (12, 18) @=? (head $ drop 1 abundantPairs)
+    (12, 30) @=? (head $ drop 10 abundantPairs)
     ]
 
 abundantNums :: [Integer]
 abundantNums = filter isAbundant [1..28124]
-    where
-        isAbundant a = a < (sum $ properDivisors a)
 
-abundantNumsTest = map TestCase [
+abundantNumsTest =  [
     [12,18,20,24,30,36,40,42,48,54] @=? take 10 abundantNums,
     [12,18] @=? take 2 abundantNums,
     [12] @=? take 1 abundantNums
@@ -50,7 +68,7 @@ properDivisors :: Integer -> [Integer]
 properDivisors 1 = [1]
 properDivisors n = filter (\f -> rem n f == 0) [1..(n-1)]
 
-properDivisorsTest = map TestCase [
+properDivisorsTest =  [
     [1,2,3,4,6] @=? properDivisors 12,
     [1,2] @=? properDivisors 4,
     [1] @=? properDivisors 3,
@@ -70,7 +88,7 @@ primeFactors n d
     where
         (q, r) = divMod n d
 
-primeFactorsTest = map TestCase [
+primeFactorsTest =  [
     [97] @=? primeFactors 97 2,
     [3, 37] @=? primeFactors 111 2,
     [2,2,5,5] @=? primeFactors 100 2,
@@ -83,15 +101,18 @@ primeFactorsTest = map TestCase [
     [] @=? primeFactors 1 2
     ]
 
-unitTests = primeFactorsTest ++
+unitTests = map TestCase $
+    primeFactorsTest ++
     properDivisorsTest ++
     abundantPairsTest ++
-    abundantNumsTest
+    abundantNumsTest ++
+    isAbundantTest ++
+    hasPairTest
 
 exec :: EulerArgs -> IO ()
 exec AdHoc{..}= do
     let answer = problem0023 limit
-    printf  "The sum of all non-abundant numbers below %s is %s" limit answer
+    printf  "The sum of all non-abundant numbers below %d is %d\n" limit answer
 exec Euler = do
     let answer = problem0023 28123 
     printf "Answer: %d\n" answer 
