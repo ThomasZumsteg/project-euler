@@ -13,7 +13,9 @@ import Text.Printf (printf, PrintfArg)
 import System.Console.CmdArgs
 import qualified Data.Map as M
 import Data.Time (getCurrentTime, diffUTCTime)
+import qualified Data.Set as S
 import Data.List (find, sort)
+import Data.Maybe (isNothing, fromJust)
 
 data EulerArgs = 
     AdHoc { limit::Integer }
@@ -22,7 +24,10 @@ data EulerArgs =
     deriving (Show, Data, Typeable)
 
 problem0023 :: Integer -> Integer
-problem0023 limit = sum $ filter (not . hasPair) [1..limit]
+problem0023 limit = sum $ filter (not . hasPair') [1..limit]
+    where
+        pairSums = S.fromList $ map (uncurry (+)) abundantPairs
+        hasPair' n = S.member n pairSums
 
 hasPair :: Integer -> Bool
 hasPair n = any isAbundant [n - a | a <- pairs]
@@ -34,6 +39,19 @@ hasPairTest =  [
     assertBool "1 does not have an abundant pair" $ not $ hasPair 1,
     assertBool "24 has an abundant pair (12,12)" $ hasPair 24,
     assertBool "20 does not have an abundant pair" $ not $ hasPair 20
+    ]
+
+pairs :: [Integer] -> [(Integer, Integer)]
+pairs [] = []
+pairs ps@(p:ps') =  pps ++ pairs ps'
+    where
+        pps = map (\p' -> (p, p')) ps
+
+pairsTest = [
+    [] @=? pairs [],
+    [(1,1)] @=? pairs [1],
+    [(1,1), (1,2), (2,2)] @=? pairs [1,2],
+    [(1,1), (1,2), (1,3), (2,2), (2,3), (3,3)] @=? pairs [1,2,3]
     ]
 
 isAbundant :: Integer -> Bool
@@ -107,7 +125,8 @@ unitTests = map TestCase $
     abundantPairsTest ++
     abundantNumsTest ++
     isAbundantTest ++
-    hasPairTest
+    hasPairTest ++
+    pairsTest
 
 exec :: EulerArgs -> IO ()
 exec AdHoc{..}= do
