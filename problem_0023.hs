@@ -13,6 +13,7 @@ import Text.Printf (printf, PrintfArg)
 import System.Console.CmdArgs
 import qualified Data.Map as M
 import Data.Time (getCurrentTime, diffUTCTime)
+import Data.List (find, sort)
 
 data EulerArgs = 
     AdHoc { limit::Integer }
@@ -76,29 +77,28 @@ properDivisorsTest =  [
     [1] @=? properDivisors 1
     ]
 
-primeFactors :: Integer -> Integer -> [Integer]
-primeFactors n d  
-    | n == 1 = []
-    | d < 2 = error "Divisor needs to be 2 or larger"
-    | d * d > n = [n]
-    | d /= 2 && r == 0 = d : primeFactors q d
-    | d /= 2 && r /= 0 = primeFactors n (d + 2)
-    | d == 2 && even n = 2 : primeFactors (div n 2) 2 
-    | otherwise = primeFactors n 3
-    where
-        (q, r) = divMod n d
+primeFactors :: Integer -> [Integer]
+primeFactors n 
+    | n <= 1 = []
+    | n == 2 = [2]
+    | isNothing divisor = [n]
+    | otherwise = primeFactors d' ++ primeFactors (div n d')
+        where
+            sqrtN = ceiling $ sqrt $ fromIntegral n 
+            divisor = find (\d -> 0 == rem n d) [sqrtN, sqrtN - 1..2]
+            d' = fromJust divisor
 
 primeFactorsTest =  [
-    [97] @=? primeFactors 97 2,
-    [3, 37] @=? primeFactors 111 2,
-    [2,2,5,5] @=? primeFactors 100 2,
-    [2,2,3] @=? primeFactors 12 2,
-    [2,3] @=? primeFactors 6 2,
-    [5] @=? primeFactors 5 2,
-    [2,2] @=? primeFactors 4 2,
-    [3] @=? primeFactors 3 2,
-    [2] @=? primeFactors 2 2,
-    [] @=? primeFactors 1 2
+    [97] @=? (sort $ primeFactors 97),
+    [3, 37] @=? (sort $ primeFactors 111),
+    [2,2,5,5] @=? (sort $ primeFactors 100),
+    [2,2,3] @=? (sort $ primeFactors 12),
+    [2,3] @=? (sort $ primeFactors 6),
+    [5] @=? primeFactors 5,
+    [2,2] @=? primeFactors 4,
+    [3] @=? primeFactors 3,
+    [2] @=? primeFactors 2,
+    [] @=? primeFactors 1
     ]
 
 unitTests = map TestCase $
