@@ -95,6 +95,13 @@ properDivisorsTest =  [
     [1] @=? properDivisors 1
     ]
 
+combineFactors :: [Integer] -> [Integer]
+combineFactors [] = []
+
+combineFactorsTest = [
+    [] @=? combineFactors []
+    ]
+
 primeFactors :: Integer -> [Integer]
 primeFactors n 
     | n <= 1 = []
@@ -120,6 +127,7 @@ primeFactorsTest =  [
     ]
 
 unitTests = map TestCase $
+    combineFactorsTest ++
     primeFactorsTest ++
     properDivisorsTest ++
     abundantPairsTest ++
