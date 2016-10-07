@@ -14,7 +14,7 @@ import System.Console.CmdArgs
 import qualified Data.Map as M
 import Data.Time (getCurrentTime, diffUTCTime)
 import qualified Data.Set as S
-import Data.List (find, sort)
+import Data.List (find, sort, nub)
 import Data.Maybe (isNothing, fromJust)
 
 data EulerArgs = 
@@ -95,11 +95,18 @@ properDivisorsTest =  [
     [1] @=? properDivisors 1
     ]
 
-combineFactors :: [Integer] -> [Integer]
+combineFactors :: [Integer] -> [[Integer]]
 combineFactors [] = []
+combineFactors (n:ns) = [[n]] ++ without_n ++ with_n
+    where
+        without_n = combineFactors ns
+        with_n = map (n:) without_n
 
 combineFactorsTest = [
-    [] @=? combineFactors []
+    [[2],[2],[5],[2,5],[2,2],[2,5],[2,2,5]] @=? combineFactors [2,2,5],
+    [[2],[3],[5],[3,5],[2,3],[2,5],[2,3,5]] @=? combineFactors [2,3,5],
+    [[2],[3],[2,3]] @=? combineFactors [2,3],
+    [[2]] @=? combineFactors [2]
     ]
 
 primeFactors :: Integer -> [Integer]
