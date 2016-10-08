@@ -24,7 +24,7 @@ data EulerArgs =
     deriving (Show, Data, Typeable)
 
 problem0023 :: Integer -> Integer
-problem0023 limit = sum $ filter (not . hasPair') [1..limit]
+problem0023 limit = sum $ filter (not . hasPair) [1..limit]
     where
         pairSums = S.fromList $ map (uncurry (+)) abundantPairs
         hasPair' n = S.member n pairSums
@@ -55,7 +55,9 @@ pairsTest = [
     ]
 
 isAbundant :: Integer -> Bool
-isAbundant a = a < (sum $ properDivisors a)
+isAbundant a = a < sumDivisors
+    where
+        sumDivisors = (sum $ properDivisors a) - 1 - a
 
 isAbundantTest = [
     assertBool "12 is abundant" $ isAbundant 12,
@@ -85,13 +87,15 @@ abundantNumsTest =  [
 
 properDivisors :: Integer -> [Integer]
 properDivisors 1 = [1]
-properDivisors n = filter (\f -> rem n f == 0) [1..(n-1)]
+properDivisors n = [1] ++ (sort $ nub $ divisors) 
+    where
+        divisors = map (foldl1 (*)) $ combineFactors $ primeFactors n
 
 properDivisorsTest =  [
-    [1,2,3,4,6] @=? properDivisors 12,
-    [1,2] @=? properDivisors 4,
-    [1] @=? properDivisors 3,
-    [1] @=? properDivisors 2,
+    [1,2,3,4,6, 12] @=? properDivisors 12,
+    [1,2, 4] @=? properDivisors 4,
+    [1,3] @=? properDivisors 3,
+    [1,2] @=? properDivisors 2,
     [1] @=? properDivisors 1
     ]
 
