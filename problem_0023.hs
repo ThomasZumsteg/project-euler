@@ -9,13 +9,9 @@
 -- Find the sum of all the positive integers which cannot be written as the sum of two abundant numbers.
 
 import Test.HUnit ((@=?), assertBool, runTestTT, Test(..))
-import Text.Printf (printf, PrintfArg)
+import Text.Printf (printf)
 import System.Console.CmdArgs
-import qualified Data.Map as M
 import Data.Time (getCurrentTime, diffUTCTime)
-import qualified Data.Set as S
-import Data.List (find, sort, nub)
-import Data.Maybe (isNothing, fromJust)
 
 data EulerArgs = 
     AdHoc { limit::Integer }
@@ -24,128 +20,50 @@ data EulerArgs =
     deriving (Show, Data, Typeable)
 
 problem0023 :: Integer -> Integer
-problem0023 limit = sum $ filter (not . hasPair) [1..limit]
-    where
-        pairSums = S.fromList $ map (uncurry (+)) abundantPairs
-        hasPair' n = S.member n pairSums
+problem0023 limit = error "Not implemented"
 
-hasPair :: Integer -> Bool
-hasPair n = any isAbundant [n - a | a <- pairs]
-    where
-        pairs = takeWhile ((>=) limit) abundantNums
-        limit = div n 2
+mergeAndSortLists :: [[Integer]] -> [Integer]
+mergeAndSortLists ls = error "Not implemented"
 
-hasPairTest =  [
-    assertBool "1 does not have an abundant pair" $ not $ hasPair 1,
-    assertBool "24 has an abundant pair (12,12)" $ hasPair 24,
-    assertBool "20 does not have an abundant pair" $ not $ hasPair 20
+abundantNumberPairs :: [[(Integer, Integer)]]
+abundantNumberPairs = [sublist $ drop n abundantNumbers | n <- [0..]]
+    where
+        sublist as@(a:_) = map (\n -> (a, n)) as
+
+abundantNumberPairsTest = [
+    [(18,18),(18,20),(18,24)] @=? (take 3 $ abundantNumberPairs !! 1),
+    [(12,12),(12,18),(12,20)] @=? (take 3 $ abundantNumberPairs !! 0),
+    [ (12,12) ] @=? (take 1 $ head abundantNumberPairs),
+    (12,12) @=? (head $ head abundantNumberPairs)
     ]
 
-pairs :: [Integer] -> [(Integer, Integer)]
-pairs [] = []
-pairs ps@(p:ps') =  pps ++ pairs ps'
+abundantNumbers :: [Integer]
+abundantNumbers = filter isAbundant [1..]
     where
-        pps = map (\p' -> (p, p')) ps
+        isAbundant n = n < (sum $ properFactors n)
 
-pairsTest = [
-    [] @=? pairs [],
-    [(1,1)] @=? pairs [1],
-    [(1,1), (1,2), (2,2)] @=? pairs [1,2],
-    [(1,1), (1,2), (1,3), (2,2), (2,3), (3,3)] @=? pairs [1,2,3]
+abundantNumbersTest = [
+    420 @=? abundantNumbers !! 100,
+    20 @=? abundantNumbers !! 2,
+    18 @=? abundantNumbers !! 1,
+    12 @=? head abundantNumbers
     ]
 
-isAbundant :: Integer -> Bool
-isAbundant a = a < sumDivisors
+properFactors :: Integer -> [Integer]
+properFactors n = filter noRem [1..(n-1)]
     where
-        sumDivisors = (sum $ properDivisors a) - 1 - a
+        noRem = (==) 0 . rem n
 
-isAbundantTest = [
-    assertBool "12 is abundant" $ isAbundant 12,
-    assertBool "13 is not abundant" $ not $ isAbundant 13
-    ]
-
-abundantPairs :: [(Integer, Integer)]
-abundantPairs = concat [[(a, b) | a <- subset b] | b <- abundantNums]
-    where
-        subset s = takeWhile ((>=) s) abundantNums
-
-abundantPairsTest =  [
-    (12, 12) @=? head abundantPairs,
-    (12, 18) @=? (head $ drop 1 abundantPairs),
-    (18, 18) @=? (head $ drop 2 abundantPairs),
-    (12, 30) @=? (head $ drop 10 abundantPairs)
-    ]
-
-abundantNums :: [Integer]
-abundantNums = filter isAbundant [1..28124]
-
-abundantNumsTest =  [
-    [12,18,20,24,30,36,40,42,48,54] @=? take 10 abundantNums,
-    [12,18] @=? take 2 abundantNums,
-    [12] @=? take 1 abundantNums
-    ]
-
-properDivisors :: Integer -> [Integer]
-properDivisors 1 = [1]
-properDivisors n = [1] ++ (sort $ nub $ divisors) 
-    where
-        divisors = map (foldl1 (*)) $ combineFactors $ primeFactors n
-
-properDivisorsTest =  [
-    [1,2,3,4,6, 12] @=? properDivisors 12,
-    [1,2, 4] @=? properDivisors 4,
-    [1,3] @=? properDivisors 3,
-    [1,2] @=? properDivisors 2,
-    [1] @=? properDivisors 1
-    ]
-
-combineFactors :: [Integer] -> [[Integer]]
-combineFactors [] = []
-combineFactors (n:ns) = [[n]] ++ without_n ++ with_n
-    where
-        without_n = combineFactors ns
-        with_n = map (n:) without_n
-
-combineFactorsTest = [
-    [[2],[2],[5],[2,5],[2,2],[2,5],[2,2,5]] @=? combineFactors [2,2,5],
-    [[2],[3],[5],[3,5],[2,3],[2,5],[2,3,5]] @=? combineFactors [2,3,5],
-    [[2],[3],[2,3]] @=? combineFactors [2,3],
-    [[2]] @=? combineFactors [2]
-    ]
-
-primeFactors :: Integer -> [Integer]
-primeFactors n 
-    | n <= 1 = []
-    | n == 2 = [2]
-    | isNothing divisor = [n]
-    | otherwise = primeFactors d' ++ primeFactors (div n d')
-        where
-            sqrtN = ceiling $ sqrt $ fromIntegral n 
-            divisor = find (\d -> 0 == rem n d) [sqrtN, sqrtN - 1..2]
-            d' = fromJust divisor
-
-primeFactorsTest =  [
-    [97] @=? (sort $ primeFactors 97),
-    [3, 37] @=? (sort $ primeFactors 111),
-    [2,2,5,5] @=? (sort $ primeFactors 100),
-    [2,2,3] @=? (sort $ primeFactors 12),
-    [2,3] @=? (sort $ primeFactors 6),
-    [5] @=? primeFactors 5,
-    [2,2] @=? primeFactors 4,
-    [3] @=? primeFactors 3,
-    [2] @=? primeFactors 2,
-    [] @=? primeFactors 1
+properFactorsTest = [
+    [] @=? properFactors 1,
+    [1] @=? properFactors 13,
+    [1,2,3,4,6] @=? properFactors 12
     ]
 
 unitTests = map TestCase $
-    combineFactorsTest ++
-    primeFactorsTest ++
-    properDivisorsTest ++
-    abundantPairsTest ++
-    abundantNumsTest ++
-    isAbundantTest ++
-    hasPairTest ++
-    pairsTest
+    properFactorsTest ++
+    abundantNumbersTest ++
+    abundantNumberPairsTest
 
 exec :: EulerArgs -> IO ()
 exec AdHoc{..}= do
