@@ -25,16 +25,16 @@ problem0023 limit = error "Not implemented"
 mergeAndSortLists :: [[Integer]] -> [Integer]
 mergeAndSortLists ls = error "Not implemented"
 
-abundantNumberPairs :: [[(Integer, Integer)]]
-abundantNumberPairs = [sublist $ drop n abundantNumbers | n <- [0..]]
+abundantNumberPairsSum :: [[Integer]]
+abundantNumberPairsSum = [sublist $ drop n abundantNumbers | n <- [0..]]
     where
-        sublist as@(a:_) = map (\n -> (a, n)) as
+        sublist as@(a:_) = map (a+) as
 
-abundantNumberPairsTest = [
-    [(18,18),(18,20),(18,24)] @=? (take 3 $ abundantNumberPairs !! 1),
-    [(12,12),(12,18),(12,20)] @=? (take 3 $ abundantNumberPairs !! 0),
-    [ (12,12) ] @=? (take 1 $ head abundantNumberPairs),
-    (12,12) @=? (head $ head abundantNumberPairs)
+abundantNumberPairsSumTest = [
+    [36,38,42] @=? (take 3 $ abundantNumberPairsSum !! 1),
+    [24,30,32] @=? (take 3 $ abundantNumberPairsSum !! 0),
+    [24] @=? (take 1 $ head abundantNumberPairsSum),
+    24 @=? (head $ head abundantNumberPairsSum)
     ]
 
 abundantNumbers :: [Integer]
@@ -63,7 +63,7 @@ properFactorsTest = [
 unitTests = map TestCase $
     properFactorsTest ++
     abundantNumbersTest ++
-    abundantNumberPairsTest
+    abundantNumberPairsSumTest
 
 exec :: EulerArgs -> IO ()
 exec AdHoc{..}= do
