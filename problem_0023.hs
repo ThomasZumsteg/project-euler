@@ -23,7 +23,29 @@ problem0023 :: Integer -> Integer
 problem0023 limit = error "Not implemented"
 
 mergeAndSortLists :: [[Integer]] -> [Integer]
-mergeAndSortLists ls = error "Not implemented"
+mergeAndSortLists = error "Not implemented"
+-- mergeAndSortLists ((i:is):ls) = i : (mergeAndSortLists $ sortedInsert is ls)
+
+sortedInsert :: (a -> a -> Bool) -> a -> [a] -> [a]
+sortedInsert _ i [] = [i]
+sortedInsert f i ls@(l:ls') 
+    | f i l = l : (sortedInsert f i ls')
+    | otherwise = i : ls
+
+byFirstElement (n:_) (m:_) = n > m
+
+sortedInsertTest = [
+    [[1,2,3],[2,4,6],[3,6,9]] @=? map (take 3) (take 3 $ 
+        sortedInsert byFirstElement [2,4..] [[n,(2*n)..] | n <- [1,3..]]),
+    [[1,2,3],[2,4,6],[3,6,9]] @=? map (take 3) (take 3 $ 
+        sortedInsert byFirstElement [2,4..] [[1,2..],[3,6..]]),
+    [[1],[2],[3]] @=? sortedInsert byFirstElement [2] [[1],[3]],
+    [1,2,3] @=? (take 3 $ sortedInsert (>) 2 [1,3..]),
+    [1,2,3] @=? sortedInsert (>) 1 [2,3],
+    [1,2,3] @=? sortedInsert (>) 2 [1,3],
+    [1,2,3] @=? sortedInsert (>) 3 [1,2],
+    [1] @=? sortedInsert (<) 1 []
+    ]
 
 abundantNumberPairsSum :: [[Integer]]
 abundantNumberPairsSum = [sublist $ drop n abundantNumbers | n <- [0..]]
@@ -63,7 +85,8 @@ properFactorsTest = [
 unitTests = map TestCase $
     properFactorsTest ++
     abundantNumbersTest ++
-    abundantNumberPairsSumTest
+    abundantNumberPairsSumTest ++
+    sortedInsertTest
 
 exec :: EulerArgs -> IO ()
 exec AdHoc{..}= do
