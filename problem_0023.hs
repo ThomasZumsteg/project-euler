@@ -29,8 +29,22 @@ byFirstElement (n:_) (m:_) = n > m
 
 
 mergeAndSortLists :: [[Integer]] -> [Integer]
-mergeAndSortLists = error "Not implemented"
--- mergeAndSortLists ((i:is):ls) = i : (mergeAndSortLists $ sortedInsert is ls)
+mergeAndSortLists [] = []
+mergeAndSortLists ([]:ls) = mergeAndSortLists ls
+mergeAndSortLists ((i:is):ls) = i : remainer 
+    where
+        remainer = mergeAndSortLists $ sortedInsert byFirstElement is ls
+
+mergeAndSortListsTest = [
+    [1,2,2,3,3,4,4,4,5,5] @=? (take 10 $ 
+        mergeAndSortLists [[n,n*2..] | n <- [1..10]]),
+    [1,2,2,3,3,4,4,4,5,5] @=? (take 10 $ 
+        mergeAndSortLists [[n,n*2..n*10] | n <- [1..10]]),
+    [1,2,3] @=? mergeAndSortLists [[n] | n <- [1,2,3]],
+    [1] @=? mergeAndSortLists [[1]],
+    [] @=? mergeAndSortLists [[]],
+    [] @=? mergeAndSortLists []
+    ]
 
 sortedInsert :: (a -> a -> Bool) -> a -> [a] -> [a]
 sortedInsert _ i [] = [i]
@@ -90,7 +104,8 @@ unitTests = map TestCase $
     properFactorsTest ++
     abundantNumbersTest ++
     abundantNumberPairsSumTest ++
-    sortedInsertTest
+    sortedInsertTest ++
+    mergeAndSortListsTest
 
 exec :: EulerArgs -> IO ()
 exec AdHoc{..}= do
