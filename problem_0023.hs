@@ -22,6 +22,12 @@ data EulerArgs =
 problem0023 :: Integer -> Integer
 problem0023 limit = error "Not implemented"
 
+byFirstElement :: (Ord a) => [a] -> [a] -> Bool
+byFirstElement (n:_) [] = True
+byFirstElement [] (m:_) = False
+byFirstElement (n:_) (m:_) = n > m
+
+
 mergeAndSortLists :: [[Integer]] -> [Integer]
 mergeAndSortLists = error "Not implemented"
 -- mergeAndSortLists ((i:is):ls) = i : (mergeAndSortLists $ sortedInsert is ls)
@@ -31,8 +37,6 @@ sortedInsert _ i [] = [i]
 sortedInsert f i ls@(l:ls') 
     | f i l = l : (sortedInsert f i ls')
     | otherwise = i : ls
-
-byFirstElement (n:_) (m:_) = n > m
 
 sortedInsertTest = [
     [[1,2,3],[2,4,6],[3,6,9]] @=? map (take 3) (take 3 $ 
