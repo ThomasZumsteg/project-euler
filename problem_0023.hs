@@ -13,6 +13,8 @@ import Text.Printf (printf)
 import System.Console.CmdArgs
 import Data.Time (getCurrentTime, diffUTCTime)
 
+import Data.List (elem)
+
 data EulerArgs = 
     AdHoc { limit::Integer }
     | Euler 
@@ -20,13 +22,14 @@ data EulerArgs =
     deriving (Show, Data, Typeable)
 
 problem0023 :: Integer -> Integer
-problem0023 limit = error "Not implemented"
+problem0023 limit = sum $ takeWhile (<limit) abundant
+    where
+        abundant = mergeAndSortLists $ abundantNumberPairsSum
 
 byFirstElement :: (Ord a) => [a] -> [a] -> Bool
 byFirstElement (n:_) [] = True
 byFirstElement [] (m:_) = False
 byFirstElement (n:_) (m:_) = n > m
-
 
 mergeAndSortLists :: [[Integer]] -> [Integer]
 mergeAndSortLists [] = []
