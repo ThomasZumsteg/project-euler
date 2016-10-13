@@ -93,9 +93,12 @@ abundantNumbersTest = [
     ]
 
 properFactors :: Integer -> [Integer]
-properFactors n = filter noRem [1..(n-1)]
+properFactors 1 = []
+properFactors n = [1] ++ small ++ large
     where
         noRem = (==) 0 . rem n
+        small = filter noRem $ takeWhile ((<=n) . (flip (^) 2)) [2..]
+        large = [div n m | m <- (reverse small), m * m /= n]
 
 properFactorsTest = [
     [] @=? properFactors 1,
