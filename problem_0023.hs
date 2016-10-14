@@ -13,7 +13,7 @@ import Text.Printf (printf)
 import System.Console.CmdArgs
 import Data.Time (getCurrentTime, diffUTCTime)
 
-import Data.List (elem)
+import qualified Data.Set as S
 
 data EulerArgs = 
     AdHoc { limit::Integer }
@@ -22,11 +22,14 @@ data EulerArgs =
     deriving (Show, Data, Typeable)
 
 problem0023 :: Integer -> Integer
-problem0023 limit = sum $ takeWhile (<limit) abundant
+problem0023 limit = sum $ S.difference allNums abundant
     where
-        abundant = mergeAndSortLists $ abundantNumberPairsSum
+        allNums = S.fromAscList [1..limit]
+        abundant = S.unions $ map (S.fromAscList . lim) limitedPairs
+        limitedPairs = takeWhile ((<=limit) . head) abundantNumberPairsSum
+        lim = takeWhile (<=limit)
 
-byFirstElement :: (Ord a) => [a] -> [a] -> Bool
+byFirstElement :: [Integer] -> [Integer] -> Bool
 byFirstElement (n:_) [] = True
 byFirstElement [] (m:_) = False
 byFirstElement (n:_) (m:_) = n > m
