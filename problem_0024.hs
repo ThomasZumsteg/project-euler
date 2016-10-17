@@ -30,28 +30,24 @@ permutationsTest = [
     ["0"] @=? permutations "0",
     [[]] @=? permutations ([]::[Char]) ]
 
-splitAtN :: [a] -> Int -> ([a],[a])
-splitAtN xs n 
-    | n > length xs = error "Needs to be shorter than the list"
-    | otherwise = ((take n xs), (drop n xs))
+insertAt :: a -> [a] -> Int -> [a]
+insertAt item items n 
+    | n < 0 || length items < n = error $ "Must be in range 0 to " ++ (show $ length items)
+    | otherwise = fore ++ [item] ++ aft
+    where
+        fore = take n items
+        aft = drop n items
 
-splitAtNTest = [
-    ("0123", "4") @=? splitAtN "01234" 4,
-    ("0", "1234") @=? splitAtN "01234" 1,
-    ("", "01234") @=? splitAtN "01234" 0 ]
-
-joinWithInterstitial :: a -> ([a],[a]) -> [a]
-joinWithInterstitial x (f,s) = f ++ [x] ++ s
-
-joinWithInterstitialTest = [
-    "012" @=? joinWithInterstitial '1' ("0", "2"),
-    "12" @=? joinWithInterstitial '1' ("", "2"),
-    "01" @=? joinWithInterstitial '1' ("0", ""),
-    "1" @=? joinWithInterstitial '1' ("", "")]
+insertAtTest = [
+    "abcd" @=? insertAt 'd' "abc" 3,
+    "abcd" @=? insertAt 'c' "abd" 2,
+    "abcd" @=? insertAt 'b' "acd" 1,
+    "abcd" @=? insertAt 'a' "bcd" 0,
+    "a" @=? insertAt 'a' "" 0 ]
 
 unitTests = map TestCase $
-    splitAtNTest ++
-    joinWithInterstitialTest
+    insertAtTest
+    
 
 exec :: EulerArgs -> IO ()
 exec AdHoc{..}= do
