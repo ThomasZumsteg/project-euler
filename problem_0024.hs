@@ -30,6 +30,14 @@ permutationsTest = [
     ["0"] @=? permutations "0",
     [[]] @=? permutations ([]::[Char]) ]
 
+makeFirst :: [a] -> [a] -> [[a]]
+makeFirst _ [] = []
+makeFirst pre (i:post) = ((i : pre) ++ post) : (makeFirst (pre ++ [i]) post)
+
+makeFirstTest = [
+     ["abc", "bac", "cab"] @=? makeFirst "" "abc",
+     [] @=? makeFirst "" ""]
+
 insertAt :: a -> [a] -> Int -> [a]
 insertAt item items n 
     | n < 0 || length items < n = error $ "Must be in range 0 to " ++ (show $ length items)
@@ -46,8 +54,8 @@ insertAtTest = [
     "a" @=? insertAt 'a' "" 0 ]
 
 unitTests = map TestCase $
-    insertAtTest
-    
+    insertAtTest ++
+    makeFirstTest
 
 exec :: EulerArgs -> IO ()
 exec AdHoc{..}= do
