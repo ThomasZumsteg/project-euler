@@ -22,9 +22,16 @@ problem0024 = error "Not implemented"
 
 permutations :: [a] -> [[a]]
 permutations [] = [[]]
-permutations (x:xs) = error "Not implemented"
+permutations items = concat $ map ps $ makeFirst [] items
+    where
+        ps (i:is) = map (i:) (permutations is)
 
 permutationsTest = [
+    ["0123", "0132", "0213", "0231", "0312", "0321",
+     "1023", "1032", "1203", "1230", "1302", "1320",
+     "2013", "2031", "2103", "2130", "2301", "2310",
+     "3012", "3021", "3102", "3120", "3201", "3210"
+    ] @=? permutations "0123",
     ["012", "021", "102", "120", "201", "210" ] @=? permutations "012",
     ["01", "10"] @=? permutations "01",
     ["0"] @=? permutations "0",
@@ -55,7 +62,8 @@ insertAtTest = [
 
 unitTests = map TestCase $
     insertAtTest ++
-    makeFirstTest
+    makeFirstTest ++ 
+    permutationsTest
 
 exec :: EulerArgs -> IO ()
 exec AdHoc{..}= do
