@@ -19,7 +19,7 @@ import System.Console.CmdArgs
 import Data.Time (getCurrentTime, diffUTCTime)
 
 import Data.List (elemIndex)
-import Data.Maybe (isJust)
+import Data.Maybe (isJust, fromJust)
 
 data EulerArgs = 
     AdHoc { lower::Integer, upper::Integer }
@@ -30,16 +30,22 @@ data EulerArgs =
 problem0026 :: Integer -> Integer -> Integer
 problem0026 = error "Not Implemented"
 
-cycleLength :: Integer -> Integer -> Integer
-cycleLength n d = 
+cycleLength :: (Eq a) => [a] -> [a] -> Int
+cycleLength _ [] = 0
+cycleLength ns (m:ms)
+    | isJust m' = 1 + fromJust m'
+    | otherwise = cycleLength (m:ns) ms
     where
-        digits = digitAndRemainer n d
+        m' = elemIndex m ns
 
 cycleLengthTest = [
-    6 @=? cycleLength 1 7,
-    1 @=? cycleLength 1 3,
-    0 @=? cycleLength 1 1,
-    0 @=? cycleLength 1 1]
+    6 @=? cycleLength [] (digitAndRemainer 1 7),
+    1 @=? cycleLength [] (digitAndRemainer 1 3),
+    10 @=? cycleLength "" "abcdefghijabcde",
+    9 @=? cycleLength ([]::[Int]) [1,2,3,4,5,6,7,8,9,1],
+    3 @=? cycleLength ([]::[(Int,Int)]) [(1,1), (2,2), (3,3), (1,1)],
+    0 @=? cycleLength ([]::[(Int,Int)]) [(1,1), (2,2), (3,3)],
+    0 @=? cycleLength ([]::[(Int,Int)]) []]
 
 digitAndRemainer :: Integer -> Integer -> [(Integer, Integer)]
 digitAndRemainer n d = (q, r) : if r == 0 then [] else digitAndRemainer (10*r) d
@@ -53,7 +59,8 @@ digitAndRemainerTest = [
     [(1,0)] @=? digitAndRemainer 1 1]
 
 unitTests = map TestCase $
-    digitAndRemainerTest
+    digitAndRemainerTest ++
+    cycleLengthTest
 
 exec :: EulerArgs -> IO ()
 exec AdHoc{..}= do
