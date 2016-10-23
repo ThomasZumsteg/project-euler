@@ -19,6 +19,7 @@ import System.Console.CmdArgs
 import Data.Time (getCurrentTime, diffUTCTime)
 
 import Data.List (elemIndex)
+import Data.Maybe (isJust)
 
 data EulerArgs = 
     AdHoc { lower::Integer, upper::Integer }
@@ -30,7 +31,9 @@ problem0026 :: Integer -> Integer -> Integer
 problem0026 = error "Not Implemented"
 
 cycleLength :: Integer -> Integer -> Integer
-cycleLength n d = error "Not Implemented"
+cycleLength n d = 
+    where
+        digits = digitAndRemainer n d
 
 cycleLengthTest = [
     6 @=? cycleLength 1 7,
