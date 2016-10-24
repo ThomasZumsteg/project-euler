@@ -27,8 +27,10 @@ data EulerArgs =
     | UnitTest
     deriving (Show, Data, Typeable)
 
-problem0026 :: Integer -> Integer -> Integer
-problem0026 = error "Not Implemented"
+problem0026 :: Integer -> Integer -> Int
+problem0026 lower upper = maximum $ map cycles [lower..upper]
+    where
+        cycles = cycleLength [] . digitAndRemainer 1
 
 cycleLength :: (Eq a) => [a] -> [a] -> Int
 cycleLength _ [] = 0
@@ -65,7 +67,7 @@ unitTests = map TestCase $
 exec :: EulerArgs -> IO ()
 exec AdHoc{..}= do
     let answer = problem0026 lower upper
-    printf "The longest repeating sequence from 1/%d to 1/%d is: %d" lower upper answer
+    printf "The longest repeating sequence from 1/%d to 1/%d is: %d\n" lower upper answer
 exec Euler = do
     let answer = problem0026 1 1000
     printf "Answer: %d\n" answer 
