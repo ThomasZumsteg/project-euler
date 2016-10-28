@@ -22,7 +22,8 @@ import Text.Printf (printf)
 import System.Console.CmdArgs
 import Data.Time (getCurrentTime, diffUTCTime)
 
-import Data.List (maximumBy)
+import Data.Maybe (fromJust, isJust)
+import Data.List (findIndex)
 
 data EulerArgs = 
     AdHoc { lower::Integer, upper::Integer }
@@ -31,10 +32,39 @@ data EulerArgs =
     deriving (Show, Data, Typeable)
 
 data Coefficents = Coefficents { b::Integer, c::Integer }
+    deriving (Show)
 
-problem0027 = error "Not Implemented"
+type State = Maybe (Int, Coefficents)
+
+problem0027 :: Integer -> Integer -> Coefficents
+problem0027 lower upper
+    | isJust result = snd $ fromJust result
+    | otherwise = Coefficents 0 0
+    where
+        result = foldl foldCoefficents Nothing
+            [Coefficents b c | b <- [lower..upper], c <- [lower..upper]]
+
+foldCoefficents :: State -> Coefficents -> State
+foldCoefficents s c 
+    | isJust s && c_val < (fst $ fromJust s) = s
+    | otherwise = Just (c_val, c)
+    where
+        c_val = primeSequenceLength c
+
+primeSequenceLength :: Coefficents -> Int
+primeSequenceLength (Coefficents b c) = fromJust $ findIndex (not . isPrime . equation) [0..]
+    where
+        equation n = n ^ 2 + b * n + c
+
+primeSequenceLengthTest = [
+    12 @=? primeSequenceLength (Coefficents (-10) (-10)),
+    1 @=? primeSequenceLength (Coefficents 5 2),
+    80 @=? primeSequenceLength (Coefficents (-79) 1601),
+    40 @=? primeSequenceLength (Coefficents 1 41),
+    0 @=? primeSequenceLength (Coefficents 0 0)]
 
 isPrime :: Integer -> Bool
+isPrime 0 = False
 isPrime n = all noRemainer [2..(floor $ sqrt $ fromIntegral n)]
     where
         noRemainer d = 0 /= rem n d
@@ -43,17 +73,19 @@ isPrimeTest = [
     assertBool "9 is not prime" (not $ isPrime 9),
     assertBool "6 is not prime" (not $ isPrime 6),
     assertBool "4 is not prime" (not $ isPrime 4),
+    assertBool "0 is not prime" (not $ isPrime 0),
     assertBool "3 is prime" (isPrime 3),
     assertBool "2 is prime" (isPrime 2)]    
 
 unitTests = map TestCase $
-    isPrimeTest
+    isPrimeTest ++
+    primeSequenceLengthTest
 
 exec :: EulerArgs -> IO ()
 exec AdHoc{..}= do
     let answer = problem0027 lower upper
-    printf ("For coefficnets in [%d, %d] the greates consecutive primes is %d " ++
-        "using the equation n^2 + %d*n + %d") lower upper (b answer) (c answer)
+    printf ("For coefficnets in [%d, %d] the greates consecutive primes " ++
+        "using the equation n^2 + %d*n + %d\n") lower upper (b answer) (c answer)
 exec Euler = do
     let answer = problem0027 (-1000) 1000
     printf "Answer: %d\n" ((b answer) * (c answer))
