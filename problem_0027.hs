@@ -36,10 +36,10 @@ data Coefficents = Coefficents { b::Integer, c::Integer }
 
 type State = Maybe (Int, Coefficents)
 
-problem0027 :: Integer -> Integer -> Coefficents
+problem0027 :: Integer -> Integer -> (Int, Coefficents)
 problem0027 lower upper
-    | isJust result = snd $ fromJust result
-    | otherwise = Coefficents 0 0
+    | isJust result = fromJust result
+    | otherwise = (0, Coefficents 0 0)
     where
         result = foldl foldCoefficents Nothing
             [Coefficents b c | b <- [lower..upper], c <- [lower..upper]]
@@ -63,10 +63,19 @@ primeSequenceLengthTest = [
     40 @=? primeSequenceLength (Coefficents 1 41),
     0 @=? primeSequenceLength (Coefficents 0 0)]
 
+primes :: [Integer]
+primes = 2 : [n | n <- [3,5..], isPrime n]
+
+primesTest = [
+    [2, 3, 5, 7, 11, 13, 17, 19, 23, 29] @=? (take 10 primes),
+    [2, 3] @=? (take 2 primes),
+    2 @=? (head primes)]
+
 isPrime :: Integer -> Bool
 isPrime 0 = False
-isPrime n = all noRemainer [2..(floor $ sqrt $ fromIntegral n)]
+isPrime n = all noRemainer primes'
     where
+        primes' = takeWhile (\p -> p * p <= n) primes
         noRemainer d = 0 /= rem n d
 
 isPrimeTest = [
@@ -79,15 +88,16 @@ isPrimeTest = [
 
 unitTests = map TestCase $
     isPrimeTest ++
+    primesTest ++
     primeSequenceLengthTest
 
 exec :: EulerArgs -> IO ()
 exec AdHoc{..}= do
-    let answer = problem0027 lower upper
-    printf ("For coefficnets in [%d, %d] the greates consecutive primes " ++
-        "using the equation n^2 + %d*n + %d\n") lower upper (b answer) (c answer)
+    let (consec, answer) = problem0027 lower upper
+    printf ("For coefficnets in [%d, %d] the greates consecutive primes is %d " ++
+        "using the equation n^2 + %d*n + %d\n") lower upper consec (b answer) (c answer)
 exec Euler = do
-    let answer = problem0027 (-1000) 1000
+    let answer = snd $ problem0027 (-1000) 1000
     printf "Answer: %d\n" ((b answer) * (c answer))
 exec UnitTest = do 
     runTestTT $ TestList unitTests
