@@ -24,14 +24,42 @@ problem0028 :: Integer -> Integer
 problem0028 = error "Not implemeneted"
 
 spiral :: [[Integer]]
-spiral = [[1],[2,3],[4,5],[6,7],[8,9],[10,11,12,13,14]]
+spiral = (map convertState $ iterate incrementState initalState)
+    where
+        initalState = (SpiralState 1 0 0)
+        convertState (SpiralState start diff _) = [start..(start + diff)]
 
 spiralTest = [
+    [13,14,15] @=? (head $ drop 6 spiral),
+    [10,11,12] @=? (head $ drop 5 spiral),
+    [8,9] @=? (head $ drop 4 spiral),
+    [6,7] @=? (head $ drop 3 spiral),
+    [4,5] @=? (head $ drop 2 spiral),
     [2,3] @=? (head $ drop 1 spiral),
     [1] @=? head spiral]
 
+data SpiralState = SpiralState {
+    start :: Integer,
+    diff :: Integer,
+    side :: Integer
+} deriving (Eq, Show)
+
+incrementState :: SpiralState -> SpiralState
+incrementState (SpiralState start diff side) 
+    = SpiralState 
+        (start + diff + 1) 
+        (diff + if (mod side 4) == 0 then 1 else 0)
+        (succ side) 
+
+incrementStateTest = [
+    (SpiralState 9 5 5) @=? incrementState (SpiralState 4 4 4),
+    (SpiralState 7 3 5) @=? incrementState (SpiralState 4 2 4),
+    (SpiralState 4 3 5) @=? incrementState (SpiralState 1 2 4),
+    (SpiralState 4 2 2) @=? incrementState (SpiralState 1 2 1)]
+
 unitTests = map TestCase $
-    spiralTest
+    spiralTest ++
+    incrementStateTest
 
 exec :: EulerArgs -> IO ()
 exec AdHoc{..}= do
