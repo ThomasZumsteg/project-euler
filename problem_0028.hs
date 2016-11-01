@@ -21,7 +21,7 @@ data EulerArgs =
     deriving (Show, Data, Typeable)
 
 problem0028 :: Integer -> Integer
-problem0028 = error "Not implemeneted"
+problem0028 limit = sum $ map last $ take (fromIntegral $ 2 * limit - 1) spiral
 
 spiral :: [[Integer]]
 spiral = [1] : (map convertState $ iterate incrementState initalState)
