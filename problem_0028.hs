@@ -24,14 +24,14 @@ problem0028 :: Integer -> Integer
 problem0028 = error "Not implemeneted"
 
 spiral :: [[Integer]]
-spiral = (map convertState $ iterate incrementState initalState)
+spiral = [1] : (map convertState $ iterate incrementState initalState)
     where
-        initalState = (SpiralState 1 0 0)
-        convertState (SpiralState start diff _) = [start..(start + diff)]
+        initalState = (SpiralState 2 2 1)
+        convertState (SpiralState start diff _) = [start..(start + diff - 1)]
 
 spiralTest = [
-    [13,14,15] @=? (head $ drop 6 spiral),
-    [10,11,12] @=? (head $ drop 5 spiral),
+    [14,15,16,17] @=? (head $ drop 6 spiral),
+    [10,11,12,13] @=? (head $ drop 5 spiral),
     [8,9] @=? (head $ drop 4 spiral),
     [6,7] @=? (head $ drop 3 spiral),
     [4,5] @=? (head $ drop 2 spiral),
@@ -47,15 +47,15 @@ data SpiralState = SpiralState {
 incrementState :: SpiralState -> SpiralState
 incrementState (SpiralState start diff side) 
     = SpiralState 
-        (start + diff + 1) 
-        (diff + if (mod side 4) == 0 then 1 else 0)
+        (start + diff) 
+        (diff + if (mod side 4) == 0 then 2 else 0)
         (succ side) 
 
 incrementStateTest = [
-    (SpiralState 9 5 5) @=? incrementState (SpiralState 4 4 4),
-    (SpiralState 7 3 5) @=? incrementState (SpiralState 4 2 4),
-    (SpiralState 4 3 5) @=? incrementState (SpiralState 1 2 4),
-    (SpiralState 4 2 2) @=? incrementState (SpiralState 1 2 1)]
+    (SpiralState 8 6 5) @=? incrementState (SpiralState 4 4 4),
+    (SpiralState 6 4 5) @=? incrementState (SpiralState 4 2 4),
+    (SpiralState 3 4 5) @=? incrementState (SpiralState 1 2 4),
+    (SpiralState 3 2 2) @=? incrementState (SpiralState 1 2 1)]
 
 unitTests = map TestCase $
     spiralTest ++
