@@ -47,8 +47,15 @@ productAndRemainerTest = [
     (132,"456789") @=? (head $ drop 8 productAndRemainer),    
     (1234,"56789") @=? (head $ drop 9 productAndRemainer)]
 
+{-
+ - orderedPerm creates an ordered list of all permutations of a sorted list
+-}
 orderedPerm :: [a] -> [[a]]
-orderedPerm = error "Not Implemented"
+orderedPerm [] = [[]]
+orderedPerm items = concat $ map orderedPerm' items'
+    where
+        items' = map (\i -> splitAt i items) [0..(length items - 1)]
+        orderedPerm' (as, (b:bs)) = map ((:) b) $ orderedPerm (as ++ bs)
 
 orderedPermTest = [
     ["123","132","213","231","312","321"] @=? orderedPerm "123",
