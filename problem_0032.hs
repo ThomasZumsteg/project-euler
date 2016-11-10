@@ -10,8 +10,6 @@ import Text.Printf (printf)
 import System.Console.CmdArgs
 import Data.Time (getCurrentTime, diffUTCTime)
 
-import Data.List (permutations)
-
 data EulerArgs = 
     AdHoc {digits::String}
     | Euler 
@@ -31,20 +29,20 @@ productAndRemainer :: [(Integer, String)]
 productAndRemainer = [(read product, gs) | n <- [1..(length digits - 2)],
     let gs = drop n digits,
     let g = take n digits,
-    product <- permutations g]
+    product <- orderedPerm g]
     where
         digits = "123456789"
 
-productAndRemainerTest = [ 
+productAndRemainerTest = [
     (1,"23456789") @=? (head $ drop 0 productAndRemainer),
     (12,"3456789") @=? (head $ drop 1 productAndRemainer),
     (21,"3456789") @=? (head $ drop 2 productAndRemainer),
     (123,"456789") @=? (head $ drop 3 productAndRemainer),
-    (213,"456789") @=? (head $ drop 4 productAndRemainer),
-    (321,"456789") @=? (head $ drop 5 productAndRemainer),    
-    (231,"456789") @=? (head $ drop 6 productAndRemainer),    
-    (312,"456789") @=? (head $ drop 7 productAndRemainer),    
-    (132,"456789") @=? (head $ drop 8 productAndRemainer),    
+    (132,"456789") @=? (head $ drop 4 productAndRemainer),
+    (213,"456789") @=? (head $ drop 5 productAndRemainer),
+    (231,"456789") @=? (head $ drop 6 productAndRemainer),
+    (312,"456789") @=? (head $ drop 7 productAndRemainer),
+    (321,"456789") @=? (head $ drop 8 productAndRemainer),
     (1234,"56789") @=? (head $ drop 9 productAndRemainer)]
 
 {-
