@@ -20,10 +20,16 @@ problem0032 :: String -> Integer
 problem0032 = error "Not Implemented"
 
 remainerProduct :: String -> [Integer]
-remainerProduct = error "Not Implemeneted"
+remainerProduct digits = map (uncurry (*)) [(a,b) |
+    p <- permutations digits,
+    i <- [1..(div (length p) 2)],
+    let a = read $ take i p,
+    let b = read $ drop i p]
 
 remainerProductTest = [
-    [23, 32, 26, 62, 36, 63] @=? remainerProduct "123"]
+    (sort []) @=? (sort $ remainerProduct "1"),
+    (sort [1*2, 2*1]) @=? (sort $ remainerProduct "12"),
+    (sort [1*23, 1*32, 2*13, 2*31, 3*12, 3*21]) @=? (sort $ remainerProduct "123")]
 
 productAndRemainer :: [(Integer, String)]
 productAndRemainer = [(read product, gs) | n <- [1..(length digits - 2)],
