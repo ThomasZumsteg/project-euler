@@ -51,6 +51,24 @@ productAndRemainerTest = [
     (321,"456789") @=? (head $ drop 8 productAndRemainer),
     (1234,"56789") @=? (head $ drop 9 productAndRemainer)]
 
+binaryCombinations :: [a] -> [([a],[a])]
+binaryCombinations [] = error "List needs to have at least 3 items"
+binaryCombinations (_:[]) = error "List needs to have at least 3 items"
+binaryCombinations (_:_:[]) = error "List needs to have at least 3 items"
+binaryCombinations (a:b:c:[]) = [([a],[b,c]),([b],[a,c]),([c],[a,b])]
+binaryCombinations (i:is) = [([i],is)] ++ withFirst ++ withSecond ++ withFirst' 
+    where
+        combinations = binaryCombinations is
+        withFirst = map (\(as, bs) -> (i:as, bs)) combinations
+        withFirst' = map (\(as, bs) -> (bs, i:as)) combinations
+        withSecond = map (\(as, bs) -> (as, i:bs)) combinations
+
+binaryCombinationsTest = [
+    [("a","bcd"),("ab","cd"),("ac","bd"),("ad","bc"),
+     ("b","acd"),("c","abd"),("d","abc"),("cd","ab"),("bd","ac"),("bc","ad")] 
+     @=? binaryCombinations "abcd",
+    [("a","bc"),("b","ac"),("c","ab")] @=? binaryCombinations "abc"]
+
 {-
  - orderedPerm creates an ordered list of all permutations of a sorted list
 -}
@@ -68,7 +86,8 @@ orderedPermTest = [
 
 unitTests = map TestCase $
     productAndRemainerTest ++
-    orderedPermTest
+    orderedPermTest ++
+    binaryCombinationsTest
 
 exec :: EulerArgs -> IO ()
 exec AdHoc{..}= do
