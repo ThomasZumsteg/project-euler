@@ -10,92 +10,56 @@ import Text.Printf (printf)
 import System.Console.CmdArgs
 import Data.Time (getCurrentTime, diffUTCTime)
 
+import Data.Maybe (isJust)
+import Data.List (permutations, find)
+
+data Triplet = Triplet { a::Integer, b::Integer, c::Integer }
+    deriving (Show, Eq)
+
 data EulerArgs = 
-    AdHoc {digits::String}
+    AdHoc{start::Int, items::Maybe Int}
     | Euler 
     | UnitTest
     deriving (Show, Data, Typeable)
 
-problem0032 :: String -> Integer
-problem0032 = error "Not Implemented"
-
-remainerProduct :: String -> [Integer]
-remainerProduct digits = map (uncurry (*)) [(a,b) |
-    p <- permutations digits,
-    i <- [1..(div (length p) 2)],
-    let a = read $ take i p,
-    let b = read $ drop i p]
-
-remainerProductTest = [
-    (sort []) @=? (sort $ remainerProduct "1"),
-    (sort [1*2, 2*1]) @=? (sort $ remainerProduct "12"),
-    (sort [1*23, 1*32, 2*13, 2*31, 3*12, 3*21]) @=? (sort $ remainerProduct "123")]
-
-productAndRemainer :: [(Integer, String)]
-productAndRemainer = [(read product, gs) | n <- [1..(length digits - 2)],
-    let gs = drop n digits,
-    let g = take n digits,
-    product <- orderedPerm g]
+problem0032 :: [Triplet]
+problem0032 = filter isProduct pandigitalTriplets
+    where
+        isProduct Triplet{a=a,b=b,c=c} = c == (a * b)
+        
+pandigitalTriplets :: [Triplet]
+pandigitalTriplets = [Triplet a b c | 
+    perm <- permutations digits,
+    n <- [1..((length perm)-2)],
+    m <- [1..((length perm)-1-n)],
+    let a = read $ take n perm,
+    let b = read $ take m $ drop n perm,
+    let c = read $ drop (n + m) perm]
     where
         digits = "123456789"
 
-productAndRemainerTest = [
-    (1,"23456789") @=? (head $ drop 0 productAndRemainer),
-    (12,"3456789") @=? (head $ drop 1 productAndRemainer),
-    (21,"3456789") @=? (head $ drop 2 productAndRemainer),
-    (123,"456789") @=? (head $ drop 3 productAndRemainer),
-    (132,"456789") @=? (head $ drop 4 productAndRemainer),
-    (213,"456789") @=? (head $ drop 5 productAndRemainer),
-    (231,"456789") @=? (head $ drop 6 productAndRemainer),
-    (312,"456789") @=? (head $ drop 7 productAndRemainer),
-    (321,"456789") @=? (head $ drop 8 productAndRemainer),
-    (1234,"56789") @=? (head $ drop 9 productAndRemainer)]
-
-binaryCombinations :: [a] -> [([a],[a])]
-binaryCombinations [] = error "List needs to have at least 3 items"
-binaryCombinations (_:[]) = error "List needs to have at least 3 items"
-binaryCombinations (_:_:[]) = error "List needs to have at least 3 items"
-binaryCombinations (a:b:c:[]) = [([a],[b,c]),([b],[a,c]),([c],[a,b])]
-binaryCombinations (i:is) = [([i],is)] ++ withFirst ++ withSecond ++ withFirst' 
-    where
-        combinations = binaryCombinations is
-        withFirst = map (\(as, bs) -> (i:as, bs)) combinations
-        withFirst' = map (\(as, bs) -> (bs, i:as)) combinations
-        withSecond = map (\(as, bs) -> (as, i:bs)) combinations
-
-binaryCombinationsTest = [
-    [("a","bcd"),("ab","cd"),("ac","bd"),("ad","bc"),
-     ("b","acd"),("c","abd"),("d","abc"),("cd","ab"),("bd","ac"),("bc","ad")] 
-     @=? binaryCombinations "abcd",
-    [("a","bc"),("b","ac"),("c","ab")] @=? binaryCombinations "abc"]
-
-{-
- - orderedPerm creates an ordered list of all permutations of a sorted list
--}
-orderedPerm :: [a] -> [[a]]
-orderedPerm [] = [[]]
-orderedPerm items = concat $ map orderedPerm' items'
-    where
-        items' = map (\i -> splitAt i items) [0..(length items - 1)]
-        orderedPerm' (as, (b:bs)) = map ((:) b) $ orderedPerm (as ++ bs)
-
-orderedPermTest = [
-    ["123","132","213","231","312","321"] @=? orderedPerm "123",
-    ["12","21"] @=? orderedPerm "12",
-    ["1"] @=? orderedPerm "1"]
+pandigitalTripletsTest = [
+    (Triplet 1 2 3456789) @=? (head $ drop 0 pandigitalTriplets),
+    (Triplet 1 23 456789) @=? (head $ drop 1 pandigitalTriplets),
+    (Triplet 1 234 56789) @=? (head $ drop 2 pandigitalTriplets),
+    (Triplet 1 2345 6789) @=? (head $ drop 3 pandigitalTriplets),
+    (Triplet 1 23456 789) @=? (head $ drop 4 pandigitalTriplets),
+    (Triplet 1 234567 89) @=? (head $ drop 5 pandigitalTriplets),
+    (Triplet 1 2345678 9) @=? (head $ drop 6 pandigitalTriplets),
+    (Triplet 12 3 456789) @=? (head $ drop 7 pandigitalTriplets),
+    (Triplet 12 34 56789) @=? (head $ drop 8 pandigitalTriplets)]
 
 unitTests = map TestCase $
-    productAndRemainerTest ++
-    orderedPermTest ++
-    binaryCombinationsTest
+    pandigitalTripletsTest
+    
 
 exec :: EulerArgs -> IO ()
-exec AdHoc{..}= do
-    let answer = problem0032 digits
-    printf "Answer: %d" answer
+exec AdHoc{..} = do
+    let answer = take 10 problem0032
+    printf "Answer: %s" (show answer)
 exec Euler = do
-    let answer = problem0032 "123456789"
-    printf "Answer: %d\n" answer
+    let answer = problem0032 
+    printf "Answer: %s\n" (show answer)
 exec UnitTest = do 
     runTestTT $ TestList unitTests
     return ()
@@ -103,7 +67,7 @@ exec UnitTest = do
 main :: IO ()
 main = do
     args <- cmdArgs $ modes [
-        AdHoc{digits="123"},
+        AdHoc{start = 0, items = Nothing},
         Euler,
         UnitTest]
     start <- getCurrentTime
