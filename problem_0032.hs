@@ -10,7 +10,7 @@ import Text.Printf (printf)
 import System.Console.CmdArgs
 import Data.Time (getCurrentTime, diffUTCTime)
 
-import Data.Maybe (isJust)
+import Data.Maybe (catMaybes)
 import Data.List (permutations, find)
 
 data Triplet = Triplet { a::Integer, b::Integer, c::Integer }
@@ -23,40 +23,37 @@ data EulerArgs =
     deriving (Show, Data, Typeable)
 
 problem0032 :: [Triplet]
-problem0032 = filter isProduct pandigitalTriplets
+problem0032 = catMaybes $ map (find multiple) productList
     where
-        isProduct Triplet{a=a,b=b,c=c} = c == (a * b)
+        multiple (Triplet a b c) = a * b == c
+
+productList :: [[Triplet]]
+productList = [[Triplet (read a) (read b) (read c) |
+    (a, b) <- filter notNull $ uniqueGroups digits] |
+    c <- permutations "2457"]
+    where
+        digits = "13689" 
+        notNull (i, j) = not ((null i) || (null j))
+
+uniqueGroups :: [a] -> [([a],[a])]
+uniqueGroups [] = []
+uniqueGroups (a:as) = map joinFirst groups ++ map joinSecond groups
+    where
+        joinFirst (bs, cs) = ((a:bs), cs)
+        joinSecond (bs, cs) = (bs, (a:cs))
+        groups = uniqueGroups as 
+
+uniqueGroupsTest = [
+    [] @=? uniqueGroups "abcde"]
         
-pandigitalTriplets :: [Triplet]
-pandigitalTriplets = [Triplet a b c | 
-    perm <- permutations digits,
-    n <- [1..((length perm)-2)],
-    m <- [1..((length perm)-1-n)],
-    let a = read $ take n perm,
-    let b = read $ take m $ drop n perm,
-    let c = read $ drop (n + m) perm]
-    where
-        digits = "123456789"
-
-pandigitalTripletsTest = [
-    (Triplet 1 2 3456789) @=? (head $ drop 0 pandigitalTriplets),
-    (Triplet 1 23 456789) @=? (head $ drop 1 pandigitalTriplets),
-    (Triplet 1 234 56789) @=? (head $ drop 2 pandigitalTriplets),
-    (Triplet 1 2345 6789) @=? (head $ drop 3 pandigitalTriplets),
-    (Triplet 1 23456 789) @=? (head $ drop 4 pandigitalTriplets),
-    (Triplet 1 234567 89) @=? (head $ drop 5 pandigitalTriplets),
-    (Triplet 1 2345678 9) @=? (head $ drop 6 pandigitalTriplets),
-    (Triplet 12 3 456789) @=? (head $ drop 7 pandigitalTriplets),
-    (Triplet 12 34 56789) @=? (head $ drop 8 pandigitalTriplets)]
-
 unitTests = map TestCase $
-    pandigitalTripletsTest
-    
+    uniqueGroupsTest
 
 exec :: EulerArgs -> IO ()
 exec AdHoc{..} = do
     let answer = take 10 problem0032
-    printf "Answer: %s" (show answer)
+    printf "List of Pandigital products:\n" 
+    mapM_ (\(Triplet a b c) -> printf "%d * %d = %d\n" a b c)  answer
 exec Euler = do
     let answer = problem0032 
     printf "Answer: %s\n" (show answer)
