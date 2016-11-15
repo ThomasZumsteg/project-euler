@@ -46,8 +46,23 @@ uniqueGroups (a:as) = map joinFirst groups ++ map joinSecond groups
 uniqueGroupsTest = [
     [] @=? uniqueGroups "abcde"]
         
+binaryZip :: [a] -> Int -> ([a],[a])
+binaryZip [] _ = ([], [])
+binaryZip (i:is) int = add $ binaryZip is rem
+    where
+        (rem, bit) = divMod int 2
+        add (as, bs) = if bit == 1 then (i:as, bs) else (as, i:bs)
+
+binaryZipTest = [
+    ("a","bcde") @=? binaryZip "abcde"   1,
+    ("abcde","") @=? binaryZip "abcde" 511,
+    ("abd","ce") @=? binaryZip "abcde"  11,
+    ("","abcde") @=? binaryZip "abcde"   0,
+    ("abcde","") @=? binaryZip "abcde" 255]
+
 unitTests = map TestCase $
-    uniqueGroupsTest
+    uniqueGroupsTest ++
+    binaryZipTest
 
 exec :: EulerArgs -> IO ()
 exec AdHoc{..} = do
