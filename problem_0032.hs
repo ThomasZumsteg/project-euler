@@ -11,7 +11,7 @@ import System.Console.CmdArgs
 import Data.Time (getCurrentTime, diffUTCTime)
 
 import Data.Maybe (catMaybes)
-import Data.List (permutations, find)
+import Data.List (sort, permutations, find)
 
 data Triplet = Triplet { a::Integer, b::Integer, c::Integer }
     deriving (Show, Eq)
@@ -29,23 +29,25 @@ problem0032 = catMaybes $ map (find multiple) productList
 
 productList :: [[Triplet]]
 productList = [[Triplet (read a) (read b) (read c) |
-    (a, b) <- filter notNull $ uniqueGroups digits] |
+    (a, b) <- filter length' $ uniqueGroups digits] |
     c <- permutations "2457"]
     where
         digits = "13689" 
-        notNull (i, j) = not ((null i) || (null j))
+        length' (as, bs) = (not $ null as) && (2 <= length bs)
 
 uniqueGroups :: [a] -> [([a],[a])]
-uniqueGroups [] = []
-uniqueGroups (a:as) = map joinFirst groups ++ map joinSecond groups
+uniqueGroups items = map (binaryZip items) [0..l]
     where
-        joinFirst (bs, cs) = ((a:bs), cs)
-        joinSecond (bs, cs) = (bs, (a:cs))
-        groups = uniqueGroups as 
+        l = 2 ^ (length items) - 1
 
 uniqueGroupsTest = [
-    [] @=? uniqueGroups "abcde"]
-        
+    (sort [("","abc"), ("a","bc"),("b","ac"),("ab","c"),("c","ab"),
+           ("ac","b"), ("bc","a"),("abc","")]) @=? (sort $ uniqueGroups "abc"),
+    (sort [("","abcd"),("a","bcd"),("ab","cd"),("abc","d"),("abcd",""),
+           ("abd","c"),("ac","bd"),("acd","b"),("ad","bc"),("b","acd"),
+           ("bc","ad"),("bcd","a"),("bd","ac"),("c","abd"),("cd","ab"),
+           ("d","abc")]) @=? (sort $ uniqueGroups "abcd")]
+
 binaryZip :: [a] -> Int -> ([a],[a])
 binaryZip [] _ = ([], [])
 binaryZip (i:is) int = add $ binaryZip is rem
