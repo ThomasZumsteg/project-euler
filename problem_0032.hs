@@ -11,7 +11,7 @@ import System.Console.CmdArgs
 import Data.Time (getCurrentTime, diffUTCTime)
 
 import Data.Maybe (isJust, fromJust, catMaybes)
-import Data.List (sort, permutations, find)
+import Data.List (nub, sort, permutations, find)
 
 data Triplet = Triplet { a::Integer, b::Integer, c::Integer }
     deriving (Show, Eq)
@@ -23,57 +23,29 @@ data EulerArgs =
     deriving (Show, Data, Typeable)
 
 problem0032 :: [Triplet]
-problem0032 = catMaybes $ map (find multiple) productList
+problem0032 = filter multiple (productList "123456789")
     where
         multiple (Triplet a b c) = a * b == c
 
-productList :: [[Triplet]]
-productList = [[Triplet (read a') (read b') (read c') |
-    ab' <- permutations ab,
-    (a', b') <- filter notNull $ uniqueGroups ab'] |
-    (c, ab) <- filter length' $ uniqueGroups digits,
-    c' <- permutations c]
+productList :: String -> [Triplet]
+productList digits = [Triplet (read a') (read b') (read c') |
+    perm <- permutations digits,
+    m <- [1..(l_digits - 2)],
+    n <- [(m + 1)..(l_digits - 1)],
+    let (a', b', c') = split2 perm m n]
     where
-        digits = "123456789"
-        length' (as, bs) = (not $ null as) && (2 <= length bs)
-        notNull (as, bs) = (not $ null as) && (not $ null bs)
+        l_digits = length digits
+        split2 items i j = (a, b, c)
+            where
+                a = take i items
+                b = take (j - i) $ drop i items
+                c = drop j items 
 
 productListTest = [
-    (Triplet 1 2 5748396) @=? (head $ last productList),
-    True @=? (elem (Triplet 3 456789 12) (head $ drop 2 productList)),
-    -- True @=? (all (\t -> c t == 2) $ head $ drop 1 productList),
-    (Triplet 2 3456789 1) @=? (head $ head $ drop 0 productList)]
-
-uniqueGroups :: [a] -> [([a],[a])]
-uniqueGroups items = map (binaryZip items) [0..l]
-    where
-        l = 2 ^ (length items) - 1
-
-uniqueGroupsTest = [
-    (sort [("","abc"), ("a","bc"),("b","ac"),("ab","c"),("c","ab"),
-           ("ac","b"), ("bc","a"),("abc","")]) @=? (sort $ uniqueGroups "abc"),
-    (sort [("","abcd"),("a","bcd"),("ab","cd"),("abc","d"),("abcd",""),
-           ("abd","c"),("ac","bd"),("acd","b"),("ad","bc"),("b","acd"),
-           ("bc","ad"),("bcd","a"),("bd","ac"),("c","abd"),("cd","ab"),
-           ("d","abc")]) @=? (sort $ uniqueGroups "abcd")]
-
-binaryZip :: [a] -> Int -> ([a],[a])
-binaryZip [] _ = ([], [])
-binaryZip (i:is) int = add $ binaryZip is rem
-    where
-        (rem, bit) = divMod int 2
-        add (as, bs) = if bit == 1 then (i:as, bs) else (as, i:bs)
-
-binaryZipTest = [
-    ("a","bcde") @=? binaryZip "abcde"   1,
-    ("abcde","") @=? binaryZip "abcde" 511,
-    ("abd","ce") @=? binaryZip "abcde"  11,
-    ("","abcde") @=? binaryZip "abcde"   0,
-    ("abcde","") @=? binaryZip "abcde" 255]
+    True @=? elem (Triplet 23 45 16) (productList "123456"),
+    (Triplet 1 2 3456789) @=? (head $ drop 0 (productList "123456789"))]
 
 unitTests = map TestCase $
-    uniqueGroupsTest ++
-    binaryZipTest ++
     productListTest
 
 exec :: EulerArgs -> IO ()
@@ -84,7 +56,7 @@ exec AdHoc{..} = do
     printf "List of Pandigital products:\n" 
     mapM_ (\(Triplet a b c) -> printf "%d * %d = %d\n" a b c)  answer
 exec Euler = do
-    let answer = problem0032 
+    let answer = sum $ nub $ map c problem0032 
     printf "Answer: %s\n" (show answer)
 exec UnitTest = do 
     runTestTT $ TestList unitTests
