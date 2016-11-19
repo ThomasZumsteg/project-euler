@@ -41,12 +41,46 @@ productList digits = [Triplet (read a') (read b') (read c') |
                 b = take (j - i) $ drop i items
                 c = drop j items 
 
+productAndMultipes :: String -> [(Integer, [(Integer, Integer)])]
+productAndMultipes digits = [(read c, [(read b, read a) | 
+        ab' <- permutations ab,
+        n <- [1..l_ab],
+        let a = drop n ab',
+        let b = take n ab']) |
+    (c', ab) <- filter size $ combinations digits,
+    c <- permutations c',
+    let l_ab = length ab - 1]
+        where
+            size (as, bs) = (not $ null as) && (2 <= length bs)
+
+productAndMultipesTest = [
+    (1, [(2, 3), (3, 2)]) @=? (head $ productAndMultipes "123")]
+
+combinations :: [a] -> [([a], [a])]
+combinations [] = [([],[])]
+combinations (a:as) = map joinFirst as' ++ map joinSecond as'
+    where
+        as' = combinations as
+        joinFirst (bs, cs) = (a:bs, cs)
+        joinSecond (bs, cs) = (bs, a:cs)
+
+combinationsTest = [
+    True @=? (elem ("123","4") (combinations "1234")),
+    True @=? (elem ("14","23") (combinations "1234")),
+    True @=? (elem ("3","124") (combinations "1234")),
+    True @=? (elem ("4","123") (combinations "1234")),
+    False @=? (elem ("4", "13") (combinations "1234")),
+    False @=? (elem ("4", "312") (combinations "1234")),
+    [("","")] @=? combinations ""]
+
 productListTest = [
     True @=? elem (Triplet 23 45 16) (productList "123456"),
     (Triplet 1 2 3456789) @=? (head $ drop 0 (productList "123456789"))]
 
 unitTests = map TestCase $
-    productListTest
+    productListTest ++
+    combinationsTest ++ 
+    productAndMultipesTest
 
 exec :: EulerArgs -> IO ()
 exec AdHoc{..} = do
