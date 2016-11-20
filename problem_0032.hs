@@ -23,9 +23,13 @@ data EulerArgs =
     deriving (Show, Data, Typeable)
 
 problem0032 :: [Triplet]
-problem0032 = filter multiple (productList "123456789")
-    where
-        multiple (Triplet a b c) = a * b == c
+problem0032 = catMaybes $ map (uncurry makeTriplet) $ productAndMultipes "123456789"
+
+makeTriplet :: Integer -> [(Integer, Integer)] -> Maybe Triplet
+makeTriplet c [] = Nothing
+makeTriplet c ((b,a):abs) 
+    | c == a * b = Just (Triplet a b c)
+    | otherwise = makeTriplet c abs
 
 productList :: String -> [Triplet]
 productList digits = [Triplet (read a') (read b') (read c') |
@@ -41,20 +45,25 @@ productList digits = [Triplet (read a') (read b') (read c') |
                 b = take (j - i) $ drop i items
                 c = drop j items 
 
+productListTest = [
+    True @=? elem (Triplet 23 45 16) (productList "123456"),
+    (Triplet 1 2 3456789) @=? (head $ drop 0 (productList "123456789"))]
+
 productAndMultipes :: String -> [(Integer, [(Integer, Integer)])]
 productAndMultipes digits = [(read c, [(read b, read a) | 
-        ab' <- permutations ab,
-        n <- [1..l_ab],
-        let a = drop n ab',
-        let b = take n ab']) |
+        (a', b') <- filter notNull $ combinations' ab,
+        a <- permutations a',
+        b <- permutations b']) |
     (c', ab) <- filter size $ combinations digits,
     c <- permutations c',
     let l_ab = length ab - 1]
         where
+            notNull (as, bs) = not ((null as) || (null bs))
             size (as, bs) = (not $ null as) && (2 <= length bs)
 
 productAndMultipesTest = [
-    (1, [(2, 3), (3, 2)]) @=? (head $ productAndMultipes "123")]
+    (2, [(3, 1)]) @=? (head $ drop 1 $ productAndMultipes "123"),
+    (1, [(3, 2)]) @=? (head $ productAndMultipes "123")]
 
 combinations :: [a] -> [([a], [a])]
 combinations [] = [([],[])]
@@ -73,14 +82,27 @@ combinationsTest = [
     False @=? (elem ("4", "312") (combinations "1234")),
     [("","")] @=? combinations ""]
 
-productListTest = [
-    True @=? elem (Triplet 23 45 16) (productList "123456"),
-    (Triplet 1 2 3456789) @=? (head $ drop 0 (productList "123456789"))]
+combinations' :: [a] -> [([a],[a])]
+combinations' (i:is) = map joinFirst is'
+    where
+        is' = combinations is
+        joinFirst (bs, cs) = (i:bs, cs)
+
+hasElement element (as, bs) = ((as, bs) == element) || ((bs, as) == element)
+
+combinations'Test = [
+    True @=? (any (hasElement ("13579", "2468")) (combinations' "123456789")),
+    True @=? (any (hasElement ("1", "234")) (combinations' "1234")),
+    True @=? (any (hasElement ("2", "134")) (combinations' "1234")),
+    True @=? (any (hasElement ("4", "123")) (combinations' "1234")),
+    True @=? (any (hasElement ("12", "34")) (combinations' "1234")),
+    [("123",""),("12","3"),("13","2"),("1","23")] @=? combinations' "123"]
 
 unitTests = map TestCase $
     productListTest ++
     combinationsTest ++ 
-    productAndMultipesTest
+    productAndMultipesTest ++
+    combinations'Test
 
 exec :: EulerArgs -> IO ()
 exec AdHoc{..} = do
