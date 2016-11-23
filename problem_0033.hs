@@ -13,6 +13,8 @@ import Text.Printf (printf)
 import System.Console.CmdArgs
 import Data.Time (getCurrentTime, diffUTCTime)
 
+import Data.Char (digitToInt)
+
 data EulerArgs = 
     AdHoc
     | Euler 
@@ -25,24 +27,34 @@ data Fraction = Fraction {
     } deriving (Show, Eq)
 
 problem0033 :: [(Integer, Integer)]
-problem0033 = validFractions
+problem0033 = map (\(n,d) -> (toInteger n, toInteger d)) validFractions
 
-validFractions :: [(Integer, Integer)]
+validFractions :: [(Int, Int)]
 validFractions = [ (n, d) | 
     n <- [10..100],
     d <- [ n..100],
     validFraction n d ]
 
-validFraction :: Integer -> Integer -> Bool
+gcdTest = [
+    1 @=? gcd 10 1]
+
+validFraction :: Int -> Int -> Bool
 validFraction n d 
-    | 0 == mod n 10 = False
-    | 0 == mod d 10 = False
-    | otherwise = (n * d') == (n' * d)
+    | n == d = False
+    | n < 10 || 100 <= n = False
+    | d < 10 || 100 <= d = False
+    | n' == '0' || n'' == '0' || d' == '0' || d'' == '0' = False
+    | n' == d' = (d * digitToInt n'') == (n * digitToInt d'')
+    | n'' == d'' = (d * digitToInt n') == (n * digitToInt d')
+    | n' == d'' = (d * digitToInt n'') == (n * digitToInt d')
+    | n'' == d' = (d * digitToInt n') == (n * digitToInt d'')
+    | otherwise = False
     where
-        n' = div n 10
-        d' = mod d 10
+        (n':n'':[]) = show n
+        (d':d'':[]) = show d
 
 validFractionTest = [
+    False @=? validFraction 33 52,
     False @=? validFraction 30 50,
     True @=? validFraction 49 98]
 
@@ -55,8 +67,10 @@ exec AdHoc = do
     printf "List of fractions:\n" 
     mapM_ (\(n, d) -> printf "%d / %d\n" n d) answer
 exec Euler = do
-    let answer = problem0033
-    printf "Answer: %s\n" (show answer)
+    let multiplyFactions (acc_n, acc_d) (n, d) = (acc_n * n, acc_d * d)
+    let (answer_n, answer_d) = foldl1 multiplyFactions problem0033
+    let common = gcd answer_n answer_d
+    printf "Answer: %d\n" (div answer_d common)
 exec UnitTest = do 
     runTestTT $ TestList unitTests
     return ()
