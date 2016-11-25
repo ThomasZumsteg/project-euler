@@ -6,6 +6,13 @@ Note: as 1! = 1 and 2! = 2 are not sums they are not included.
 """
 
 import time
+import logging
+import sys
+
+logging.basicConfig(
+    level=logging.INFO,
+    stream=sys.stderr,
+    format="%(levelname)s: %(message)s")
 
 def main():
     factorial_sum = 0
@@ -13,6 +20,7 @@ def main():
         factorial = digit_fact(i)
         if i == factorial:
             factorial_sum += i
+            logging.info(i)
     print('Answer: {}'.format(factorial_sum))
 
 def digit_fact(num):
