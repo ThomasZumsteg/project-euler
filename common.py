@@ -73,7 +73,7 @@ def primes_extender(primes,block):
     if 2 == primes[0]: first = 1
     else: first = 0
     for p in primes[first:]:
-        i_start = ((2 * -((p-start)//(2*p)) + 1) * p - start) / 2
+        i_start = ((2 * -((p-start)//(2*p)) + 1) * p - start) // 2
         for i in range(i_start, length, p):
             #print "prime: %d, number: %d" %( p, i*2+start)
             num[i] = False
