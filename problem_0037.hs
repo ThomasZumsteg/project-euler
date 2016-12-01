@@ -16,10 +16,12 @@ data EulerArgs =
     deriving (Show, Data, Typeable)
 
 problem0037 :: Int -> [Integer]
-problem0037 limit = take limit $ filter isReversiblePrime primes
+problem0037 limit = take limit' $ filter isReversiblePrime $ dropWhile ((>) 10) primes
+    where
+        limit' = min limit 11
 
 isReversiblePrime :: Integer -> Bool
-isReversiblePrime n = all (flip elem primes . read) $ leftTail ++ rightTail
+isReversiblePrime n = all (isPrime . read) $ leftTail ++ rightTail
     where
         leftTail = fTail init $ show n
         rightTail = fTail tail $ show n
@@ -47,6 +49,7 @@ primesTest = [
 
 isPrime :: Integer -> Bool
 isPrime 0 = False
+isPrime 1 = False
 isPrime n = all noRemainer primes'
     where
         primes' = takeWhile (\p -> p * p <= n) primes
