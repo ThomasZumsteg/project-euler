@@ -27,9 +27,14 @@ problem0038 = error "Not Implemented"
 sortedPermutations :: [a] -> [[a]]
 sortedPermutations [] = []
 sortedPermutations (c:[]) = [[c]]
-sortedPermutations (c:c':cs) = map ((:) c) (sortedPermutations (c':cs)) ++ map ((:) c') (sortedPermutations (c:cs))
+sortedPermutations cs = concatMap joinPerms seperated
+    where
+        seperated = [splitAt n cs | n <- [0..(length cs - 1)]]
+        joinPerms (as,(b:bs)) = map ((:) b) $ sortedPermutations (as ++ bs)
 
 sortedPermutationsTest = [
+    "987654321" @=? (last $ sortedPermutations "123456789"),
+    ["123", "132", "213", "231", "312", "321"] @=? sortedPermutations "123",
     ["12", "21"] @=? sortedPermutations "12",
     ["1"] @=? sortedPermutations "1",
     [] @=? sortedPermutations ""]
