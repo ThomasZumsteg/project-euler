@@ -13,7 +13,7 @@ import Text.Printf (printf)
 import System.Console.CmdArgs
 import Data.Time (getCurrentTime, diffUTCTime)
 
-import Data.List (sort)
+import Data.List (sort, isPrefixOf)
 
 data EulerArgs = 
     AdHoc { limit::Int }
@@ -21,8 +21,22 @@ data EulerArgs =
     | UnitTest
     deriving (Show, Data, Typeable)
 
-problem0038 :: Integer -> [Integer]
-problem0038 = error "Not Implemented"
+problem0038 :: Int -> [Integer]
+problem0038 n = map read $ take n $ filter isPandigitalMultiple $ sortedPermutations digits
+    where
+        digits = "987654321"
+
+isPandigitalMultiple :: String -> Bool
+isPandigitalMultiple pNum = any ((==) pNum . createPandigital) bases
+    where
+        createPandigital n = take 9 $ concatMap (show . (*) n) [1..]
+        bases = [read (take n pNum)::Integer | n <- [1..5]]
+
+isPandigitalMultipleTest = [
+    True @=? isPandigitalMultiple "123456789",
+    True @=? isPandigitalMultiple "192384576",
+    True @=? isPandigitalMultiple "918273645",
+    False @=? isPandigitalMultiple "987654321"]
 
 sortedPermutations :: [a] -> [[a]]
 sortedPermutations [] = []
@@ -33,6 +47,7 @@ sortedPermutations cs = concatMap joinPerms seperated
         joinPerms (as,(b:bs)) = map ((:) b) $ sortedPermutations (as ++ bs)
 
 sortedPermutationsTest = [
+    "123456789" @=? (last $ sortedPermutations "987654321"),
     "987654321" @=? (last $ sortedPermutations "123456789"),
     ["123", "132", "213", "231", "312", "321"] @=? sortedPermutations "123",
     ["12", "21"] @=? sortedPermutations "12",
@@ -40,11 +55,12 @@ sortedPermutationsTest = [
     [] @=? sortedPermutations ""]
 
 unitTests = map TestCase $
-    sortedPermutationsTest
+    sortedPermutationsTest ++
+    isPandigitalMultipleTest
 
 exec :: EulerArgs -> IO ()
 exec AdHoc{..}= do
-    let answer = problem0038 10
+    let answer = problem0038 limit
     printf "List of %d pandigital multiples is:\n" limit
     mapM_ (printf "%d\n")  answer
 exec Euler = do
