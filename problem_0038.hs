@@ -29,7 +29,8 @@ problem0038 n = map read $ take n $ filter isPandigitalMultiple $ sortedPermutat
 isPandigitalMultiple :: String -> Bool
 isPandigitalMultiple pNum = any ((==) pNum . createPandigital) bases
     where
-        createPandigital n = take 9 $ concatMap (show . (*) n) [1..]
+        createPandigital n = head $ dropWhile ((>) 9 . length) $ scanl (nextMultiple n) "" [1..]
+        nextMultiple n acc m = acc ++ (show (n * m))
         bases = [read (take n pNum)::Integer | n <- [1..5]]
 
 isPandigitalMultipleTest = [
