@@ -10,40 +10,56 @@ import Text.Printf (printf)
 import System.Console.CmdArgs
 import Data.Time (getCurrentTime, diffUTCTime)
 
-import Data.List (find)
-import Data.Maybe (catMaybes, isJust, fromJust)
-
 data EulerArgs = 
     Euler 
-    | Sums{ limit::Integer }
-    | Diffs{ limit::Integer }
+    | Sums{ limit::Int }
+    | Diffs{ limit::Int }
     | UnitTest
     deriving (Show, Data, Typeable)
 
+data PentPair = PentPair{ c::Integer, b::Integer } deriving (Eq)
+
+p_diff (PentPair c b) (PentPair c' b') = (c - b) < (c' - b')
+p_sum (PentPair c b) (PentPair c' b') = (c + b) < (c' + b')
+
 problem0044 :: Integer
-problem0044 = uncurry (+) $ head $ filter hasPentSum pentPairWithPentagonalDiff
+problem0044 = error "Not Implemented"
+
+mergeSortBy :: (a -> a -> Bool) -> [[a]] -> [a]
+mergeSortBy _ [] = []
+mergeSortBy f ([]:ls) = mergeSortBy f ls
+mergeSortBy f ((x:xs):ls) = x : (mergeSortBy f $ insertSortBy f' xs ls)
     where
-        hasPentSum = isPentagonal . uncurry (+)
+        f' [] _ = True
+        f' _ [] = False
+        f' (x:_) (y:_) = f x y
 
-pentPairWithPentagonalDiff :: [(Integer, Integer)]
-pentPairWithPentagonalDiff = catMaybes $ map findPentDiff pentagonalNums
+mergeSortTest = [
+    [1..5] @=? (take 5 $ mergeSortBy (<) [[x] | x <- [1..]]),
+    [1..5] @=? mergeSortBy (<) [[1],[],[2,4,5],[3]],
+    [] @=? mergeSortBy (<) ([]::[[Integer]]),
+    "apbaeananappler" @=? mergeSortBy (<) ["apple", "pear", "banana"],
+    [1..5] @=? mergeSortBy (<) [[x] | x <- [1..5]],
+    [1..5] @=? mergeSortBy (<) [[x] | x <- [1..5]],
+    [1] @=? mergeSortBy (<) [[1]]]
 
-findPentDiff :: Integer -> Maybe (Integer, Integer)
-findPentDiff p_a = if isJust p_b' then Just (p_c, p_b) else Nothing
+insertSortBy :: (a -> a -> Bool) -> a -> [a] -> [a]
+insertSortBy _ x [] = [x]
+insertSortBy f x (y:ys) = if f x y then x : y : ys else y : (insertSortBy f x ys) 
+
+insertSortByTest = [
+    [1..5] @=? insertSortBy (<) 3 [1,2,4,5],
+    [1..5] @=? insertSortBy (<) 5 [1..4],
+    [1..5] @=? insertSortBy (<) 1 [2..5],
+    [1] @=? insertSortBy (<) 1 []]
+
+pentPairs :: [[PentPair]]
+pentPairs = worker pentagonalNums
     where
-        p_b' = find (isPentagonal . (+p_a)) candidates
-        candidates = takeWhile ((>) (2*p_a) . gap) pentagonalNums
-        gap b = (floor $ sqrt $ fromIntegral (24 * b + 1)) + 1
-        p_b = fromJust p_b'
-        p_c = p_a + p_b
-
-findPentDiffTest = [
-    Nothing @=? findPentDiff 20,
-    Just (92, 70) @=? findPentDiff 22,
-    Just (70, 22) @=? findPentDiff 48]
+        worker (p:ps) = (map (flip PentPair p) ps) : (worker ps)
 
 isPentagonal :: Integer -> Bool
-isPentagonal p = p == (head $ dropWhile (<p)  pentagonalNums)
+isPentagonal p = p == (head $ dropWhile (<p) pentagonalNums)
 
 isPentagonalTest = [
     True @=? isPentagonal 145,
@@ -56,7 +72,8 @@ pentagonalNums = [div (n * (3*n-1)) 2 | n <- [1,2..]]
 
 unitTests = map TestCase $
     isPentagonalTest ++
-    findPentDiffTest
+    insertSortByTest ++
+    mergeSortTest
 
 exec :: EulerArgs -> IO ()
 exec Euler = do
@@ -64,6 +81,14 @@ exec Euler = do
     printf "Answer: %d\n" answer
 exec UnitTest = do 
     runTestTT $ TestList unitTests
+    return ()
+exec Sums{..} = do
+    let sums = take limit $ mergeSortBy p_sum pentPairs
+    mapM_ (\p -> printf "%4d = %3d + %3d\n" ((c p) + (b p)) (c p) (b p)) sums
+    return ()
+exec Diffs{..} = do
+    let sums = take limit $ mergeSortBy p_diff pentPairs
+    mapM_ (\p -> printf "%4d = %3d - %3d\n" ((c p) - (b p)) (c p) (b p)) sums
     return ()
 
 main :: IO ()
