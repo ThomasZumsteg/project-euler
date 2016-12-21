@@ -10,23 +10,37 @@ import Text.Printf (printf)
 import System.Console.CmdArgs
 import Data.Time (getCurrentTime, diffUTCTime)
 
+import Data.List (find)
+import Data.Maybe (catMaybes, isJust, fromJust)
+
 data EulerArgs = 
     Euler 
+    | Sums{ limit::Integer }
+    | Diffs{ limit::Integer }
     | UnitTest
     deriving (Show, Data, Typeable)
 
 problem0044 :: Integer
-problem0044 = error "Not Implemented"
+problem0044 = uncurry (+) $ head $ filter hasPentSum pentPairWithPentagonalDiff
+    where
+        hasPentSum = isPentagonal . uncurry (+)
 
-pentagonalDifferences :: [Integer]
-pentagonalDifferences = filter isDifferenceOfPentagonal pentagonalNums
+pentPairWithPentagonalDiff :: [(Integer, Integer)]
+pentPairWithPentagonalDiff = catMaybes $ map findPentDiff pentagonalNums
 
-pentagonalSums :: [Integer]
-pentagonalSums = filter isSumOfPentagonal pentagonalNums
+findPentDiff :: Integer -> Maybe (Integer, Integer)
+findPentDiff p_a = if isJust p_b' then Just (p_c, p_b) else Nothing
+    where
+        p_b' = find (isPentagonal . (+p_a)) candidates
+        candidates = takeWhile ((>) (2*p_a) . gap) pentagonalNums
+        gap b = (floor $ sqrt $ fromIntegral (24 * b + 1)) + 1
+        p_b = fromJust p_b'
+        p_c = p_a + p_b
 
-isDifferenceOfPentagonal _ = True
-
-isSumOfPentagonal _ = True
+findPentDiffTest = [
+    Nothing @=? findPentDiff 20,
+    Just (92, 70) @=? findPentDiff 22,
+    Just (70, 22) @=? findPentDiff 48]
 
 isPentagonal :: Integer -> Bool
 isPentagonal p = p == (head $ dropWhile (<p)  pentagonalNums)
@@ -41,7 +55,8 @@ isPentagonalTest = [
 pentagonalNums = [div (n * (3*n-1)) 2 | n <- [1,2..]]
 
 unitTests = map TestCase $
-    isPentagonalTest
+    isPentagonalTest ++
+    findPentDiffTest
 
 exec :: EulerArgs -> IO ()
 exec Euler = do
@@ -53,7 +68,7 @@ exec UnitTest = do
 
 main :: IO ()
 main = do
-    args <- cmdArgs $ modes [Euler, UnitTest]
+    args <- cmdArgs $ modes [Euler, Sums{ limit=100 }, Diffs{ limit=100 }, UnitTest]
     start <- getCurrentTime
     exec args
     stop <- getCurrentTime
