@@ -23,7 +23,19 @@ p_diff (PentPair c b) (PentPair c' b') = (c - b) < (c' - b')
 p_sum (PentPair c b) (PentPair c' b') = (c + b) < (c' + b')
 
 problem0044 :: Integer
-problem0044 = error "Not Implemented"
+problem0044 = head $ filter (\p -> (pentFunc diff p) == (pentFunc sums p)) pentagonalNums
+    where
+        diff (PentPair c b) = c - b
+        sums (PentPair c b) = c + b
+
+pentFunc :: (Eq a) => (PentPair -> a) -> a -> Maybe PentPair
+pentFunc = error "Not Implmeneted"
+
+penSums = filter hasPenSum $ mergeSortBy p_sum pentPairs
+    where hasPenSum (PentPair c b) = isPentagonal (c + b)
+
+penDiffs = filter hasPenDiff $ mergeSortBy p_diff pentPairs
+    where hasPenDiff (PentPair c b) = isPentagonal (c - b)
 
 mergeSortBy :: (a -> a -> Bool) -> [[a]] -> [a]
 mergeSortBy _ [] = []
@@ -83,12 +95,12 @@ exec UnitTest = do
     runTestTT $ TestList unitTests
     return ()
 exec Sums{..} = do
-    let sums = take limit $ mergeSortBy p_sum pentPairs
+    let sums = take limit penSums
     mapM_ (\p -> printf "%4d = %3d + %3d\n" ((c p) + (b p)) (c p) (b p)) sums
     return ()
 exec Diffs{..} = do
-    let sums = take limit $ mergeSortBy p_diff pentPairs
-    mapM_ (\p -> printf "%4d = %3d - %3d\n" ((c p) - (b p)) (c p) (b p)) sums
+    let diffs = take limit penDiffs
+    mapM_ (\p -> printf "%4d = %3d - %3d\n" ((c p) - (b p)) (c p) (b p)) diffs
     return ()
 
 main :: IO ()
