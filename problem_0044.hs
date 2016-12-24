@@ -17,90 +17,27 @@ data EulerArgs =
     | UnitTest
     deriving (Show, Data, Typeable)
 
-data PentPair = PentPair{ c::Integer, b::Integer } deriving (Eq)
+data PentPair = PentPair{ c::Integer, b::Integer } deriving (Eq, Show)
 
-p_diff (PentPair c b) (PentPair c' b') = (c - b) < (c' - b')
-p_sum (PentPair c b) (PentPair c' b') = (c + b) < (c' + b')
+pentPairs = [PentPair (pent c) (pent b) | c <- [1..], b <- [1..(c-1)]]
+add (PentPair c b) = (c - b)
+sub (PentPair c b) = (c + b)
 
-problem0044 :: Integer
-problem0044 = head $ filter (\p -> (pentFunc diff p) == (pentFunc sums p)) pentagonalNums
-    where
-        diff (PentPair c b) = c - b
-        sums (PentPair c b) = c + b
+pent n = div (3 * n ^ 2 - n) 2
+pentTest = [ [1,5,12,22,35,51,70,92,117,145] @=? map pent [1..10]]
 
-pentFunc :: (Eq a) => (PentPair -> a) -> a -> Maybe PentPair
-pentFunc = error "Not Implmeneted"
-
-penSums = filter hasPenSum $ mergeSortBy p_sum pentPairs
-    where hasPenSum (PentPair c b) = isPentagonal (c + b)
-
-penDiffs = filter hasPenDiff $ mergeSortBy p_diff pentPairs
-    where hasPenDiff (PentPair c b) = isPentagonal (c - b)
-
-mergeSortBy :: (a -> a -> Bool) -> [[a]] -> [a]
-mergeSortBy _ [] = []
-mergeSortBy f ([]:ls) = mergeSortBy f ls
-mergeSortBy f ((x:xs):ls) = x : (mergeSortBy f $ insertSortBy f' xs ls)
-    where
-        f' [] _ = True
-        f' _ [] = False
-        f' (x:_) (y:_) = f x y
-
-mergeSortTest = [
-    [1..5] @=? (take 5 $ mergeSortBy (<) [[x] | x <- [1..]]),
-    [1..5] @=? mergeSortBy (<) [[1],[],[2,4,5],[3]],
-    [] @=? mergeSortBy (<) ([]::[[Integer]]),
-    "apbaeananappler" @=? mergeSortBy (<) ["apple", "pear", "banana"],
-    [1..5] @=? mergeSortBy (<) [[x] | x <- [1..5]],
-    [1..5] @=? mergeSortBy (<) [[x] | x <- [1..5]],
-    [1] @=? mergeSortBy (<) [[1]]]
-
-insertSortBy :: (a -> a -> Bool) -> a -> [a] -> [a]
-insertSortBy _ x [] = [x]
-insertSortBy f x (y:ys) = if f x y then x : y : ys else y : (insertSortBy f x ys) 
-
-insertSortByTest = [
-    [1..5] @=? insertSortBy (<) 3 [1,2,4,5],
-    [1..5] @=? insertSortBy (<) 5 [1..4],
-    [1..5] @=? insertSortBy (<) 1 [2..5],
-    [1] @=? insertSortBy (<) 1 []]
-
-pentPairs :: [[PentPair]]
-pentPairs = worker pentagonalNums
-    where
-        worker (p:ps) = (map (flip PentPair p) ps) : (worker ps)
-
-isPentagonal :: Integer -> Bool
-isPentagonal p = p == (head $ dropWhile (<p) pentagonalNums)
-
-isPentagonalTest = [
-    True @=? isPentagonal 145,
-    True @=? isPentagonal 70,
-    True @=? isPentagonal 1,
-    False @=? isPentagonal 2,
-    False @=? isPentagonal 0]
-
-pentagonalNums = [div (n * (3*n-1)) 2 | n <- [1,2..]]
+problem0044 :: [PentPair]
+problem0044 = error "Not Implemented"
 
 unitTests = map TestCase $
-    isPentagonalTest ++
-    insertSortByTest ++
-    mergeSortTest
+    pentTest
 
 exec :: EulerArgs -> IO ()
 exec Euler = do
-    let answer = problem0044
+    let answer = add $ head problem0044
     printf "Answer: %d\n" answer
 exec UnitTest = do 
     runTestTT $ TestList unitTests
-    return ()
-exec Sums{..} = do
-    let sums = take limit penSums
-    mapM_ (\p -> printf "%4d = %3d + %3d\n" ((c p) + (b p)) (c p) (b p)) sums
-    return ()
-exec Diffs{..} = do
-    let diffs = take limit penDiffs
-    mapM_ (\p -> printf "%4d = %3d - %3d\n" ((c p) - (b p)) (c p) (b p)) diffs
     return ()
 
 main :: IO ()
