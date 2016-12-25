@@ -19,6 +19,19 @@ data EulerArgs =
 
 data PentPair = PentPair{ c::Integer, b::Integer } deriving (Eq, Show)
 
+insertWith :: (a -> a -> Ordering) -> [a] -> a -> [a]
+insertWith _ [] ys = [ys]
+insertWith f queue@(x:xs) y = case f y x of
+    LT -> y : queue
+    _  -> x : insertWith f xs y
+
+insertWithTest = [
+    [1..10] @=? (take 10 $ insertWith compare ([1..5]++[7..]) 6),
+    [1..10] @=? insertWith compare ([1..5]++[7..10]) 6,
+    [1..10] @=? insertWith compare [1..9] 10,
+    [1..10] @=? insertWith compare [2..10] 1,
+    [1] @=? insertWith compare [] 1]
+
 pentPairs = [PentPair (pent c) (pent b) | c <- [1..], b <- [1..(c-1)]]
 add (PentPair c b) = (c - b)
 sub (PentPair c b) = (c + b)
@@ -26,11 +39,25 @@ sub (PentPair c b) = (c + b)
 pent n = div (3 * n ^ 2 - n) 2
 pentTest = [ [1,5,12,22,35,51,70,92,117,145] @=? map pent [1..10]]
 
+sums = filter (isPentagonal . add) pentPairs
+subs = filter (isPentagonal . sub) pentPairs
+
 problem0044 :: [PentPair]
 problem0044 = error "Not Implemented"
 
+isPentagonal :: Integer -> Bool
+isPentagonal 0 = False
+isPentagonal n = n == (head $ dropWhile (<n) $ map pent [1..])
+
+isPentagonalTest = [
+    True @=? isPentagonal 5,
+    True @=? isPentagonal 1,
+    False @=? isPentagonal 0]
+
 unitTests = map TestCase $
-    pentTest
+    pentTest ++
+    isPentagonalTest ++
+    insertWithTest
 
 exec :: EulerArgs -> IO ()
 exec Euler = do
@@ -38,6 +65,12 @@ exec Euler = do
     printf "Answer: %d\n" answer
 exec UnitTest = do 
     runTestTT $ TestList unitTests
+    return ()
+exec Sums{..} = do 
+    mapM_ (\p -> printf "%d + %d = %d\n" (c p) (b p) (add p)) $ take limit sums
+    return ()
+exec Diffs{..} = do 
+    mapM_ (\p -> printf "%d - %d = %d\n" (c p) (b p) (sub p)) $ take limit subs
     return ()
 
 main :: IO ()
