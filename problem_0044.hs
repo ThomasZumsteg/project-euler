@@ -10,11 +10,14 @@ import Text.Printf (printf)
 import System.Console.CmdArgs
 import Data.Time (getCurrentTime, diffUTCTime)
 
+import Control.DeepSeq
+
 data EulerArgs = 
     Euler 
     | Sums{ limit::Int }
     | Diffs{ limit::Int }
     | UnitTest
+    | Time { limit::Int }
     deriving (Show, Data, Typeable)
 
 data PentPair = PentPair{ c::Integer, b::Integer } deriving (Eq, Show)
@@ -33,8 +36,8 @@ insertWithTest = [
     [1] @=? insertWith compare [] 1]
 
 pentPairs = [PentPair (pent c) (pent b) | c <- [1..], b <- [1..(c-1)]]
-add (PentPair c b) = (c - b)
-sub (PentPair c b) = (c + b)
+add (PentPair c b) = (c + b)
+sub (PentPair c b) = (c - b)
 
 pent n = div (3 * n ^ 2 - n) 2
 pentTest = [ [1,5,12,22,35,51,70,92,117,145] @=? map pent [1..10]]
@@ -43,14 +46,20 @@ sums = filter (isPentagonal . add) pentPairs
 subs = filter (isPentagonal . sub) pentPairs
 
 problem0044 :: [PentPair]
-problem0044 = error "Not Implemented"
+problem0044 = filter subAndAdd pentPairs
+    where
+        subAndAdd p = (isPentagonal $ sub p) && (isPentagonal $ add p)
 
 isPentagonal :: Integer -> Bool
 isPentagonal 0 = False
 isPentagonal n = n == (head $ dropWhile (<n) $ map pent [1..])
 
 isPentagonalTest = [
+    False @=? (any isPentagonal [n | n <- [1..145],
+        not $ elem n [1,5,12,22,35,51,70,92,117,145]]),
+    True @=? (all isPentagonal [1,5,12,22,35,51,70,92,117,145]),
     True @=? isPentagonal 5,
+    False @=? isPentagonal 2,
     True @=? isPentagonal 1,
     False @=? isPentagonal 0]
 
@@ -61,21 +70,30 @@ unitTests = map TestCase $
 
 exec :: EulerArgs -> IO ()
 exec Euler = do
-    let answer = add $ head problem0044
+    let answer = sub $ head problem0044
     printf "Answer: %d\n" answer
 exec UnitTest = do 
     runTestTT $ TestList unitTests
     return ()
 exec Sums{..} = do 
-    mapM_ (\p -> printf "%d + %d = %d\n" (c p) (b p) (add p)) $ take limit sums
+    mapM_ (\p -> printf "%d = %d + %d\n" (add p) (c p) (b p)) $ take limit sums
     return ()
 exec Diffs{..} = do 
-    mapM_ (\p -> printf "%d - %d = %d\n" (c p) (b p) (sub p)) $ take limit subs
+    mapM_ (\p -> printf "%d = %d - %d\n" (sub p) (c p) (b p)) $ take limit subs
+    return ()
+exec Time{..}= do
+    let l = head $ force [isPentagonal 125137 | _ <- [1..limit]]
+    print l
     return ()
 
 main :: IO ()
 main = do
-    args <- cmdArgs $ modes [Euler, Sums{ limit=100 }, Diffs{ limit=100 }, UnitTest]
+    args <- cmdArgs $ modes [
+        Euler,
+        Sums{ limit=100 },
+        Diffs{ limit=100 },
+        UnitTest,
+        Time{ limit=1000 }]
     start <- getCurrentTime
     exec args
     stop <- getCurrentTime
