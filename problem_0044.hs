@@ -59,8 +59,10 @@ pentagonalNumsTest = [
     [1,5,12,22,35,51,70,92,117,145] @=? (take 10 pentagonalNums)]
 
 isPentagonal :: Integer -> Bool
-isPentagonal 0 = False
-isPentagonal n = n == (head $ dropWhile (<n) pentagonalNums)
+isPentagonal n = isSquare (24 * n + 1) && 
+    5 == mod (floor $ (24 * (fromIntegral n) + 1) ** 0.5) 6
+    where
+        isSquare m = m == ((floor $ (fromIntegral m) ** 0.5) ^ 2)
 
 isPentagonalTest = [
     False @=? (any isPentagonal [n | n <- [1..145],
