@@ -35,12 +35,12 @@ insertWithTest = [
     [1..10] @=? insertWith compare [2..10] 1,
     [1] @=? insertWith compare [] 1]
 
-pentPairs = [PentPair (pent c) (pent b) | c <- [1..], b <- [1..(c-1)]]
+pentPairs = [PentPair c b | 
+    c <- pentagonalNums, 
+    b <- (takeWhile (<c) pentagonalNums)]
+
 add (PentPair c b) = (c + b)
 sub (PentPair c b) = (c - b)
-
-pent n = div (3 * n ^ 2 - n) 2
-pentTest = [ [1,5,12,22,35,51,70,92,117,145] @=? map pent [1..10]]
 
 sums = filter (isPentagonal . add) pentPairs
 subs = filter (isPentagonal . sub) pentPairs
@@ -50,9 +50,17 @@ problem0044 = filter subAndAdd pentPairs
     where
         subAndAdd p = (isPentagonal $ sub p) && (isPentagonal $ add p)
 
+pentagonalNums :: [Integer]
+pentagonalNums = map pent' [1..]
+    where
+        pent' n = div (3 * n ^ 2 - n) 2
+
+pentagonalNumsTest = [
+    [1,5,12,22,35,51,70,92,117,145] @=? (take 10 pentagonalNums)]
+
 isPentagonal :: Integer -> Bool
 isPentagonal 0 = False
-isPentagonal n = n == (head $ dropWhile (<n) $ map pent [1..])
+isPentagonal n = n == (head $ dropWhile (<n) pentagonalNums)
 
 isPentagonalTest = [
     False @=? (any isPentagonal [n | n <- [1..145],
@@ -64,7 +72,7 @@ isPentagonalTest = [
     False @=? isPentagonal 0]
 
 unitTests = map TestCase $
-    pentTest ++
+    pentagonalNumsTest ++
     isPentagonalTest ++
     insertWithTest
 
