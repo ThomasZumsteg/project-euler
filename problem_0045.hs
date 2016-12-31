@@ -17,24 +17,31 @@ data EulerArgs =
     | Triangle{ limit::Int }
     | Pentagonal{ limit::Int }
     | Hexagonal{ limit::Int }
+    | AdHoc{ limit::Int }
     | UnitTest
     deriving (Show, Data, Typeable)
 
 problem0045 :: [Integer]
-problem0045 = error "Not Implemented"
+problem0045 = common [pentagonal, hexagonal, triangle]
 
 triangle  = [ div (n*(  n+1)) 2 | n <- [1..]]
 hexagonal = [ div (n*(3*n-1)) 2 | n <- [1..]]
 pentagonal= [     (n*(2*n-1))   | n <- [1..]]
 
 common :: (Ord a) => [[a]] -> [a]
-common ((x:xs):[]) = [x]
-common (xs@(x:xs'):ys@(y:ys'):zs) 
-    | y < x  = common (xs:ys':zs)
-    | y == x = common (xs:zs) ++ common (xs':ys':zs)
-    | otherwise = common (xs':ys:zs)
+common ls
+    | any null ls = []
+    | all ((==) x . head) ls' = x : (common $ map tail ls')
+    | otherwise = common ls''
+    where
+        x = head $ head ls
+        ls' = map (dropWhile (<x)) ls
+        ls'' = map (dropWhile (<=x)) ls
 
 commonTest = [
+    [0,6,12,18] @=? common [[0..20],[0,2..20],[0,3..20]],
+    [2,4,6] @=? common [[2,4,6],[1..6],[0..10]],
+    [2,4,6] @=? common [[2,4,6],[1..6]],
     [2,4,6] @=? common [[2,4,6]]]
 
 unitTests = map TestCase $
@@ -42,8 +49,10 @@ unitTests = map TestCase $
 
 exec :: EulerArgs -> IO ()
 exec Euler = do
-    let answer = head $ drop 1 problem0045
+    let answer = head $ drop 2 problem0045
     printf "Answer: %d\n" answer
+exec AdHoc{..} = do
+    mapM_ print $ take limit $ problem0045
 exec UnitTest = do 
     runTestTT $ TestList unitTests
     return ()
@@ -61,6 +70,7 @@ main = do
         Triangle{ limit=10 },
         Pentagonal{ limit=10 },
         Hexagonal{ limit=10 },
+        AdHoc{ limit = 4 },
         UnitTest]
     start <- getCurrentTime
     exec args
