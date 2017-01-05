@@ -44,15 +44,11 @@ unique :: (Ord a) => [a] -> Int
 unique = length . nub . sort
 
 factors :: Integer -> [Integer]
-factors n = worker primes n
-    where
-        worker [] _ = error "Not enough factors"
-        worker _ 1 = []
-        worker fs@(f:fs') n
-            | r == 0 = f : worker fs q
-            | otherwise = worker fs' n
-            where
-                (q, r) = divMod n f
+factors 1 = []
+factors n = case facts of
+    [] -> [n]
+    _  -> facts ++ factors (div n $ head facts)
+    where facts = take 1 $ filter ((==0) . mod n) [2..(floor $ (fromIntegral n) ** 0.5)]
 
 factorsTest = [
     2 @=? (unique $ factors 14),
@@ -108,7 +104,7 @@ main :: IO ()
 main = do
     args <- cmdArgs $ modes [
         Euler,
-        AdHoc{ consecutive = 3, num_factors = 3 },
+        AdHoc{ consecutive = 3, num_factors = 4 },
         UnitTest]
     start <- getCurrentTime
     exec args
