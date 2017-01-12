@@ -21,12 +21,40 @@ data EulerArgs =
 problem0050 :: Integer -> Integer
 problem0050 = error "Not Implemented"
 
+maxBy :: (Ord b) => (a -> b) -> [a] -> a
+maxBy _ (x:[]) = x
+maxBy f (x:xs) = case compare (f x) (f x') of
+    LT -> x'
+    otherwise -> x
+    where
+        x' = maxBy f xs
+
+maxByTest = [
+    [3,4] @=? maxBy sum [[1,2,3],[3,4],[1,1,1]],
+    [1,2,3] @=? maxBy length [[3,4],[1,2,3]],
+    [1,2,3] @=? maxBy length [[1,2,3],[3,4]],
+    [3,4] @=? maxBy sum [[1,2,3],[3,4]],
+    [1,2,3] @=? maxBy sum [[1,2,3]]]
+
 primeSequenceSums :: [[Integer]]
 primeSequenceSums = [ps | p <- primes, 
     let ps = primeSequence p, not $ null ps]
 
 primeSequence :: Integer -> [Integer]
-primeSequence = error "Not Implemented"
+primeSequence prime = worker [] primes
+    where
+        worker _ [] = error "Ran out of primes"
+        worker [] (p:ps) 
+            | prime <= (p * 2) = []
+            | otherwise = worker [p] ps
+        worker seq@(_:seq') ps@(p:ps') = case compare (sum seq) prime of
+            LT -> worker (seq ++ [p]) ps'
+            EQ -> if length seq == 1 then [] else seq
+            _ -> worker seq' ps
+
+primeSequenceTest = [
+    [] @=? primeSequence 13,
+    [2,3,5,7,11,13] @=? primeSequence 41]
 
 primes :: [Integer]
 primes = 2 : [n | n <- [3,5..], isPrime n]
@@ -53,14 +81,17 @@ isPrimeTest = [
     assertBool "2 is prime" (isPrime 2)]
 
 unitTests = map TestCase $
-    isPrimeTest
+    isPrimeTest ++
+    primeSequenceTest ++
+    maxByTest
 
 exec :: EulerArgs -> IO ()
 exec Euler = do
     let  answer = problem0050 1000000
     printf "Answer: %d\n" answer
 exec AdHoc{..} = do
-    mapM_ print (takeWhile (\ps -> limit < sum ps) primeSequenceSums)
+    let seqs = takeWhile (\s -> limit > sum s) primeSequenceSums
+    mapM_ (\seq -> printf "%d: %s\n" (sum seq) (show seq)) seqs
 exec UnitTest = do
     runTestTT $ TestList unitTests
     return ()
