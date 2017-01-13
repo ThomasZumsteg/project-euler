@@ -9,6 +9,7 @@ import Data.Time (getCurrentTime, diffUTCTime)
 data EulerArgs =
     Euler
     | AdHoc{ limit::Integer }
+    | Sequence{ start::Integer, stop::Integer }
     | UnitTest
     deriving (Show, Data, Typeable)
 
@@ -19,7 +20,9 @@ data EulerArgs =
 -- Which prime, below one-million, can be written as the sum of the most consecutive primes?
 
 problem0050 :: Integer -> Integer
-problem0050 = error "Not Implemented"
+problem0050 limit = sum $ maxBy length $ map primeSequence smallPrimes
+    where
+        smallPrimes = takeWhile (<limit) primes 
 
 maxBy :: (Ord b) => (a -> b) -> [a] -> a
 maxBy _ (x:[]) = x
@@ -90,7 +93,10 @@ exec Euler = do
     let  answer = problem0050 1000000
     printf "Answer: %d\n" answer
 exec AdHoc{..} = do
-    let seqs = takeWhile (\s -> limit > sum s) primeSequenceSums
+    let answer = problem0050 limit
+    printf "Answer: %d\n" answer
+exec Sequence{..} = do
+    let seqs = map primeSequence $ takeWhile (<stop) $ dropWhile (>start) primes
     mapM_ (\seq -> printf "%d: %s\n" (sum seq) (show seq)) seqs
 exec UnitTest = do
     runTestTT $ TestList unitTests
@@ -100,6 +106,7 @@ main :: IO ()
 main = do
     args <- cmdArgs $ modes [
         Euler,
+        Sequence{ start=1000, stop=1000 },
         AdHoc{ limit=1000 },
         UnitTest]
     start <- getCurrentTime
