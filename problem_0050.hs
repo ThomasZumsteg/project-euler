@@ -59,6 +59,11 @@ primeSequenceTest = [
     [] @=? primeSequence 13,
     [2,3,5,7,11,13] @=? primeSequence 41]
 
+fastPrimeSequence :: Integer -> [Integer]
+fastPrimeSequence prime = error "Not Implemented"
+
+fastPrimeSequenceTest = map (\n -> (primeSequence n) == (fastPrimeSequence n)) [1..100]
+
 primes :: [Integer]
 primes = 2 : [n | n <- [3,5..], isPrime n]
 
