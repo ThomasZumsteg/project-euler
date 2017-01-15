@@ -19,10 +19,11 @@ data EulerArgs =
 -- The longest sum of consecutive primes below one-thousand that adds to a prime, contains 21 terms, and is equal to 953.
 -- Which prime, below one-million, can be written as the sum of the most consecutive primes?
 
-problem0050 :: Integer -> Integer
-problem0050 limit = sum $ maxBy length $ map primeSequence smallPrimes
+problem0050 :: Integer -> [Integer]
+problem0050 limit = head $ head $ filter (not . null) consecutivePrimeLists
     where
-        smallPrimes = takeWhile (<limit) primes 
+        consecutivePrimeLists = [primeSumLists limit n | n <- [lim,(lim - 1)..1]]
+        lim = head [l | l <- [1..], (sum $ take l primes) > limit]
 
 maxBy :: (Ord b) => (a -> b) -> [a] -> a
 maxBy _ (x:[]) = x
@@ -59,10 +60,16 @@ primeSequenceTest = [
     [] @=? primeSequence 13,
     [2,3,5,7,11,13] @=? primeSequence 41]
 
-fastPrimeSequence :: Integer -> [Integer]
-fastPrimeSequence prime = error "Not Implemented"
+primeSumLists :: Integer -> Int -> [[Integer]]
+primeSumLists lim len = filter primeSum $ takeWhile sumLimit slices
+    where
+        sumLimit = (<lim) . sum
+        primeSum = isPrime . sum
+        slices = [take len $ drop n primes | n <- [0..]]
 
-fastPrimeSequenceTest = map (\n -> (primeSequence n) == (fastPrimeSequence n)) [1..100]
+primeSumListsTest = [
+    (take 21 $ drop 3 primes) @=? (head $ primeSumLists 1000 21),
+    [2,3,5,7,11,13] @=? (head $ primeSumLists 50 6)]
 
 primes :: [Integer]
 primes = 2 : [n | n <- [3,5..], isPrime n]
@@ -91,15 +98,16 @@ isPrimeTest = [
 unitTests = map TestCase $
     isPrimeTest ++
     primeSequenceTest ++
-    maxByTest
+    maxByTest ++
+    primeSumListsTest
 
 exec :: EulerArgs -> IO ()
 exec Euler = do
     let  answer = problem0050 1000000
-    printf "Answer: %d\n" answer
+    printf "Answer: %d\n" (sum answer)
 exec AdHoc{..} = do
     let answer = problem0050 limit
-    printf "Answer: %d\n" answer
+    printf "Answer: %d, %d\n%s\n" (sum answer) (length answer) (show answer)
 exec Sequence{..} = do
     let seqs = map primeSequence $ takeWhile (<stop) $ dropWhile (>start) primes
     mapM_ (\seq -> printf "%d: %s\n" (sum seq) (show seq)) seqs
