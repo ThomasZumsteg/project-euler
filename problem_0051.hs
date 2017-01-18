@@ -5,6 +5,7 @@ import Text.Printf (printf)
 import System.Console.CmdArgs
 import Data.Time (getCurrentTime, diffUTCTime)
 
+import qualified Data.Map as M
 
 data EulerArgs =
     Euler
@@ -18,6 +19,12 @@ data EulerArgs =
 
 problem0051 :: Integer -> [Integer]
 problem0051 = error "Not Implemented"
+
+repeateDigitPrimes :: M.Map String [Integer]
+repeateDigitPrimes = M.fromListWithKey insertWithKey primeDigits 
+    where
+        insertWithKey = error "Not Implemented"
+        primeDigits = error "Not Implemented"
 
 primes :: [Integer]
 primes = 2 : [n | n <- [3,5..], isPrime n]
