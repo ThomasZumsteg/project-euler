@@ -5,6 +5,7 @@ import Text.Printf (printf)
 import System.Console.CmdArgs
 import Data.Time (getCurrentTime, diffUTCTime)
 
+import Data.List (nub)
 import qualified Data.Map as M
 
 data EulerArgs =
@@ -21,10 +22,26 @@ problem0051 :: Integer -> [Integer]
 problem0051 = error "Not Implemented"
 
 repeateDigitPrimes :: M.Map String [Integer]
-repeateDigitPrimes = M.fromListWithKey insertWithKey primeDigits 
+repeateDigitPrimes = M.fromListWith (++) primeDigits 
     where
-        insertWithKey = error "Not Implemented"
-        primeDigits = error "Not Implemented"
+        primeDigits = concatMap keyValues primes
+        keyValues p = [(k, [p]) | k <- repeatChars (show p) '.']
+
+repeateDigitPrimesTest = [
+    [13,23,43,53,73,83] @=? (M.findWithDefault [] ".3" repeateDigitPrimes)]
+
+repeatChars :: String -> Char -> [String]
+repeatChars chars r = [map (sub c) chars | c <- uniqueChars]
+    where
+        uniqueChars = nub chars
+        sub c s = if s == c then r else s
+
+repeatCharsTest = [
+    [".4023402","6.023.02","64.234.2","640.340.","6402.402"] @=? repeatChars "64023402" '.',
+    ["...."] @=? repeatChars "1111" '.',
+    [] @=? repeatChars "" '.',
+    [".2.","1.1"] @=? repeatChars "121" '.',
+    ["."] @=? repeatChars "1" '.']
 
 primes :: [Integer]
 primes = 2 : [n | n <- [3,5..], isPrime n]
@@ -51,7 +68,8 @@ isPrimeTest = [
     assertBool "2 is prime" (isPrime 2)]
 
 unitTests = map TestCase $
-    isPrimeTest
+    isPrimeTest ++
+    repeatCharsTest
 
 exec :: EulerArgs -> IO ()
 exec Euler = do
