@@ -10,7 +10,7 @@ import qualified Data.Map as M
 
 data EulerArgs =
     Euler
-    | AdHoc{ size::Integer }
+    | AdHoc{ len::Int }
     | UnitTest
     deriving (Show, Data, Typeable)
 
@@ -18,8 +18,8 @@ data EulerArgs =
 -- By replacing the 3rd and 4th digits of 56**3 with the same digit, this 5-digit number is the first example having seven primes among the ten generated numbers, yielding the family: 56003, 56113, 56333, 56443, 56663, 56773, and 56993. Consequently 56003, being the first member of this family, is the smallest prime with this property.
 -- Find the smallest prime which, by replacing part of the number (not necessarily adjacent digits) with the same digit, is part of an eight prime value family.
 
-problem0051 :: Integer -> [Integer]
-problem0051 = error "Not Implemented"
+problem0051 :: Int -> [Integer]
+problem0051 l = head $ filter ((>l) . length) $ concatMap primePattern primes
 
 repeateDigitPrimes :: M.Map String [Integer]
 repeateDigitPrimes = M.fromListWith (++) primeDigits 
@@ -29,6 +29,30 @@ repeateDigitPrimes = M.fromListWith (++) primeDigits
 
 repeateDigitPrimesTest = [
     [13,23,43,53,73,83] @=? (M.findWithDefault [] ".3" repeateDigitPrimes)]
+
+primePattern :: Integer -> [[Integer]]
+primePattern p = filter (not . null) [[n | c <- digits, 
+    let s = replace str d c,
+    let n = read s,
+    c /= d,
+    '0' /= (head s),
+    isPrime n] | d <- (nub str)]
+    where
+        str = show p
+        digits = "0123456789"
+
+primePatternTest = [
+    [[797],[101,131,151,181]] @=? primePattern 191,
+    [[101,151,181,191]] @=? primePattern 131,
+    [[23,43,53,73,83],[11,17,19]] @=? primePattern 13]
+
+replace :: String -> Char -> Char -> String
+replace text r c = map (\s -> if s == r then c else s) text
+
+replaceTest = [
+    "" @=? replace "" 'a' '.',
+    ".b." @=? replace "aba" 'a' '.',
+    "." @=? replace "a" 'a' '.']
 
 repeatChars :: String -> Char -> [String]
 repeatChars chars r = [map (sub c) chars | c <- uniqueChars]
@@ -69,16 +93,18 @@ isPrimeTest = [
 
 unitTests = map TestCase $
     isPrimeTest ++
-    repeatCharsTest
+    repeatCharsTest ++
+    replaceTest ++
+    primePatternTest
 
 exec :: EulerArgs -> IO ()
 exec Euler = do
     let  answer = problem0051 8
     printf "Answer: %d\n" (head answer)
 exec AdHoc{..} = do
-    let answer = problem0051 size
+    let answer = problem0051 len
     printf "Answer: %d\n" (head answer)
-    mapM_ print answer
+    print answer
 exec UnitTest = do
     runTestTT $ TestList unitTests
     return ()
@@ -87,7 +113,7 @@ main :: IO ()
 main = do
     args <- cmdArgs $ modes [
         Euler,
-        AdHoc{ size=1000 },
+        AdHoc{ len=7 },
         UnitTest]
     start <- getCurrentTime
     exec args
