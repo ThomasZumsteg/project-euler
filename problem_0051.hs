@@ -18,65 +18,36 @@ data EulerArgs =
 -- By replacing the 3rd and 4th digits of 56**3 with the same digit, this 5-digit number is the first example having seven primes among the ten generated numbers, yielding the family: 56003, 56113, 56333, 56443, 56663, 56773, and 56993. Consequently 56003, being the first member of this family, is the smallest prime with this property.
 -- Find the smallest prime which, by replacing part of the number (not necessarily adjacent digits) with the same digit, is part of an eight prime value family.
 
-type Cache = M.Map String [Integer]
+problem0051 :: Int -> [String]
+problem0051 l = head $ filter ((==l) . length) $ rollUp M.empty $ concatMap ((patters '.') . show) primes
 
-problem0051 :: Int -> [Integer]
-problem0051 l = head $ filter ((>l) . length) $ concatMap primePattern primes
-
-repeateDigitPrimes :: M.Map String [Integer]
-repeateDigitPrimes = M.fromListWith (++) primeDigits 
+rollUp :: (Ord a) => M.Map a [b] -> [(a, b)] -> [[b]]
+rollUp _ [] = []
+rollUp cache ((k, v):vks) = vs : (rollUp cache' vks)
     where
-        primeDigits = concatMap keyValues primes
-        keyValues p = [(k, [p]) | k <- repeatChars (show p) '.']
+        vs = v : M.findWithDefault [] k cache
+        cache' = M.insertWith (++) k [v] cache
 
-repeateDigitPrimesTest = [
-    [13,23,43,53,73,83] @=? (M.findWithDefault [] ".3" repeateDigitPrimes)]
+rollUpTest = [
+    [] @=? rollUp M.empty ([]::[(Int,Int)]),
+    [[1],[2],[3,1],[4,2]] @=? rollUp M.empty [(1,1),(0,2),(1,3),(0,4)]]
 
-slice :: (a -> Bool) -> (a -> Bool) -> [a] -> [a]
-slice start stop (x:xs)
-    | start x && stop x = []
-    | start x = x : slice (const True) stop xs
-    | otherwise = slice start stop xs
-
-sliceTest = [
-    [2,3,4] @=? slice (>1) (>=5) [1..]]
-
-primePattern :: Integer -> [[Integer]]
-primePattern p = filter (not . null) [[n | c <- digits, 
-    let s = replace str d c,
-    let n = read s,
-    c /= d,
-    '0' /= (head s),
-    isPrime n] | d <- (nub str)]
-    where
-        str = show p
-        digits = "0123456789"
-
-primePatternTest = [
-    [[797],[101,131,151,181]] @=? primePattern 191,
-    [[101,151,181,191]] @=? primePattern 131,
-    [[23,43,53,73,83],[11,17,19]] @=? primePattern 13]
-
-replace :: String -> Char -> Char -> String
-replace text r c = map (\s -> if s == r then c else s) text
+replace :: (Eq a) => a -> a -> [a] -> [a]
+replace r c text = map (\s -> if s == r then c else s) text
 
 replaceTest = [
-    "" @=? replace "" 'a' '.',
-    ".b." @=? replace "aba" 'a' '.',
-    "." @=? replace "a" 'a' '.']
+    "" @=? replace 'a' '.' "",
+    ".b." @=? replace 'a' '.' "aba",
+    "." @=? replace 'a' '.' "a"]
 
-repeatChars :: String -> Char -> [String]
-repeatChars chars r = [map (sub c) chars | c <- uniqueChars]
-    where
-        uniqueChars = nub chars
-        sub c s = if s == c then r else s
+patters :: (Eq a) => a -> [a] -> [([a], [a])]
+patters marker text = [(replace i marker text, text) | i <- nub text]
 
-repeatCharsTest = [
-    [".4023402","6.023.02","64.234.2","640.340.","6402.402"] @=? repeatChars "64023402" '.',
-    ["...."] @=? repeatChars "1111" '.',
-    [] @=? repeatChars "" '.',
-    [".2.","1.1"] @=? repeatChars "121" '.',
-    ["."] @=? repeatChars "1" '.']
+pattersTest = [
+    [(".","1")] @=? patters '.' "1",
+    [("..","11")] @=? patters '.' "11",
+    [(".2.","121"), ("1.1","121")] @=? patters '.' "121",
+    [(".23.","1231"), ("1.31","1231"),("12.1","1231")] @=? patters '.' "1231"]
 
 primes :: [Integer]
 primes = 2 : [n | n <- [3,5..], isPrime n]
@@ -104,18 +75,17 @@ isPrimeTest = [
 
 unitTests = map TestCase $
     isPrimeTest ++
-    repeatCharsTest ++
+    rollUpTest ++
     replaceTest ++
-    primePatternTest ++
-    sliceTest
+    pattersTest
 
 exec :: EulerArgs -> IO ()
 exec Euler = do
     let  answer = problem0051 8
-    printf "Answer: %d\n" (head answer)
+    printf "Answer: %s\n" (last answer)
 exec AdHoc{..} = do
     let answer = problem0051 len
-    printf "Answer: %d\n" (head answer)
+    printf "Answer: %s\n" (last answer)
     print answer
 exec UnitTest = do
     runTestTT $ TestList unitTests
