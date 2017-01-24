@@ -12,14 +12,17 @@ data EulerArgs =
     Euler
     | AdHoc{ len::Int }
     | UnitTest
+    | RollUp{ start::Int, size::Int }
     deriving (Show, Data, Typeable)
 
 -- By replacing the 1st digit of the 2-digit number *3, it turns out that six of the nine possible values: 13, 23, 43, 53, 73, and 83, are all prime.
 -- By replacing the 3rd and 4th digits of 56**3 with the same digit, this 5-digit number is the first example having seven primes among the ten generated numbers, yielding the family: 56003, 56113, 56333, 56443, 56663, 56773, and 56993. Consequently 56003, being the first member of this family, is the smallest prime with this property.
 -- Find the smallest prime which, by replacing part of the number (not necessarily adjacent digits) with the same digit, is part of an eight prime value family.
 
-problem0051 :: Int -> [String]
-problem0051 l = head $ filter ((==l) . length) $ rollUp M.empty $ concatMap ((patters '.') . show) primes
+problem0051 :: Int -> [Integer]
+problem0051 l = head $ filter ((==l) . length) $ rollUp M.empty primePatterns 
+    where
+        primePatterns = [(pat, p) | p <- primes, pat <- (patters '.' $ show p)]
 
 rollUp :: (Ord a) => M.Map a [b] -> [(a, b)] -> [[b]]
 rollUp _ [] = []
@@ -32,22 +35,28 @@ rollUpTest = [
     [] @=? rollUp M.empty ([]::[(Int,Int)]),
     [[1],[2],[3,1],[4,2]] @=? rollUp M.empty [(1,1),(0,2),(1,3),(0,4)]]
 
-replace :: (Eq a) => a -> a -> [a] -> [a]
-replace r c text = map (\s -> if s == r then c else s) text
+substitue :: (Eq a) => a -> a -> [a] -> [[a]]
+substitue _ _ [] = [[]]
+substitue char r (t:text)
+    | t /= char = map ((:)t) remainer
+    | t == char = (map ((:)t) remainer) ++ (map ((:)r) remainer)
+    where
+        remainer = substitue char r text
 
-replaceTest = [
-    "" @=? replace 'a' '.' "",
-    ".b." @=? replace 'a' '.' "aba",
-    "." @=? replace 'a' '.' "a"]
+substitueTest = [
+    [""] @=? substitue 'a' '.' "",
+    ["11", "1.", ".1", ".."] @=? substitue '1' '.' "11",
+    ["aba","ab.",".ba",".b."] @=? substitue 'a' '.' "aba",
+    ["a","."] @=? substitue 'a' '.' "a"]
 
-patters :: (Eq a) => a -> [a] -> [([a], [a])]
-patters marker text = [(replace i marker text, text) | i <- nub text]
+patters :: (Eq a) => a -> [a] -> [[a]]
+patters marker text = tail $ nub $ concat [substitue i marker text | i <- nub text]
 
 pattersTest = [
-    [(".","1")] @=? patters '.' "1",
-    [("..","11")] @=? patters '.' "11",
-    [(".2.","121"), ("1.1","121")] @=? patters '.' "121",
-    [(".23.","1231"), ("1.31","1231"),("12.1","1231")] @=? patters '.' "1231"]
+    ["."] @=? patters '.' "1",
+    ["1.",".1",".."] @=? patters '.' "11",
+    ["12.",".21",".2.","1.1"] @=? patters '.' "121",
+    ["123.",".231",".23.","1.31","12.1"] @=? patters '.' "1231"]
 
 primes :: [Integer]
 primes = 2 : [n | n <- [3,5..], isPrime n]
@@ -76,27 +85,31 @@ isPrimeTest = [
 unitTests = map TestCase $
     isPrimeTest ++
     rollUpTest ++
-    replaceTest ++
+    substitueTest ++
     pattersTest
 
 exec :: EulerArgs -> IO ()
 exec Euler = do
     let  answer = problem0051 8
-    printf "Answer: %s\n" (last answer)
+    printf "Answer: %d\n" (last answer)
 exec AdHoc{..} = do
     let answer = problem0051 len
-    printf "Answer: %s\n" (last answer)
+    printf "Answer: %d\n" (last answer)
     print answer
 exec UnitTest = do
     runTestTT $ TestList unitTests
     return ()
+exec RollUp{..}= do
+    let sets = take size $ drop start [(pat, p) | p <- primes, pat <- (patters '.' $ show p)]
+    mapM_ print sets
 
 main :: IO ()
 main = do
     args <- cmdArgs $ modes [
         Euler,
         AdHoc{ len=7 },
-        UnitTest]
+        UnitTest,
+        RollUp{ start = 0, size = 10 }]
     start <- getCurrentTime
     exec args
     stop <- getCurrentTime
