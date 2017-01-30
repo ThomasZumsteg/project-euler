@@ -5,7 +5,7 @@ import Text.Printf (printf)
 import System.Console.CmdArgs
 import Data.Time (getCurrentTime, diffUTCTime)
 
-import Data.List (sort, group)
+import Data.List (nub, sort, group)
 
 -- In the card game poker, a hand consists of five cards and are ranked, from lowest to highest, in the following way:
 
@@ -59,12 +59,11 @@ data EulerArgs =
 type Hand = [Card]
 data Suit = Diamond | Spade | Heart | Club deriving (Show, Eq)
 data Rank = Ace | King | Queen | Jack | Ten | Nine | Eight | 
-    Seven | Six | Five | Four | Three | Two deriving (Show, Eq, Ord)
+    Seven | Six | Five | Four | Three | Two deriving (Show, Eq, Ord, Enum)
 data Card = Card { suit::Suit, rank::Rank } deriving (Show, Eq)
 data HandRank = RoyalFlush | StraightFlush Rank | FourOfAKind Rank Rank | 
     FullHouse Rank Rank | Flush Rank Rank Rank Rank Rank | Straight Rank | 
-    ThreeOfAKind Rank Rank Rank | TwoPairs Rank Rank Rank | 
-    OnePair Rank Rank Rank Rank | HighCard Rank Rank Rank Rank Rank
+    ThreeOfAKind Rank | TwoPairs Rank Rank | OnePair Rank | HighCard Rank 
     deriving (Show, Eq, Ord)
 
 problem0054 :: [String] -> [Int]
@@ -76,19 +75,57 @@ parseHands = error "Not Implemented"
 winner :: [Hand] -> Int
 winner hands = error "Not Implemented"
 
+rankHand :: Hand -> HandRank
+rankHand hand 
+    | royalFlush hand = RoyalFlush
+    | straightFush hand = StraightFlush (maximum ranks)
+    where
+        ranks = map rank hand
+        groups = group $ sort ranks
+
+kinds :: Hand -> [(Int, Rank)]
+kinds = map (\g -> (length g, head g)) . group . sort . map rank
+
+kindsTest = [
+    [(1, Ace)] @=? kinds [Card Heart Ace],
+    [(2, Ace)] @=? kinds [Card Heart Ace, Card Spade Ace],
+    [(3, Ace)] @=? kinds [Card Heart Ace, Card Spade Ace, Card Diamond Ace]]
+
 royalFlush :: Hand -> Bool
 royalFlush hand = flush hand && royal == (map rank hand) 
     where
         royal  = [Ace, King, Queen, Jack, Ten]
 
+royalFlushTest = [
+    True @=? royalFlush [Card Heart r | r <- [Ace, King, Queen, Jack, Ten]],
+    False @=? royalFlush [Card Heart r | r <- [Nine, King, Queen, Jack, Ten]]]
+
 straightFush :: Hand -> Bool
 straightFush hand = straight hand && flush hand
 
+straightFushTest = [
+    True @=? straightFush [Card Heart r | r <- [Ten, Nine, Eight, Seven, Six]],
+    True @=? straightFush [Card Heart r | r <- [Seven, Ten, Nine, Eight, Six]],
+    False @=? straightFush [Card Heart r | r <- [Ten, Two, Nine, Eight, Six]]]
+
 fourOfAKind :: Hand -> Bool
-fourOfAKind = error "Not Implemented"
+fourOfAKind = any ((==4) . fst) . kinds
+
+fourOfAKindTest = [
+    True @=? fourOfAKind [Card Heart r | r <- [Ace, Ace, Ace, Ace, Five]],
+    False @=? fourOfAKind [Card Heart r | r <- [Ace, Ace, Ace, Ace, Ace]],
+    True @=? fourOfAKind [Card Heart r | r <- [Ace, Ace, Ten, Ace, Ace]]]
 
 fullHouse :: Hand -> Bool
-fullHouse = error "Not Implemeneted"
+fullHouse hand = onePair hand && threeOfAKind hand
+
+fullHouseTest = [
+    True @=? (fullHouse $ map (uncurry Card) 
+        [(Heart, Ten), (Spade, Ten), (Heart, Nine), (Club, Nine), (Spade, Nine)]),
+    False @=? (fullHouse $ map (uncurry Card) 
+        [(Heart, Ten), (Spade, Nine), (Heart, Nine), (Club, Ten), (Spade, Jack)]),
+    False @=? (fullHouse $ map (uncurry Card) 
+        [(Heart, Ten), (Spade, Ten), (Heart, Nine), (Club, Nine), (Spade, Jack)])]
 
 flush :: Hand -> Bool
 flush [] = False
@@ -100,22 +137,70 @@ flushTest = [
     False @=? flush []]
 
 straight :: Hand -> Bool
-straight = error "Not Implemented"
+straight hand 
+    | null sorted = False
+    | 1 == length sorted = True
+    | otherwise = all (\(c,d) -> c == pred d) $ zip sorted $ tail sorted
+    where
+        sorted = sort $ map rank hand
+
+straightTest = [
+    True @=? straight [Card Heart Ten],
+    False @=? straight [],
+    False @=? straight [Card Heart Two, Card Heart Two],
+    True @=? straight [Card Heart r | r <- [Ace, King, Queen, Jack, Ten]],
+    False @=? straight [Card Heart r | r <- [Ace, King, Two, Jack, Ten]],
+    True @=? straight [Card Heart r | r <- [King, Queen, Jack, Ten, Ace]]]
 
 threeOfAKind :: Hand -> Bool
-threeOfAKind = error "Not Implemented"
+threeOfAKind = any ((==3) . fst) . kinds
+
+threeOfAKindTest = [
+    False @=? threeOfAKind [Card Heart r | r <- [Ace, Queen, Queen, Queen, Queen]],
+    True @=? threeOfAKind [Card Heart r | r <- [Ace, Ten, Queen, Queen, Queen]],
+    False @=? threeOfAKind [Card Heart r | r <- [Ace, Ace, King, Queen, Queen]]]
 
 twoPair :: Hand -> Bool
-twoPair = error "Not Implemented"
+twoPair = (==2) . length . filter ((==2) . fst) . kinds
+
+twoPairTest = [
+    False @=? twoPair [Card Heart r | r <- [Ace, Ten, Queen, Queen, Queen]],
+    False @=? twoPair [Card Heart r | r <- [Ace, Ace, Queen, Queen, Queen]],
+    False @=? (twoPair $ map (uncurry Card) [(Heart, Ten), (Spade, Two), 
+        (Diamond, Three), (Heart, King), (Club, Queen)]),
+    True @=? (twoPair $ map (uncurry Card) [(Heart, Two), (Spade, Two), 
+        (Diamond, Three), (Heart, Three), (Club, Queen)])]
 
 onePair :: Hand -> Bool
-onePair = error "Not Implemented"
+onePair = any ((==2) . fst) . kinds
+
+onePairTest = [
+    True @=? onePair [Card Heart r | r <- [Ace, Three, King, Three, Ace]],
+    True @=? onePair [Card Heart r | r <- [Ace, Three, Three, Three, Ace]],
+    True @=? onePair [Card Heart r | r <- [Ace, Two, Three, Four, Ace]],
+    False @=? onePair [Card Heart r | r <- [Ace, King, Queen, Jack, Ten]],
+    True @=? onePair [Card Heart r | r <- [Ace, Ace]]]
 
 highCard :: Hand -> Bool
-highCard = error "Not Implemented"
+highCard [] = False
+highCard _ = True
+
+highCardTest = [
+    True @=? highCard [Card Heart Two],
+    False @=? highCard []]
 
 unitTests = map TestCase $
-    flushTest
+    kindsTest ++
+    royalFlushTest ++
+    straightFushTest ++
+    fourOfAKindTest ++
+    fullHouseTest ++
+    flushTest ++
+    straightTest ++
+    threeOfAKindTest ++
+    twoPairTest ++
+    onePairTest ++
+    highCardTest
 
 exec :: EulerArgs -> IO ()
 exec Euler = do
