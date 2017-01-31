@@ -6,6 +6,7 @@ import System.Console.CmdArgs
 import Data.Time (getCurrentTime, diffUTCTime)
 
 import Data.List (nub, sort, group)
+import Data.List.Split (splitOn)
 
 -- In the card game poker, a hand consists of five cards and are ranked, from lowest to highest, in the following way:
 
@@ -56,7 +57,7 @@ data EulerArgs =
     | UnitTest
     deriving (Show, Data, Typeable)
 
-type Hand = [Card]
+type Hand = (Card, Card, Card, Card, Card)
 data Suit = Diamond | Spade | Heart | Club deriving (Show, Eq)
 data Rank = Ace | King | Queen | Jack | Ten | Nine | Eight | 
     Seven | Six | Five | Four | Three | Two deriving (Show, Eq, Ord, Enum)
@@ -67,10 +68,37 @@ data HandRank = RoyalFlush | StraightFlush Rank | FourOfAKind Rank Rank |
     deriving (Show, Eq, Ord)
 
 problem0054 :: [String] -> [Int]
-problem0054 games = map (winner . parseHands) games
+problem0054 games = error "Not Implemented"
 
-parseHands :: String -> [Hand]
-parseHands = error "Not Implemented"
+parseHand :: String -> Hand
+parseHand str = fromList $ map (\(r:s:[]) -> Card (getSuit s) (getRank r)) cards 
+    where
+        cards = splitOn " " str
+
+getRank :: Char -> Rank
+getRank r = case r of 
+    'A' -> Ace
+    'K' -> King
+    'Q' -> Queen
+    'J' -> Jack
+    'T' -> Ten
+    '9' -> Nine
+    '8' -> Eight
+    '7' -> Seven
+    '6' -> Six
+    '5' -> Five
+    '4' -> Four
+    '3' -> Three
+    '2' -> Two
+    _ -> error "Not a valid rank"
+
+getSuit :: Char -> Suit
+getSuit s = case s of
+    'D' -> Diamond
+    'S' -> Spade
+    'H' -> Heart
+    'C' -> Club
+    _ -> error "Not a valid suit"
 
 winner :: [Hand] -> Int
 winner hands = error "Not Implemented"
@@ -80,61 +108,67 @@ rankHand hand
     | royalFlush hand = RoyalFlush
     | straightFush hand = StraightFlush (maximum ranks)
     where
-        ranks = map rank hand
+        ranks = map rank $ toList hand
         groups = group $ sort ranks
 
+toList :: Hand -> [Card]
+toList (c1,c2,c3,c4,c5) = [c1,c2,c3,c4,c5]
+
+fromList :: [Card] -> Hand
+fromList (c1:c2:c3:c4:c5:[]) = (c1,c2,c3,c4,c5)
+
 kinds :: Hand -> [(Int, Rank)]
-kinds = map (\g -> (length g, head g)) . group . sort . map rank
+kinds = map (\g -> (length g, head g)) . group . sort . map rank . toList
 
 kindsTest = [
-    [(1, Ace)] @=? kinds [Card Heart Ace],
-    [(2, Ace)] @=? kinds [Card Heart Ace, Card Spade Ace],
-    [(3, Ace)] @=? kinds [Card Heart Ace, Card Spade Ace, Card Diamond Ace]]
+    [(1, Ace), (1, Ten), (3, Nine)] @=? (kinds $ parseHand "AH TS 9D 9S 9C")]
 
 royalFlush :: Hand -> Bool
-royalFlush hand = flush hand && royal == (map rank hand) 
+royalFlush hand = flush hand && royal == (map rank $ toList hand) 
     where
         royal  = [Ace, King, Queen, Jack, Ten]
 
 royalFlushTest = [
-    True @=? royalFlush [Card Heart r | r <- [Ace, King, Queen, Jack, Ten]],
-    False @=? royalFlush [Card Heart r | r <- [Nine, King, Queen, Jack, Ten]]]
+    True  @=? (royalFlush $ parseHand "KH QH JH TH AH"),
+    False @=? (royalFlush $ parseHand "KH QH JH TH 9H"),
+    False @=? (royalFlush $ parseHand "KH QH JH TH AD")]
 
 straightFush :: Hand -> Bool
 straightFush hand = straight hand && flush hand
 
 straightFushTest = [
-    True @=? straightFush [Card Heart r | r <- [Ten, Nine, Eight, Seven, Six]],
-    True @=? straightFush [Card Heart r | r <- [Seven, Ten, Nine, Eight, Six]],
-    False @=? straightFush [Card Heart r | r <- [Ten, Two, Nine, Eight, Six]]]
+    True  @=? (straightFush $ parseHand "KH QH JH TH 9H"),
+    False @=? (straightFush $ parseHand "KH QH JH TH 9D"),
+    False @=? (straightFush $ parseHand "KH QH JH TH 8H"),
+    True  @=? (straightFush $ parseHand "KH QH JH TH AH"),
+    True  @=? (straightFush $ parseHand "2H 4H 3H 5H AH")]
 
 fourOfAKind :: Hand -> Bool
-fourOfAKind = any ((==4) . fst) . kinds
+fourOfAKind = (==[4,1]) . map fst . kinds
 
 fourOfAKindTest = [
-    True @=? fourOfAKind [Card Heart r | r <- [Ace, Ace, Ace, Ace, Five]],
-    False @=? fourOfAKind [Card Heart r | r <- [Ace, Ace, Ace, Ace, Ace]],
-    True @=? fourOfAKind [Card Heart r | r <- [Ace, Ace, Ten, Ace, Ace]]]
+    True  @=? (fourOfAKind $ parseHand "KD KC KH QC KS"),
+    True  @=? (fourOfAKind $ parseHand "KD QD KH KC KS"),
+    False @=? (fourOfAKind $ parseHand "KD JD KH QC KS"),
+    False @=? (fourOfAKind $ parseHand "AD KD KH QC KS")]
 
 fullHouse :: Hand -> Bool
-fullHouse hand = onePair hand && threeOfAKind hand
+fullHouse = (==[3,2]) . map fst . kinds
 
 fullHouseTest = [
-    True @=? (fullHouse $ map (uncurry Card) 
-        [(Heart, Ten), (Spade, Ten), (Heart, Nine), (Club, Nine), (Spade, Nine)]),
-    False @=? (fullHouse $ map (uncurry Card) 
-        [(Heart, Ten), (Spade, Nine), (Heart, Nine), (Club, Ten), (Spade, Jack)]),
-    False @=? (fullHouse $ map (uncurry Card) 
-        [(Heart, Ten), (Spade, Ten), (Heart, Nine), (Club, Nine), (Spade, Jack)])]
+    True  @=? (fullHouse $ parseHand "KD QD KH QC KS"),
+    True  @=? (fullHouse $ parseHand "KD QD QH QC KS"),
+    False @=? (fullHouse $ parseHand "KD QD JH QC KS")]
+
 
 flush :: Hand -> Bool
-flush [] = False
-flush (c:cards) = all ((==(suit c)) . suit) cards
+flush cards = all ((==(suit c)) . suit) cs 
+    where
+        (c:cs) = toList cards
 
 flushTest = [
-    False @=? flush ((Card Spade Two): [Card Heart r | r <- [Ace, Ten, Nine, Six]]),
-    True @=? flush [Card Heart r | r <- [Ace, Ten, Nine, Six, Two]],
-    False @=? flush []]
+    True  @=? (flush $ parseHand "KH QH JH TH 9H"),
+    False @=? (flush $ parseHand "KH QH JH TS 9H")]
 
 straight :: Hand -> Bool
 straight hand 
@@ -142,52 +176,49 @@ straight hand
     | 1 == length sorted = True
     | otherwise = all (\(c,d) -> c == pred d) $ zip sorted $ tail sorted
     where
-        sorted = sort $ map rank hand
+        sorted = sort $ map rank $ toList hand
 
 straightTest = [
-    True @=? straight [Card Heart Ten],
-    False @=? straight [],
-    False @=? straight [Card Heart Two, Card Heart Two],
-    True @=? straight [Card Heart r | r <- [Ace, King, Queen, Jack, Ten]],
-    False @=? straight [Card Heart r | r <- [Ace, King, Two, Jack, Ten]],
-    True @=? straight [Card Heart r | r <- [King, Queen, Jack, Ten, Ace]]]
+    True  @=? (straight $ parseHand "KS QD JH TC 9C"),
+    False @=? (straight $ parseHand "KS JD QH 9C TC"),
+    False @=? (straight $ parseHand "KS QD JH TC 8C"),
+    True  @=? (straight $ parseHand "KS QD JH TC AC"),
+    False @=? (straight $ parseHand "KS KD TH 2C KC")]
 
 threeOfAKind :: Hand -> Bool
-threeOfAKind = any ((==3) . fst) . kinds
+threeOfAKind = (==[3,1,1]) . map fst . kinds 
 
 threeOfAKindTest = [
-    False @=? threeOfAKind [Card Heart r | r <- [Ace, Queen, Queen, Queen, Queen]],
-    True @=? threeOfAKind [Card Heart r | r <- [Ace, Ten, Queen, Queen, Queen]],
-    False @=? threeOfAKind [Card Heart r | r <- [Ace, Ace, King, Queen, Queen]]]
+    True  @=? (threeOfAKind $ parseHand "KS KD TH 2C KC"),
+    False @=? (threeOfAKind $ parseHand "KS KD KH 2C KC"),
+    False @=? (threeOfAKind $ parseHand "KS QD TH 2C KC"),
+    False @=? (threeOfAKind $ parseHand "AS KD TH 2C JC"),
+    False @=? (threeOfAKind $ parseHand "QS KD TH 2C KC")]
 
 twoPair :: Hand -> Bool
-twoPair = (==2) . length . filter ((==2) . fst) . kinds
+twoPair = (==[2,2,1]) . map fst . kinds
 
 twoPairTest = [
-    False @=? twoPair [Card Heart r | r <- [Ace, Ten, Queen, Queen, Queen]],
-    False @=? twoPair [Card Heart r | r <- [Ace, Ace, Queen, Queen, Queen]],
-    False @=? (twoPair $ map (uncurry Card) [(Heart, Ten), (Spade, Two), 
-        (Diamond, Three), (Heart, King), (Club, Queen)]),
-    True @=? (twoPair $ map (uncurry Card) [(Heart, Two), (Spade, Two), 
-        (Diamond, Three), (Heart, Three), (Club, Queen)])]
+    True  @=? (twoPair $ parseHand "KS 2D TH 2C KC"),
+    False @=? (twoPair $ parseHand "KS JD TH 2C KC"),
+    False @=? (twoPair $ parseHand "KS KD 2H 2C KC"),
+    False @=? (twoPair $ parseHand "KS KD KH 2C KC")]
 
 onePair :: Hand -> Bool
-onePair = any ((==2) . fst) . kinds
+onePair = (==[2,1,1,1]) . map fst . kinds
 
 onePairTest = [
-    True @=? onePair [Card Heart r | r <- [Ace, Three, King, Three, Ace]],
-    True @=? onePair [Card Heart r | r <- [Ace, Three, Three, Three, Ace]],
-    True @=? onePair [Card Heart r | r <- [Ace, Two, Three, Four, Ace]],
-    False @=? onePair [Card Heart r | r <- [Ace, King, Queen, Jack, Ten]],
-    True @=? onePair [Card Heart r | r <- [Ace, Ace]]]
+    True  @=? (onePair $ parseHand "KS JD TH 2C KC"),
+    False @=? (onePair $ parseHand "KS JD TH JC KC"),
+    True  @=? (onePair $ parseHand "2S JD TH 2C KC"),
+    False @=? (onePair $ parseHand "2S 2D TH 2C KC")]
 
 highCard :: Hand -> Bool
-highCard [] = False
 highCard _ = True
 
 highCardTest = [
-    True @=? highCard [Card Heart Two],
-    False @=? highCard []]
+    True  @=? (highCard $ parseHand "KC QS JD 9S 2C"),
+    False @=? (highCard $ parseHand "8H 2C 3S 4H KS")]
 
 unitTests = map TestCase $
     kindsTest ++
