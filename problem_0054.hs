@@ -5,7 +5,7 @@ import Text.Printf (printf)
 import System.Console.CmdArgs
 import Data.Time (getCurrentTime, diffUTCTime)
 
-import Data.List (nub, sort, group)
+import Data.List (nub, sort, sortBy, group)
 import Data.List.Split (splitOn)
 
 -- In the card game poker, a hand consists of five cards and are ranked, from lowest to highest, in the following way:
@@ -61,19 +61,23 @@ type Hand = (Card, Card, Card, Card, Card)
 data Suit = Diamond | Spade | Heart | Club deriving (Show, Eq)
 data Rank = Ace | King | Queen | Jack | Ten | Nine | Eight | 
     Seven | Six | Five | Four | Three | Two deriving (Show, Eq, Ord, Enum)
-data Card = Card { suit::Suit, rank::Rank } deriving (Show, Eq)
-data HandRank = RoyalFlush | StraightFlush Rank | FourOfAKind Rank Rank | 
-    FullHouse Rank Rank | Flush Rank Rank Rank Rank Rank | Straight Rank | 
-    ThreeOfAKind Rank | TwoPairs Rank Rank | OnePair Rank | HighCard Rank 
-    deriving (Show, Eq, Ord)
+data Card = Card { rank::Rank, suit::Suit } deriving (Show, Eq)
+data HandRank = RoyalFlush | StraightFlush | FourOfAKind | FullHouse | 
+                Flush | Straight | ThreeOfAKind | TwoPairs | OnePair | HighCard 
+                deriving (Show, Eq, Ord)
 
 problem0054 :: [String] -> [Int]
 problem0054 games = error "Not Implemented"
 
 parseHand :: String -> Hand
-parseHand str = fromList $ map (\(r:s:[]) -> Card (getSuit s) (getRank r)) cards 
+parseHand str = fromList $ map (\(r:s:[]) -> Card (getRank r) (getSuit s)) cards 
     where
         cards = splitOn " " str
+
+parseHandTest = [
+    (Card Two Spade, Card Jack Diamond, Card Ten Heart, Card Two Club, Card King Club)
+        @=? parseHand "2S JD TH 2C KC"]
+
 
 getRank :: Char -> Rank
 getRank r = case r of 
@@ -106,7 +110,8 @@ winner hands = error "Not Implemented"
 rankHand :: Hand -> HandRank
 rankHand hand 
     | royalFlush hand = RoyalFlush
-    | straightFush hand = StraightFlush (maximum ranks)
+    | straightFush hand = StraightFlush 
+    | otherwise = error "Not Implemented"
     where
         ranks = map rank $ toList hand
         groups = group $ sort ranks
@@ -118,13 +123,19 @@ fromList :: [Card] -> Hand
 fromList (c1:c2:c3:c4:c5:[]) = (c1,c2,c3,c4,c5)
 
 kinds :: Hand -> [(Int, Rank)]
-kinds = map (\g -> (length g, head g)) . group . sort . map rank . toList
+kinds = sortBy numAndRank . map groupSize . group . sort . map rank . toList
+    where
+        numAndRank (a_count, a_rank) (b_count, b_rank)
+            | a_count == b_count = compare a_rank b_rank
+            | otherwise = compare b_count a_count
+        groupSize g = (length g, head g)
+
 
 kindsTest = [
-    [(1, Ace), (1, Ten), (3, Nine)] @=? (kinds $ parseHand "AH TS 9D 9S 9C")]
+    [(3, Nine), (1, Ace), (1, Ten)] @=? (kinds $ parseHand "AH TS 9D 9S 9C")]
 
 royalFlush :: Hand -> Bool
-royalFlush hand = flush hand && royal == (map rank $ toList hand) 
+royalFlush hand = flush hand && royal == (map snd $ kinds hand) 
     where
         royal  = [Ace, King, Queen, Jack, Ten]
 
@@ -174,15 +185,17 @@ straight :: Hand -> Bool
 straight hand 
     | null sorted = False
     | 1 == length sorted = True
+    | sorted == [Ace, Five, Four, Three, Two] = True
     | otherwise = all (\(c,d) -> c == pred d) $ zip sorted $ tail sorted
     where
         sorted = sort $ map rank $ toList hand
 
 straightTest = [
     True  @=? (straight $ parseHand "KS QD JH TC 9C"),
-    False @=? (straight $ parseHand "KS JD QH 9C TC"),
+    True  @=? (straight $ parseHand "KS JD QH 9C TC"),
     False @=? (straight $ parseHand "KS QD JH TC 8C"),
     True  @=? (straight $ parseHand "KS QD JH TC AC"),
+    True  @=? (straight $ parseHand "5S 4D 3H 2C AC"),
     False @=? (straight $ parseHand "KS KD TH 2C KC")]
 
 threeOfAKind :: Hand -> Bool
@@ -218,9 +231,10 @@ highCard _ = True
 
 highCardTest = [
     True  @=? (highCard $ parseHand "KC QS JD 9S 2C"),
-    False @=? (highCard $ parseHand "8H 2C 3S 4H KS")]
+    True  @=? (highCard $ parseHand "8H 2C 3S 4H KS")]
 
 unitTests = map TestCase $
+    parseHandTest ++
     kindsTest ++
     royalFlushTest ++
     straightFushTest ++
