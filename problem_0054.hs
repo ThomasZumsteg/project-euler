@@ -57,17 +57,33 @@ data EulerArgs =
     | UnitTest
     deriving (Show, Data, Typeable)
 
-type Hand = (Card, Card, Card, Card, Card)
+data Hand = Hand Card Card Card Card Card deriving (Show)
 data Suit = Diamond | Spade | Heart | Club deriving (Show, Eq)
 data Rank = Ace | King | Queen | Jack | Ten | Nine | Eight | 
     Seven | Six | Five | Four | Three | Two deriving (Show, Eq, Ord, Enum)
 data Card = Card { rank::Rank, suit::Suit } deriving (Show, Eq)
 data HandRank = RoyalFlush | StraightFlush | FourOfAKind | FullHouse | 
-                Flush | Straight | ThreeOfAKind | TwoPairs | OnePair | HighCard 
+                Flush | Straight | ThreeOfAKind | TwoPair | OnePair | HighCard 
                 deriving (Show, Eq, Ord)
 
-problem0054 :: [String] -> [Int]
-problem0054 games = error "Not Implemented"
+instance Eq Hand where
+    h1 == h2 = kinds h1 == kinds h2
+    
+instance Ord Hand where
+    h1 `compare` h2 
+        | h1 /= h2 = compare (rankHand h1) (rankHand h2) 
+        | otherwise = compare kinds_1 kinds_2
+        where
+            kinds_1 = map snd $ kinds h1
+            kinds_2 = map snd $ kinds h2
+
+problem0054 :: [String] -> [(Ordering, String, String)]
+problem0054 [] = []
+problem0054 (g:games) = (winner, c1, c2):problem0054 games
+    where
+        c1 = take 14 g
+        c2 = take 14 $ drop 15 g
+        winner = compare (parseHand c1) (parseHand c2)
 
 parseHand :: String -> Hand
 parseHand str = fromList $ map (\(r:s:[]) -> Card (getRank r) (getSuit s)) cards 
@@ -75,9 +91,8 @@ parseHand str = fromList $ map (\(r:s:[]) -> Card (getRank r) (getSuit s)) cards
         cards = splitOn " " str
 
 parseHandTest = [
-    (Card Two Spade, Card Jack Diamond, Card Ten Heart, Card Two Club, Card King Club)
-        @=? parseHand "2S JD TH 2C KC"]
-
+    Hand (Card Two Spade) (Card Jack Diamond) (Card Ten Heart) (Card Two Club) 
+        (Card King Club) @=? parseHand "2S JD TH 2C KC"]
 
 getRank :: Char -> Rank
 getRank r = case r of 
@@ -104,23 +119,25 @@ getSuit s = case s of
     'C' -> Club
     _ -> error "Not a valid suit"
 
-winner :: [Hand] -> Int
-winner hands = error "Not Implemented"
-
 rankHand :: Hand -> HandRank
 rankHand hand 
     | royalFlush hand = RoyalFlush
     | straightFush hand = StraightFlush 
-    | otherwise = error "Not Implemented"
-    where
-        ranks = map rank $ toList hand
-        groups = group $ sort ranks
+    | fourOfAKind hand = FourOfAKind
+    | fullHouse hand = FullHouse
+    | flush hand = Flush
+    | straight hand = Straight
+    | threeOfAKind hand = ThreeOfAKind
+    | twoPair hand = TwoPair
+    | onePair hand = OnePair
+    | highCard hand = HighCard
+    | otherwise = error "Not a rankable hand"
 
 toList :: Hand -> [Card]
-toList (c1,c2,c3,c4,c5) = [c1,c2,c3,c4,c5]
+toList (Hand c1 c2 c3 c4 c5) = [c1,c2,c3,c4,c5]
 
 fromList :: [Card] -> Hand
-fromList (c1:c2:c3:c4:c5:[]) = (c1,c2,c3,c4,c5)
+fromList (c1:c2:c3:c4:c5:[]) = Hand c1 c2 c3 c4 c5
 
 kinds :: Hand -> [(Int, Rank)]
 kinds = sortBy numAndRank . map groupSize . group . sort . map rank . toList
@@ -191,6 +208,8 @@ straight hand
         sorted = sort $ map rank $ toList hand
 
 straightTest = [
+    -- False @=? (straight $ parseHand "5C AD 5D AC 9C"),
+    False @=? (straight $ parseHand "7C 5H 8D TD KS"),
     True  @=? (straight $ parseHand "KS QD JH TC 9C"),
     True  @=? (straight $ parseHand "KS JD QH 9C TC"),
     False @=? (straight $ parseHand "KS QD JH TC 8C"),
@@ -249,15 +268,17 @@ unitTests = map TestCase $
 
 exec :: EulerArgs -> IO ()
 exec Euler = do
-    let  answer = problem0054 []
-    printf "Answer: %d\n" (length $ filter (==1) answer)
+    text <- readFile "problem_0054.txt"
+    let  answer = problem0054 $ lines text
+    printf "Answer: %d\n" (length $ filter (\(o,_,_) -> o == GT) answer)
 exec AdHoc = do
-    let answer = problem0054 []
-    return ()
+    text <- readFile "problem_0054.txt"
+    let  answer = problem0054 $ lines text
+    let win o = if o == GT then "winner" else ""
+    mapM_ (\(o, c1, c2) -> printf "%s - %s - %s\n" c1 c2 (win o)) answer
 exec UnitTest = do
     runTestTT $ TestList unitTests
     return ()
-
 main :: IO ()
 main = do
     args <- cmdArgs $ modes [
