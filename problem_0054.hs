@@ -71,11 +71,13 @@ instance Eq Hand where
     
 instance Ord Hand where
     h1 `compare` h2 
-        | h1 /= h2 = compare (rankHand h1) (rankHand h2) 
+        | r1 /= r2 = compare r1 r2
         | otherwise = compare kinds_1 kinds_2
         where
             kinds_1 = map snd $ kinds h1
             kinds_2 = map snd $ kinds h2
+            r1 = rankHand h1
+            r2 = rankHand h2
 
 problem0054 :: [String] -> [(Ordering, String, String)]
 problem0054 [] = []
@@ -203,12 +205,13 @@ straight hand
     | null sorted = False
     | 1 == length sorted = True
     | sorted == [Ace, Five, Four, Three, Two] = True
-    | otherwise = all (\(c,d) -> c == pred d) $ zip sorted $ tail sorted
+    | otherwise = all (uncurry step) $ zip sorted $ tail sorted
     where
         sorted = sort $ map rank $ toList hand
+        step r d = 1 == fromEnum d - fromEnum r
 
 straightTest = [
-    -- False @=? (straight $ parseHand "5C AD 5D AC 9C"),
+    False @=? (straight $ parseHand "5C AD 5D AC 9C"),
     False @=? (straight $ parseHand "7C 5H 8D TD KS"),
     True  @=? (straight $ parseHand "KS QD JH TC 9C"),
     True  @=? (straight $ parseHand "KS JD QH 9C TC"),
@@ -270,12 +273,15 @@ exec :: EulerArgs -> IO ()
 exec Euler = do
     text <- readFile "problem_0054.txt"
     let  answer = problem0054 $ lines text
-    printf "Answer: %d\n" (length $ filter (\(o,_,_) -> o == GT) answer)
+    printf "Answer: %d\n" (length $ filter (\(o,_,_) -> o == LT) answer)
 exec AdHoc = do
     text <- readFile "problem_0054.txt"
     let  answer = problem0054 $ lines text
-    let win o = if o == GT then "winner" else ""
-    mapM_ (\(o, c1, c2) -> printf "%s - %s - %s\n" c1 c2 (win o)) answer
+    let win o = if o == LT then "winner" else ""
+    mapM_ (\(o, c1, c2) -> printf "%s (%s) - %s (%s) - %s\n" 
+        c1 (show $ rankHand $ parseHand c1) 
+        c2 (show $ rankHand $ parseHand c2) 
+        (win o)) answer
 exec UnitTest = do
     runTestTT $ TestList unitTests
     return ()
