@@ -7,7 +7,7 @@ import Data.Time (getCurrentTime, diffUTCTime)
 
 data EulerArgs =
     Euler
-    | AdHoc { limit::Integer }
+    | AdHoc { limit::Int }
     | UnitTest
     deriving (Show, Data, Typeable)
 
@@ -26,25 +26,22 @@ data Fraction = Fraction {
     denominator::Integer }
     deriving (Show, Eq)
 
-problem0056 :: Integer -> [Fraction]
-problem0056 limit = filter moreDigits $ continuous (Fraction 1 1) (Fraction 1 2)
+problem0056 :: Int -> [Fraction]
+problem0056 limit = filter moreDigits $ take limit continuous
     where
         moreDigits (Fraction n d) = (length $ show n) > (length $ show d)
 
-continuous :: Fraction -> Fraction -> [Fraction]
-continuous start inc = start':(continuous start' inc)
+continuous :: [Fraction]
+continuous = iterate itr (Fraction 1 1)
     where
-        start' = denomAdd start inc
-
-denomAdd :: Fraction -> Fraction -> Fraction
-denomAdd (Fraction n_a d_a) (Fraction n_b d_b) =
-    Fraction (d_a * d_b + n_b) (d_b * n_a)
-
-denomAddTest = [
-    Fraction 3 2 @=? denomAdd (Fraction 1 1) (Fraction 1 2)]
+        itr (Fraction n d) = Fraction (n + 2 * d) (n + d)
 
 continuousTest = [
-    Fraction 3 2 @=? (head $ continuous (Fraction 1 1) (Fraction 1 2))]
+    Fraction 41 29 @=? (head $ drop 4 continuous),
+    Fraction 17 12 @=? (head $ drop 3 continuous),
+    Fraction  7  5 @=? (head $ drop 2 continuous),
+    Fraction  3  2 @=? (head $ drop 1 continuous)]
+
 
 unitTests = map TestCase $
     continuousTest
