@@ -22,8 +22,23 @@ data EulerArgs =
 -- It is interesting to note that the odd squares lie along the bottom right diagonal, but what is more interesting is that 8 out of the 13 numbers lying along both diagonals are prime; that is, a ratio of 8/13 ≈ 62%.
 -- If one complete new layer is wrapped around the spiral above, a square spiral with side length 9 will be formed. If this process is continued, what is the side length of the square spiral for which the ratio of primes along both diagonals first falls below 10%?
 
+type State = ((Integer, Integer), Integer, [Integer])
+
 problem0058 :: [(Double, Integer, [Integer])]
-problem0058 = error "Not Implemented"
+problem0058 = map divide $ scanl scanPrimes inital $ drop 1 spiral
+    where
+        divide (s, l, ns) = (div' s, l, ns)
+        div' (a, b) = ((fromInteger a) / (fromInteger b))
+        inital = ((1,1), 1, [1])
+
+scanPrimes :: State -> [Integer] -> State
+scanPrimes ((n, d), l, _) ns = ((n + nPrimes, d + 4), l + 8, diags)
+    where
+        diags = diagonals ns
+        nPrimes = sum $ map (\n -> if isPrime n then 1 else 0) diags
+
+scanPrimesTest = [
+    ((3,4), 8, [3,5,7,9]) @=? scanPrimes ((0,0), 0, [0]) [2..9]]
 
 spiral :: [[Integer]]
 spiral = scanl update [1] [2*4-1,4*4-1..]
@@ -45,15 +60,15 @@ updateTest = [
     [10..25] @=? update [2..9] (4*4),
     [26..49] @=? update [10..25] (6*4)]
 
-diagonals :: [Integer] -> (Integer, Integer, Integer, Integer)
-diagonals row = (row !! (l-1), row !! (2*l-1), row !! (3*l-1), row !! (4*l-1))
+diagonals :: [Integer] -> [Integer]
+diagonals row = [row !! (n*l-1) | n <- [1,2,3,4]]
     where
         l = div (length row) 4
 
 diagonalsTest = [
-    (3,5,7,9) @=? diagonals [2..9],
-    (13,17,21,25) @=? diagonals [10..25],
-    (31,37,43,49) @=? diagonals [26..49]]
+    [ 3,5,7,9 ] @=? diagonals [2..9],
+    [ 13,17,21,25 ] @=? diagonals [10..25],
+    [ 31,37,43,49 ] @=? diagonals [26..49]]
 
 primes :: [Integer]
 primes = 2 : [n | n <- [3,5..], isPrime n]
@@ -82,7 +97,8 @@ isPrimeTest = [
 unitTests = map TestCase $
     spiralTest ++
     diagonalsTest ++
-    isPrimeTest
+    isPrimeTest ++
+    scanPrimesTest
 
 exec :: EulerArgs -> IO ()
 exec Euler = do
@@ -90,7 +106,7 @@ exec Euler = do
     printf "Answer: %d\n" answer
 exec AdHoc{..} = do
     let  rows = takeWhile (\(f, _, _) -> f > limit) problem0058
-    mapM_ (\(p, _, ns) -> printf "%d: %s\n" p (show ns)) rows
+    mapM_ (\(p, _, ns) -> printf "%4.2f: %s\n" p (show ns)) rows
 exec UnitTest = do
     runTestTT $ TestList unitTests
     return ()
@@ -99,7 +115,7 @@ main :: IO ()
 main = do
     args <- cmdArgs $ modes [
         Euler,
-        AdHoc {limit = 0.5},
+        AdHoc {limit = 0.50},
         UnitTest]
     start <- getCurrentTime
     exec args
