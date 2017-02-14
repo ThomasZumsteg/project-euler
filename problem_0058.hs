@@ -40,6 +40,23 @@ scanPrimes ((n, d), l, _) ns = ((n + nPrimes, d + 4), l + 8, diags)
 scanPrimesTest = [
     ((3,4), 8, [3,5,7,9]) @=? scanPrimes ((0,0), 0, [0]) [2..9]]
 
+-- d1_1 = d4_0 + (l1 - 1)
+-- d2_1 = d1_1 + (l1 - 1) 
+-- d3_1 = d2_1 + (l1 - 1) 
+-- d4_0 = d1_0 + (l0 - 1) * 3
+-- l1 = l0 + 2
+-- dn_1 = [(d1_0 + (l0 - 1) * 3) + ((l0 + 2) - 1) * n | n <- [1..4]]
+-- dn_1 = [d1_0 + 3*l0 - 3 + n*l0 + n | n <- [1..4]]
+spiralDiags :: [(Integer, [Integer])]
+spiralDiags = (1,[1]):iterate diagUpdate (3, [3,5,7,9])
+    where
+        diagUpdate (l0, (d1_0:_)) = (l0 + 2, [d1_0 + 3*l0 - 3 + n*l0 + n | n <- [1..4]])
+
+
+spiralDiagsTest = [
+    ((+1) $ flip div 4 $ toInteger $ length side, diagonals side) @=? 
+    spiralDiags !! n | n <- [0..10], let side = spiral !! n]
+
 spiral :: [[Integer]]
 spiral = scanl update [1] [2*4-1,4*4-1..]
 
@@ -61,6 +78,7 @@ updateTest = [
     [26..49] @=? update [10..25] (6*4)]
 
 diagonals :: [Integer] -> [Integer]
+diagonals [1] = [1]
 diagonals row = [row !! (n*l-1) | n <- [1,2,3,4]]
     where
         l = div (length row) 4
@@ -98,7 +116,8 @@ unitTests = map TestCase $
     spiralTest ++
     diagonalsTest ++
     isPrimeTest ++
-    scanPrimesTest
+    scanPrimesTest ++
+    spiralDiagsTest
 
 exec :: EulerArgs -> IO ()
 exec Euler = do
