@@ -25,12 +25,18 @@ data EulerArgs =
 type State = ((Integer, Integer), Integer, [Integer])
 
 problem0058 :: [(Double, Integer, [Integer])]
-problem0058 = map divide $ scanl scanPrimes inital $ drop 1 spiral
+problem0058 = map divide $ scanl scanPrimes' inital $ drop 1 spiralDiags
     where
         divide (s, l, ns) = (div' s, l, ns)
         div' (a, b) = ((fromInteger a) / (fromInteger b))
-        inital = ((1,1), 1, [1])
+        inital = ((0,1), 1, [1])
 
+scanPrimes' :: State -> (Integer, [Integer]) -> State
+scanPrimes' ((n, d), _, _) (l', ns) = ((n + nPrimes, d + 4), l', diags)
+    where
+        diags = diagonals ns
+        nPrimes = sum $ map (\n -> if isPrime n then 1 else 0) diags
+        
 scanPrimes :: State -> [Integer] -> State
 scanPrimes ((n, d), l, _) ns = ((n + nPrimes, d + 4), l + 8, diags)
     where
@@ -121,11 +127,11 @@ unitTests = map TestCase $
 
 exec :: EulerArgs -> IO ()
 exec Euler = do
-    let  (_, answer, _) = head $ dropWhile (\(f, _, _) -> f > 0.10) $ problem0058 
+    let  (_, answer, _) = head $ dropWhile (\(f, _, _) -> f > 0.10) $ drop 1 problem0058 
     printf "Answer: %d\n" answer
 exec AdHoc{..} = do
-    let  rows = takeWhile (\(f, _, _) -> f > limit) problem0058
-    mapM_ (\(p, _, ns) -> printf "%4.2f: %s\n" p (show ns)) rows
+    let  rows = (head problem0058): (takeWhile (\(f, _, _) -> f > limit) $ drop 1 problem0058)
+    mapM_ (\(p, l, ns) -> printf "%4.2f: %d: %s\n" p l (show ns)) rows
 exec UnitTest = do
     runTestTT $ TestList unitTests
     return ()
@@ -134,7 +140,7 @@ main :: IO ()
 main = do
     args <- cmdArgs $ modes [
         Euler,
-        AdHoc {limit = 0.50},
+        AdHoc {limit = 0.15},
         UnitTest]
     start <- getCurrentTime
     exec args
