@@ -4,6 +4,7 @@ import qualified Data.Set as Set
 import Test.HUnit ((@=?), runTestTT, Test(..))
 import Text.Printf (printf)
 import System.Console.CmdArgs
+import Data.List (subsequences)
 
 import Common (exec, EulerArg, euler_main, primes, isPrime)
 
@@ -11,10 +12,7 @@ import Common (exec, EulerArg, euler_main, primes, isPrime)
 -- Find the lowest sum for a set of five primes for which any two primes concatenate to produce another prime.
 
 problem0060 :: Int -> [Set.Set Integer]
-problem0060 n = filter ((==n) . Set.size) primeSets
-    where
-        isPrimeSet = all isPrime . concatPairs
-        primeSets = error "Not Implemented"
+problem0060 n = filter ((==n) . length) primeSets
 
 concatPairs :: Set.Set Integer -> Set.Set Integer
 concatPairs = Set.map read' . combinations . show'
@@ -26,15 +24,33 @@ concatPairsTest = [
     (Set.fromList [12,21]) @=? (concatPairs $ Set.fromList [1,2]),
     (Set.fromList [12,21,13,31,23,32]) @=? (concatPairs $ Set.fromList [1,2,3])]
 
-combinations :: Set.Set a -> Set.Set (a, a)
-combinations = error "Not Implemented"
+combinations :: (Ord a) => Set.Set a -> Set.Set (a, a)
+combinations s = Set.fromList [(n, m) | n <- ls, m <- ls, m /= n]
+    where
+        ls = Set.toList s
 
 combinationsTest = [
+    (Set.fromList []) @=? (combinations $ Set.fromList ""),
     (Set.fromList [('a','b'), ('b','a')]) @=? (combinations $ Set.fromList "ab")]
+
+primeSets :: [Set.Set Integer]
+primeSets = map Set.fromList $ subsequences primes
+
+primeSetsTest = [
+    Set.fromList [] @=? primeSets !! 0,
+    Set.fromList [2] @=? primeSets !! 1,
+    Set.fromList [3] @=? primeSets !! 2,
+    Set.fromList [2,3] @=? primeSets !! 3,
+    Set.fromList [5] @=? primeSets !! 4,
+    Set.fromList [2,5] @=? primeSets !! 5,
+    Set.fromList [7] @=? primeSets !! 6,
+    Set.fromList [3,5] @=? primeSets !! 7,
+    Set.fromList [2,3,5] @=? primeSets !! 8]
 
 unitTests = map TestCase $
     concatPairsTest ++
-    combinationsTest
+    combinationsTest ++
+    primeSetsTest
 
 data Arg = Euler | AdHoc { limit::Double } | UnitTest
     deriving (Show, Data, Typeable)
