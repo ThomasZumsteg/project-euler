@@ -34,7 +34,7 @@ combinationsTest = [
     (Set.fromList [('a','b'), ('b','a')]) @=? (combinations $ Set.fromList "ab")]
 
 primeSets :: [Set.Set Integer]
-primeSets = map Set.fromList $ subsequences primes
+primeSets = map Set.fromList [ [l] | l <- [0..]]
 
 primeSetsTest = [
     Set.fromList [] @=? primeSets !! 0,
@@ -47,10 +47,23 @@ primeSetsTest = [
     Set.fromList [3,5] @=? primeSets !! 7,
     Set.fromList [2,3,5] @=? primeSets !! 8]
 
+nCombinations :: Int -> [a] -> [[a]]
+nCombinations 0 _ = [[]]
+nCombinations _ [] = []
+nCombinations i (x:xs) = (map (x:) $ nCombinations (i-1) xs) ++ (nCombinations i xs)
+
+nCombinationsTest = [
+    ["ab","ac","bc"] @=? nCombinations 2 "abc",
+    ["ab"] @=? nCombinations 2 "ab",
+    ["a", "b"] @=? nCombinations 1 "ab",
+    ["a"] @=? nCombinations 1 "a",
+    [] @=? nCombinations 1 ""]
+
 unitTests = map TestCase $
-    concatPairsTest ++
-    combinationsTest ++
-    primeSetsTest
+    -- concatPairsTest ++
+    -- combinationsTest ++
+    nCombinationsTest
+    -- primeSetsTest
 
 data Arg = Euler | AdHoc { limit::Double } | UnitTest
     deriving (Show, Data, Typeable)
