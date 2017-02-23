@@ -11,6 +11,36 @@ import Common (exec, EulerArg, euler_main, primes, isPrime)
 -- The primes 3, 7, 109, and 673, are quite remarkable. By taking any two primes and concatenating them in any order the result will always be prime. For example, taking 7 and 109, both 7109 and 1097 are prime. The sum of these four primes, 792, represents the lowest sum for a set of four primes with this property.
 -- Find the lowest sum for a set of five primes for which any two primes concatenate to produce another prime.
 
+data BHeap a = Empty | Leaf { 
+    value :: a, 
+    left :: BHeap a,
+    right :: BHeap a }
+    deriving (Show, Eq)
+
+insert :: (Ord a) => BHeap a -> a -> BHeap a
+insert Empty x = Leaf x Empty Empty
+insert _ _ = error "Not Implemented"
+
+fromList :: (Ord a) => [a] -> BHeap a
+fromList = foldl insert Empty
+
+pop :: (Ord a) => BHeap a -> Maybe (a, BHeap a)
+pop Empty = Nothing
+pop _ = error "Not Implemented"
+
+mergeList :: (Ord a) => [BHeap a] -> BHeap a
+mergeList = foldl merge Empty 
+
+merge :: (Ord a) => BHeap a -> BHeap a -> BHeap a
+merge Empty l = l
+merge r Empty = r
+merge _ _ = error "Not Implemented"
+
+toList :: (Ord a) => BHeap a -> [a]
+toList h = case pop h of
+    Nothing -> []
+    Just (v, h') -> v : toList h'
+
 problem0060 :: Int -> [Set.Set Integer]
 problem0060 n = filter ((==n) . length) primeSets
 
@@ -53,6 +83,7 @@ nCombinations _ [] = []
 nCombinations i (x:xs) = (map (x:) $ nCombinations (i-1) xs) ++ (nCombinations i xs)
 
 nCombinationsTest = [
+    [] @=? (take 10 $ nCombinations 2 [1..]),
     ["ab","ac","bc"] @=? nCombinations 2 "abc",
     ["ab"] @=? nCombinations 2 "ab",
     ["a", "b"] @=? nCombinations 1 "ab",
