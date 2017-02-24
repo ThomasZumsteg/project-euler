@@ -13,20 +13,35 @@ import Common (exec, EulerArg, euler_main, primes, isPrime)
 
 data BHeap a = Empty | Leaf { 
     value :: a, 
+    depth :: Int,
     left :: BHeap a,
     right :: BHeap a }
     deriving (Show, Eq)
 
 insert :: (Ord a) => BHeap a -> a -> BHeap a
-insert Empty x = Leaf x Empty Empty
-insert _ _ = error "Not Implemented"
+insert Empty x = Leaf x 1 Empty Empty
+insert h i = merge h (Leaf i 1 Empty Empty)
+
+insertTest = [
+    (Leaf 1 2 (Leaf 3 1 Empty Empty) (Leaf 2 1 Empty Empty)) @=?  
+        insert (Leaf 2 2 (Leaf 3 1 Empty Empty) Empty) 1,
+    (Leaf 1 2 (Leaf 3 1 Empty Empty) Empty) @=? insert (Leaf 3 1 Empty Empty) 1,
+    [1] @=? (toList $ insert Empty 1),
+    [1, 2] @=? (toList $ insert (Leaf 2 1 Empty Empty) 1),
+    [1, 2] @=? (toList $ insert (Leaf 1 1 Empty Empty) 2),
+    [2] @=? (toList $ insert Empty 2)]
 
 fromList :: (Ord a) => [a] -> BHeap a
 fromList = foldl insert Empty
 
+fromListTest = [
+    [1,2,3] @=? (toList $ fromList [3,2,1]),
+    [1,2,3] @=? (toList $ fromList [1,3,2]),
+    (Leaf 1 2 (Leaf 2 1 Empty Empty) (Leaf 3 1 Empty Empty)) @=? fromList [1,2,3]]
+
 pop :: (Ord a) => BHeap a -> Maybe (a, BHeap a)
-pop Empty = Nothing
-pop _ = error "Not Implemented"
+pop Empty = Nothing 
+pop (Leaf v _ l r) = Just (v, merge l r)
 
 mergeList :: (Ord a) => [BHeap a] -> BHeap a
 mergeList = foldl merge Empty 
@@ -34,7 +49,18 @@ mergeList = foldl merge Empty
 merge :: (Ord a) => BHeap a -> BHeap a -> BHeap a
 merge Empty l = l
 merge r Empty = r
-merge _ _ = error "Not Implemented"
+merge r@(Leaf rv rd rl rr) l@(Leaf lv ld _ _) 
+    | lv < rv || (lv == rv && rd < ld) = merge l r
+    | rank rl <= rank rr = Leaf rv (rank rl + ld + 1) (merge rl l) rr
+    | otherwise = Leaf rv (rank rr + ld + 1) rl (merge rr l)
+    where
+        rank Empty = 0
+        rank h = depth h
+
+mergeTest = [
+    (Leaf 1 2 (Leaf 2 1 Empty Empty) Empty) @=?  merge 
+    (Leaf 2 1 Empty Empty) 
+    (Leaf 1 1 Empty Empty)]
 
 toList :: (Ord a) => BHeap a -> [a]
 toList h = case pop h of
@@ -91,6 +117,9 @@ nCombinationsTest = [
     [] @=? nCombinations 1 ""]
 
 unitTests = map TestCase $
+    insertTest ++
+    mergeTest ++
+    fromListTest ++
     -- concatPairsTest ++
     -- combinationsTest ++
     nCombinationsTest
