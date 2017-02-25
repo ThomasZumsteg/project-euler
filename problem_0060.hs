@@ -6,6 +6,8 @@ import Text.Printf (printf)
 import System.Console.CmdArgs
 import Data.List (subsequences)
 
+import Data.Maybe (fromJust)
+
 import Common (exec, EulerArg, euler_main, primes, isPrime)
 
 -- The primes 3, 7, 109, and 673, are quite remarkable. By taking any two primes and concatenating them in any order the result will always be prime. For example, taking 7 and 109, both 7109 and 1097 are prime. The sum of these four primes, 792, represents the lowest sum for a set of four primes with this property.
@@ -13,17 +15,26 @@ import Common (exec, EulerArg, euler_main, primes, isPrime)
 
 data BHeap a = Empty | Leaf { 
     value :: a, 
-    depth :: Int,
+    _nodes :: Int,
     left :: BHeap a,
     right :: BHeap a }
-    deriving (Show, Eq)
+    deriving Eq
+
+nodes :: BHeap a -> Int
+nodes Empty = 0
+nodes h = _nodes h
+
+instance (Show a) => Show (BHeap a) where 
+    show Empty = "Empty"
+    show (Leaf v d lh rh) = "(Leaf " ++ show v ++ " " ++ show d ++ 
+        " " ++ show lh ++ " " ++ show rh ++ ")"
 
 insert :: (Ord a) => BHeap a -> a -> BHeap a
 insert Empty x = Leaf x 1 Empty Empty
 insert h i = merge h (Leaf i 1 Empty Empty)
 
 insertTest = [
-    (Leaf 1 2 (Leaf 3 1 Empty Empty) (Leaf 2 1 Empty Empty)) @=?  
+    (Leaf 1 3 (Leaf 3 1 Empty Empty) (Leaf 2 1 Empty Empty)) @=?  
         insert (Leaf 2 2 (Leaf 3 1 Empty Empty) Empty) 1,
     (Leaf 1 2 (Leaf 3 1 Empty Empty) Empty) @=? insert (Leaf 3 1 Empty Empty) 1,
     [1] @=? (toList $ insert Empty 1),
@@ -35,9 +46,10 @@ fromList :: (Ord a) => [a] -> BHeap a
 fromList = foldl insert Empty
 
 fromListTest = [
+    1 @=? (fst $ fromJust $ pop $ fromList [1..]),
     [1,2,3] @=? (toList $ fromList [3,2,1]),
     [1,2,3] @=? (toList $ fromList [1,3,2]),
-    (Leaf 1 2 (Leaf 2 1 Empty Empty) (Leaf 3 1 Empty Empty)) @=? fromList [1,2,3]]
+    (Leaf 1 3 (Leaf 2 1 Empty Empty) (Leaf 3 1 Empty Empty)) @=? fromList [1,2,3]]
 
 pop :: (Ord a) => BHeap a -> Maybe (a, BHeap a)
 pop Empty = Nothing 
@@ -47,15 +59,15 @@ mergeList :: (Ord a) => [BHeap a] -> BHeap a
 mergeList = foldl merge Empty 
 
 merge :: (Ord a) => BHeap a -> BHeap a -> BHeap a
-merge Empty l = l
-merge r Empty = r
-merge r@(Leaf rv rd rl rr) l@(Leaf lv ld _ _) 
-    | lv < rv || (lv == rv && rd < ld) = merge l r
-    | rank rl <= rank rr = Leaf rv (rank rl + ld + 1) (merge rl l) rr
-    | otherwise = Leaf rv (rank rr + ld + 1) rl (merge rr l)
-    where
-        rank Empty = 0
-        rank h = depth h
+merge Empty h2 = h2
+merge h1 Empty = h1
+merge h1@(Leaf v1 n1 l1 r1) h2@(Leaf v2 n2 l2 r2) 
+    | v2 < v1  = merge (Leaf v2 n1 l1 r1) (Leaf v1 n2 l2 r2)
+    | (v2 == v1 && n1 < n2) = merge h2 h1
+    | nodes l1 > nodes r1 = h' l1 (merge r1 h2)
+    | otherwise = h' (merge l1 h2) r1
+        where
+            h' = Leaf v1 (n1 + n2)
 
 mergeTest = [
     (Leaf 1 2 (Leaf 2 1 Empty Empty) Empty) @=?  merge 
