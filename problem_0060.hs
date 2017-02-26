@@ -13,6 +13,20 @@ import Common (exec, EulerArg, euler_main, primes, isPrime)
 -- The primes 3, 7, 109, and 673, are quite remarkable. By taking any two primes and concatenating them in any order the result will always be prime. For example, taking 7 and 109, both 7109 and 1097 are prime. The sum of these four primes, 792, represents the lowest sum for a set of four primes with this property.
 -- Find the lowest sum for a set of five primes for which any two primes concatenate to produce another prime.
 
+class Heap h where
+    singleton :: a -> h a
+    remove :: h a -> Maybe (a, h a)
+    merge :: h a -> h a -> h a
+    insert :: h a -> a -> h a
+    insert h v = merge h (singleton v)
+    toList :: h a -> [a]
+    toList heap = case remove heap of
+        Just (x, heap') -> x : toList heap'
+        otherwise -> []
+    fromList :: [a] -> h a
+    fromList (x:[]) = singleton x
+    fromList (x:xs) = merge (singleton x) (fromList xs)
+
 data BHeap a = Empty | Leaf { 
     value :: a, 
     _nodes :: Int,
@@ -20,18 +34,35 @@ data BHeap a = Empty | Leaf {
     right :: BHeap a }
     deriving Eq
 
-nodes :: BHeap a -> Int
-nodes Empty = 0
-nodes h = _nodes h
-
 instance (Show a) => Show (BHeap a) where 
     show Empty = "Empty"
     show (Leaf v d lh rh) = "(Leaf " ++ show v ++ " " ++ show d ++ 
         " " ++ show lh ++ " " ++ show rh ++ ")"
 
-insert :: (Ord a) => BHeap a -> a -> BHeap a
-insert Empty x = Leaf x 1 Empty Empty
-insert h i = merge h (Leaf i 1 Empty Empty)
+instance (Ord a) => Heap (BHeap a) where
+    remove Empty = Nothing 
+    remove (Leaf v _ l r) = Just (v, merge l r)
+    singleton v = Leaf v 1 Empty Empty
+    merge = bMerge
+
+bMerge :: (Ord a) => BHeap a -> BHeap a -> BHeap a
+bMerge Empty h2 = h2
+bMerge h1 Empty = h1
+bMerge h1@(Leaf v1 n1 l1 r1) h2@(Leaf v2 n2 l2 r2) 
+    | v2 < v1  = bMerge (Leaf v2 n1 l1 r1) (Leaf v1 n2 l2 r2)
+    | (v2 == v1 && n1 < n2) = bMerge h2 h1
+    | nodes l1 > nodes r1 = h' l1 (bMerge r1 h2)
+    | otherwise = h' (bMerge l1 h2) r1
+        where
+            h' = Leaf v1 (n1 + n2)
+            nodes Empty = 0
+            nodes h = _nodes h
+
+
+bMergeTest = [
+    (Leaf 1 2 (Leaf 2 1 Empty Empty) Empty) @=?  bMerge 
+    (Leaf 2 1 Empty Empty) 
+    (Leaf 1 1 Empty Empty)]
 
 insertTest = [
     (Leaf 1 3 (Leaf 3 1 Empty Empty) (Leaf 2 1 Empty Empty)) @=?  
@@ -42,42 +73,10 @@ insertTest = [
     [1, 2] @=? (toList $ insert (Leaf 1 1 Empty Empty) 2),
     [2] @=? (toList $ insert Empty 2)]
 
-fromList :: (Ord a) => [a] -> BHeap a
-fromList = foldl insert Empty
-
 fromListTest = [
-    1 @=? (fst $ fromJust $ pop $ fromList [1..]),
-    [1,2,3] @=? (toList $ fromList [3,2,1]),
-    [1,2,3] @=? (toList $ fromList [1,3,2]),
+    [1,2,3] @=? (toList $ fromList [3,2,1]::[Integer]),
+    ([1,2,3]::Integer) @=? (toList $ fromList [1,3,2]),
     (Leaf 1 3 (Leaf 2 1 Empty Empty) (Leaf 3 1 Empty Empty)) @=? fromList [1,2,3]]
-
-pop :: (Ord a) => BHeap a -> Maybe (a, BHeap a)
-pop Empty = Nothing 
-pop (Leaf v _ l r) = Just (v, merge l r)
-
-mergeList :: (Ord a) => [BHeap a] -> BHeap a
-mergeList = foldl merge Empty 
-
-merge :: (Ord a) => BHeap a -> BHeap a -> BHeap a
-merge Empty h2 = h2
-merge h1 Empty = h1
-merge h1@(Leaf v1 n1 l1 r1) h2@(Leaf v2 n2 l2 r2) 
-    | v2 < v1  = merge (Leaf v2 n1 l1 r1) (Leaf v1 n2 l2 r2)
-    | (v2 == v1 && n1 < n2) = merge h2 h1
-    | nodes l1 > nodes r1 = h' l1 (merge r1 h2)
-    | otherwise = h' (merge l1 h2) r1
-        where
-            h' = Leaf v1 (n1 + n2)
-
-mergeTest = [
-    (Leaf 1 2 (Leaf 2 1 Empty Empty) Empty) @=?  merge 
-    (Leaf 2 1 Empty Empty) 
-    (Leaf 1 1 Empty Empty)]
-
-toList :: (Ord a) => BHeap a -> [a]
-toList h = case pop h of
-    Nothing -> []
-    Just (v, h') -> v : toList h'
 
 problem0060 :: Int -> [Set.Set Integer]
 problem0060 n = filter ((==n) . length) primeSets
@@ -129,13 +128,8 @@ nCombinationsTest = [
     [] @=? nCombinations 1 ""]
 
 unitTests = map TestCase $
-    insertTest ++
-    mergeTest ++
-    fromListTest ++
-    -- concatPairsTest ++
-    -- combinationsTest ++
-    nCombinationsTest
-    -- primeSetsTest
+    bMergeTest ++
+    fromListTest
 
 data Arg = Euler | AdHoc { limit::Double } | UnitTest
     deriving (Show, Data, Typeable)
