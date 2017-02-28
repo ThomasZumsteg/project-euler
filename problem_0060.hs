@@ -66,13 +66,53 @@ bHeapTest = [
     (Leaf 0 2 (Leaf 1 1 Empty Empty) Empty) @=? merge (singleton 0) (singleton 1),
     (Leaf 0 2 (Leaf 1 1 Empty Empty) Empty) @=? insert (singleton 0) 1,
     (Leaf 0 2 (Leaf 1 1 Empty Empty) Empty) @=? insert (singleton 1) 0]
-    
+
+data LeftHeap a = 
+    Nil | 
+    LeftLeaf a (LeftHeap a) | 
+    RightLeaf a (LeftHeap a) (LeftHeap a) 
+        deriving (Eq, Show)
+
+instance (Ord a) => Ord (LeftHeap a) where
+    compare Nil Nil = EQ
+    compare Nil _ = LT
+    compare _ Nil = GT
+    compare (LeftLeaf v1 l1) (LeftLeaf v2 l2) 
+        | v1 == v2  = compare l1 l2
+        | otherwise = compare v1 v2
+    compare h1@(RightLeaf v1 l1 r1) h2@(RightLeaf v2 l2 r2)
+        | v1 /= v2 = compare v1 v2
+        | otherwise = compare (min l1 r1) (min l2 r2)
+
+instance Heap LeftHeap where
+    singleton v = LeftLeaf v Nil
+    remove Nil = Nothing
+    remove (LeftLeaf v l) = Just (v, l)
+    remove (RightLeaf v l r) = Just (v, merge l r)
+    merge h1 Nil = h1
+    merge Nil h2 = h2
+
+leftHeapTest = [
+    (LeftLeaf 1 Nil) @=? singleton 1,
+    (LeftLeaf 0 Nil) @=? singleton 0,
+    Nothing @=? remove (Nil::(LeftHeap Int)),
+    Just (0, (LeftLeaf 1 Nil)) @=? 
+        remove ((LeftLeaf 0 (LeftLeaf 1 Nil))::(LeftHeap Int)),
+    Just (0, (LeftLeaf 1 (LeftLeaf 2 Nil))) @=? 
+        remove ((LeftLeaf 0 (LeftLeaf 1 (LeftLeaf 2 Nil)))::(LeftHeap Int)),
+    Just (0,  (LeftLeaf 1 (LeftLeaf 2 Nil))) @=?
+        remove ((LeftLeaf 0 (LeftLeaf 1 (LeftLeaf 2 Nil)))::(LeftHeap Int)),
+    [0,1,2,3] @=? (take 4 $ toList $ (fromList ([0..])::(LeftHeap Int))),
+    [0,1,2,3] @=? (toList $ (fromList ([0,1,2,3])::(LeftHeap Int))),
+    True @=? ((LeftLeaf 0 Nil) < (LeftLeaf 1 Nil))
+    ]
 
 problem0060 :: Int -> [Set.Set Integer]
 problem0060 = error "Not Implemented"
 
-unitTests = map TestCase
-    bHeapTest
+unitTests = map TestCase $
+    bHeapTest ++
+    leftHeapTest
 
 data Arg = Euler | AdHoc { limit::Double } | UnitTest
     deriving (Show, Data, Typeable)
