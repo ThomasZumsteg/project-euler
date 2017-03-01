@@ -83,6 +83,16 @@ instance (Ord a) => Ord (LeftHeap a) where
     compare h1@(RightLeaf v1 l1 r1) h2@(RightLeaf v2 l2 r2)
         | v1 /= v2 = compare v1 v2
         | otherwise = compare (min l1 r1) (min l2 r2)
+    compare h1@(LeftLeaf v1 l1) h2@(RightLeaf v2 l2 r2)
+        | v1 /= v2 = compare v1 v2
+        | otherwise = compare l1 (min l2 r2)
+    compare h1@(RightLeaf v1 l1 r1) h2@(LeftLeaf v2 l2)
+        | v1 /= v2 = compare v1 v2
+        | otherwise = compare (min l1 r1) l2
+
+leftHeapOrdTest = [
+    True @=? ((LeftLeaf 0 Nil) < (LeftLeaf 1 Nil))
+    ]
 
 instance Heap LeftHeap where
     singleton v = LeftLeaf v Nil
@@ -90,9 +100,14 @@ instance Heap LeftHeap where
     remove (LeftLeaf v l) = Just (v, l)
     remove (RightLeaf v l r) = Just (v, merge l r)
     merge h1 Nil = h1
-    merge Nil h2 = h2
+    merge h1 h2 
+        | h1 > h2 = merge h2 h1
+        | otherwise = case h1 of
+            (LeftLeaf v1 l1) -> LeftLeaf v1 (merge l1 h2)
+            (RightLeaf v1 r1 l1) -> RightLeaf v1 (merge r1 h2) l1
+            Nil -> Nil
 
-leftHeapTest = [
+leftHeapHeapTest = [
     (LeftLeaf 1 Nil) @=? singleton 1,
     (LeftLeaf 0 Nil) @=? singleton 0,
     Nothing @=? remove (Nil::(LeftHeap Int)),
@@ -102,17 +117,22 @@ leftHeapTest = [
         remove ((LeftLeaf 0 (LeftLeaf 1 (LeftLeaf 2 Nil)))::(LeftHeap Int)),
     Just (0,  (LeftLeaf 1 (LeftLeaf 2 Nil))) @=?
         remove ((LeftLeaf 0 (LeftLeaf 1 (LeftLeaf 2 Nil)))::(LeftHeap Int)),
-    [0,1,2,3] @=? (take 4 $ toList $ (fromList ([0..])::(LeftHeap Int))),
-    [0,1,2,3] @=? (toList $ (fromList ([0,1,2,3])::(LeftHeap Int))),
-    True @=? ((LeftLeaf 0 Nil) < (LeftLeaf 1 Nil))
+    (LeftLeaf 0 (LeftLeaf 1 Nil)) @=? (fromSortedList ([0,1])::(LeftHeap Int)),
+    [0,1,2,3] @=? (toList $ (fromSortedList ([0,1,2,3])::(LeftHeap Int))),
+    [0,1,2,3] @=? (take 4 $ toList $ (fromSortedList ([0..])::(LeftHeap Int)))
     ]
+
+fromSortedList :: (Ord a) => [a] -> LeftHeap a
+fromSortedList (x:[]) = LeftLeaf x Nil
+fromSortedList (x:xs) = LeftLeaf x (fromSortedList xs)
 
 problem0060 :: Int -> [Set.Set Integer]
 problem0060 = error "Not Implemented"
 
 unitTests = map TestCase $
     bHeapTest ++
-    leftHeapTest
+    leftHeapHeapTest ++
+    leftHeapOrdTest
 
 data Arg = Euler | AdHoc { limit::Double } | UnitTest
     deriving (Show, Data, Typeable)
