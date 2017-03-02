@@ -14,125 +14,72 @@ import Common (exec, EulerArg, euler_main, primes, isPrime)
 -- Find the lowest sum for a set of five primes for which any two primes concatenate to produce another prime.
 
 class Heap h where
-    singleton :: a -> h a
-    remove :: (Ord a) => h a -> Maybe (a, h a)
-    merge :: (Ord a) => h a -> h a -> h a
+    singleton :: b -> h a
+    remove :: h a -> Maybe (b, h a)
+    merge :: h a -> h a -> h a
 
-    insert :: (Ord a) => h a -> a -> h a
+    insert :: h a -> b -> h a
     insert h v = merge h (singleton v)
 
-    toList :: (Ord a) => h a -> [a]
+    toList :: h a -> [b]
     toList heap = case remove heap of
         Just (x, heap') -> x : toList heap'
         otherwise -> []
 
-    fromList :: (Ord a) => [a] -> h a
+    fromList :: [b] -> h a
     fromList (x:[]) = singleton x
     fromList (x:xs) = merge (singleton x) (fromList xs)
 
-data BHeap a = Empty | Leaf {
-    value :: a,
-    _nodes :: Integer,
-    left  :: BHeap a,
-    right :: BHeap a
-} deriving Eq
+data ListHeap a = 
+    Nil | List [a] (ListHeap a) (ListHeap a)
+        deriving Show
 
-instance (Show a) => Show (BHeap a) where
-    show Empty = "Empty"
-    show (Leaf v n l r) = "(" ++ show v ++ " " ++ show n ++ " " ++
-        show l ++ " " ++ show r ++ ")"
-
-instance Heap BHeap where
-    singleton v = Leaf v 1 Empty Empty
-    remove Empty = Nothing
-    remove (Leaf v _ l r) = Just (v, merge l r)
-    merge Empty h2 = h2
-    merge h1 Empty = h1
-    merge h1@(Leaf v1 n1 l1 r1) h2@(Leaf v2 n2 _ _)
-        | v2 < v1 = merge h2 h1
-        | v2 == v1 && n1 < n2 = merge h2 h1
-        | nodes r1 < nodes l1 = Leaf v1 (n1 + n2) r1 (merge l1 h2)
-        | otherwise = Leaf v1 (n1 + n2) (merge r1 h2) l1
-        where
-            nodes Empty = 0
-            nodes h = _nodes h
-
-bHeapTest = [
-    (Leaf 1 1 Empty Empty) @=? singleton 1,
-    (Leaf 0 1 Empty Empty) @=? singleton 0,
-    "(1 1 Empty Empty)" @=? (show $ (singleton 1::BHeap Integer)),
-    "(0 1 Empty Empty)" @=? (show $ (singleton 0::BHeap Integer)),
-    (Leaf 0 2 (Leaf 1 1 Empty Empty) Empty) @=? merge (singleton 1) (singleton 0),   
-    (Leaf 0 2 (Leaf 1 1 Empty Empty) Empty) @=? merge (singleton 0) (singleton 1),
-    (Leaf 0 2 (Leaf 1 1 Empty Empty) Empty) @=? insert (singleton 0) 1,
-    (Leaf 0 2 (Leaf 1 1 Empty Empty) Empty) @=? insert (singleton 1) 0]
-
-data LeftHeap a = 
-    Nil | 
-    LeftLeaf a (LeftHeap a) | 
-    RightLeaf a (LeftHeap a) (LeftHeap a) 
-        deriving (Eq, Show)
-
-instance (Ord a) => Ord (LeftHeap a) where
+instance (Num a, Ord a) => Ord (ListHeap a) where
     compare Nil Nil = EQ
     compare Nil _ = LT
     compare _ Nil = GT
-    compare (LeftLeaf v1 l1) (LeftLeaf v2 l2) 
-        | v1 == v2  = compare l1 l2
-        | otherwise = compare v1 v2
-    compare h1@(RightLeaf v1 l1 r1) h2@(RightLeaf v2 l2 r2)
-        | v1 /= v2 = compare v1 v2
-        | otherwise = compare (min l1 r1) (min l2 r2)
-    compare h1@(LeftLeaf v1 l1) h2@(RightLeaf v2 l2 r2)
-        | v1 /= v2 = compare v1 v2
-        | otherwise = compare l1 (min l2 r2)
-    compare h1@(RightLeaf v1 l1 r1) h2@(LeftLeaf v2 l2)
-        | v1 /= v2 = compare v1 v2
-        | otherwise = compare (min l1 r1) l2
+    compare (List l1 _ _) (List l2 _ _) = compare (sum l1) (sum l2)
 
-leftHeapOrdTest = [
-    True @=? ((LeftLeaf 0 Nil) < (LeftLeaf 1 Nil))
+instance (Num a, Ord a) => Eq (ListHeap a) where
+    h1 == h2 = compare h1 h2 == EQ
+
+listHeapOrdTest = [
+    EQ @=? compare (List [] Nil Nil) (List [] Nil Nil),
+    EQ @=? compare (List [1] Nil Nil) (List [1] Nil Nil),
+    EQ @=? compare (List [2] Nil Nil) (List [1,1] Nil Nil),
+    GT @=? compare (List [0] Nil Nil) Nil,
+    LT @=? compare (List [0] Nil Nil) (List [1] Nil Nil)
     ]
 
-instance Heap LeftHeap where
-    singleton v = LeftLeaf v Nil
+instance Heap ListHeap where
+    singleton v = error "Not Implemented"
     remove Nil = Nothing
-    remove (LeftLeaf v l) = Just (v, l)
-    remove (RightLeaf v l r) = Just (v, merge l r)
+    remove (List v l r) = error "Not Implemented"
+    merge Nil Nil = Nil
     merge h1 Nil = h1
-    merge h1 h2 
-        | h1 > h2 = merge h2 h1
-        | otherwise = case h1 of
-            (LeftLeaf v1 l1) -> LeftLeaf v1 (merge l1 h2)
-            (RightLeaf v1 r1 l1) -> RightLeaf v1 (merge r1 h2) l1
-            Nil -> Nil
-
-leftHeapHeapTest = [
-    (LeftLeaf 1 Nil) @=? singleton 1,
-    (LeftLeaf 0 Nil) @=? singleton 0,
-    Nothing @=? remove (Nil::(LeftHeap Int)),
-    Just (0, (LeftLeaf 1 Nil)) @=? 
-        remove ((LeftLeaf 0 (LeftLeaf 1 Nil))::(LeftHeap Int)),
-    Just (0, (LeftLeaf 1 (LeftLeaf 2 Nil))) @=? 
-        remove ((LeftLeaf 0 (LeftLeaf 1 (LeftLeaf 2 Nil)))::(LeftHeap Int)),
-    Just (0,  (LeftLeaf 1 (LeftLeaf 2 Nil))) @=?
-        remove ((LeftLeaf 0 (LeftLeaf 1 (LeftLeaf 2 Nil)))::(LeftHeap Int)),
-    (LeftLeaf 0 (LeftLeaf 1 Nil)) @=? (fromSortedList ([0,1])::(LeftHeap Int)),
-    [0,1,2,3] @=? (toList $ (fromSortedList ([0,1,2,3])::(LeftHeap Int))),
-    [0,1,2,3] @=? (take 4 $ toList $ (fromSortedList ([0..])::(LeftHeap Int)))
-    ]
-
-fromSortedList :: (Ord a) => [a] -> LeftHeap a
-fromSortedList (x:[]) = LeftLeaf x Nil
-fromSortedList (x:xs) = LeftLeaf x (fromSortedList xs)
 
 problem0060 :: Int -> [Set.Set Integer]
 problem0060 = error "Not Implemented"
 
+primeSets :: ListHeap [Integer]
+primeSets = error "Not Implemented"
+
+-- primeSetsTest = [
+--     [2] @=? (toList primeSets) !! 0,
+--     [3] @=? (toList primeSets) !! 1,
+--     [3,2] @=? (toList primeSets) !! 2,
+--     [5] @=? (toList primeSets) !! 3,
+--     [5,2] @=? (toList primeSets) !! 4,
+--     [5,3] @=? (toList primeSets) !! 5,
+--     [5,3,2] @=? (toList primeSets) !! 6,
+--     [7] @=? (toList primeSets) !! 7,
+--     [7,2] @=? (toList primeSets) !! 8,
+--     [7,3] @=? (toList primeSets) !! 9,
+--     [11] @=? (toList primeSets) !! 10
+--     ]
+
 unitTests = map TestCase $
-    bHeapTest ++
-    leftHeapHeapTest ++
-    leftHeapOrdTest
+    listHeapOrdTest 
 
 data Arg = Euler | AdHoc { limit::Double } | UnitTest
     deriving (Show, Data, Typeable)
