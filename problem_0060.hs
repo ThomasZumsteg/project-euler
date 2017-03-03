@@ -13,23 +13,6 @@ import Common (exec, EulerArg, euler_main, primes, isPrime)
 -- The primes 3, 7, 109, and 673, are quite remarkable. By taking any two primes and concatenating them in any order the result will always be prime. For example, taking 7 and 109, both 7109 and 1097 are prime. The sum of these four primes, 792, represents the lowest sum for a set of four primes with this property.
 -- Find the lowest sum for a set of five primes for which any two primes concatenate to produce another prime.
 
-class Heap h where
-    singleton :: b -> h a
-    remove :: h a -> Maybe (b, h a)
-    merge :: h a -> h a -> h a
-
-    insert :: h a -> b -> h a
-    insert h v = merge h (singleton v)
-
-    toList :: h a -> [b]
-    toList heap = case remove heap of
-        Just (x, heap') -> x : toList heap'
-        otherwise -> []
-
-    fromList :: [b] -> h a
-    fromList (x:[]) = singleton x
-    fromList (x:xs) = merge (singleton x) (fromList xs)
-
 data ListHeap a = 
     Nil | List [a] (ListHeap a) (ListHeap a)
         deriving Show
@@ -51,12 +34,32 @@ listHeapOrdTest = [
     LT @=? compare (List [0] Nil Nil) (List [1] Nil Nil)
     ]
 
-instance Heap ListHeap where
-    singleton v = error "Not Implemented"
-    remove Nil = Nothing
-    remove (List v l r) = error "Not Implemented"
-    merge Nil Nil = Nil
-    merge h1 Nil = h1
+singleton :: [a] -> ListHeap a
+singleton v = List v Nil Nil
+
+remove :: (Ord a, Num a) => ListHeap a -> Maybe ([a], ListHeap a)
+remove Nil = Nothing
+remove (List v l r) = Just (v, merge l r)
+
+merge :: (Ord a, Num a) => ListHeap a -> ListHeap a -> ListHeap a
+merge Nil Nil = Nil
+merge h1 Nil = h1
+merge Nil h2 = h2
+merge h1@(List v l1 r1) h2
+    | h1 > h2 = merge h2 h1
+    | otherwise = List v l1 (merge r1 h2)
+
+fromList :: (Num a, Ord a) => [[a]] -> ListHeap a
+fromList [] = Nil
+fromList (x:xs) = merge (singleton x) $ fromList xs
+
+listHeapTest = [
+    (List [] Nil Nil) @=? singleton [],
+    (List [1] Nil Nil) @=? singleton [1],
+    Nothing @=? remove Nil,
+    Just ([1], Nil) @=? remove (List [1] Nil Nil)
+    ]
+    
 
 problem0060 :: Int -> [Set.Set Integer]
 problem0060 = error "Not Implemented"
@@ -79,7 +82,8 @@ primeSets = error "Not Implemented"
 --     ]
 
 unitTests = map TestCase $
-    listHeapOrdTest 
+    listHeapOrdTest ++
+    listHeapTest
 
 data Arg = Euler | AdHoc { limit::Double } | UnitTest
     deriving (Show, Data, Typeable)
