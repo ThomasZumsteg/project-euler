@@ -17,52 +17,34 @@ data ListHeap a =
     Nil | List [a] (ListHeap a) (ListHeap a)
         deriving Show
 
-instance (Num a, Ord a) => Ord (ListHeap a) where
+instance (Eq a) => Eq (ListHeap a) where
+    (==) Nil Nil = True
+    (==) Nil _ = False
+    (==) _ Nil = False
+    (==) (List l1 _ _) (List l2 _ _) = l1 == l2
+
+instance (Ord a, Num a) => Ord (ListHeap a) where
     compare Nil Nil = EQ
-    compare Nil _ = LT
-    compare _ Nil = GT
+    compare _ Nil = LT
+    compare Nil _ = GT
     compare (List l1 _ _) (List l2 _ _) = compare (sum l1) (sum l2)
-
-instance (Num a, Ord a) => Eq (ListHeap a) where
-    h1 == h2 = compare h1 h2 == EQ
-
-listHeapOrdTest = [
-    EQ @=? compare (List [] Nil Nil) (List [] Nil Nil),
-    EQ @=? compare (List [1] Nil Nil) (List [1] Nil Nil),
-    EQ @=? compare (List [2] Nil Nil) (List [1,1] Nil Nil),
-    GT @=? compare (List [0] Nil Nil) Nil,
-    LT @=? compare (List [0] Nil Nil) (List [1] Nil Nil)
-    ]
-
-singleton :: [a] -> ListHeap a
-singleton v = List v Nil Nil
-
-remove :: (Ord a, Num a) => ListHeap a -> Maybe ([a], ListHeap a)
-remove Nil = Nothing
-remove (List v l r) = Just (v, merge l r)
-
-merge :: (Ord a, Num a) => ListHeap a -> ListHeap a -> ListHeap a
-merge Nil Nil = Nil
-merge h1 Nil = h1
-merge Nil h2 = h2
-merge h1@(List v l1 r1) h2
-    | h1 > h2 = merge h2 h1
-    | otherwise = List v l1 (merge r1 h2)
-
-fromList :: (Num a, Ord a) => [[a]] -> ListHeap a
-fromList [] = Nil
-fromList (x:xs) = merge (singleton x) $ fromList xs
-
-listHeapTest = [
-    (List [] Nil Nil) @=? singleton [],
-    (List [1] Nil Nil) @=? singleton [1],
-    Nothing @=? remove Nil,
-    Just ([1], Nil) @=? remove (List [1] Nil Nil)
-    ]
-    
 
 problem0060 :: Int -> [Set.Set Integer]
 problem0060 = error "Not Implemented"
+
+buildHeap :: [a] -> [a] -> ListHeap a
+buildHeap [] [] = Nil
+buildHeap root [] = List root Nil Nil
+buildHeap root (x:xs) = List (x:root) without with
+    where
+        without = buildHeap root xs 
+        with = buildHeap (x:root) xs 
+
+buildHeapTest = [
+    (List [1] (List [2] Nil Nil) (List [2,1] Nil Nil)) @=? buildHeap [] [1,2],
+    (List [1] Nil Nil) @=? buildHeap [] [1],
+    (List [1] Nil Nil) @=? buildHeap [1] []
+    ]
 
 primeSets :: ListHeap [Integer]
 primeSets = error "Not Implemented"
@@ -82,8 +64,7 @@ primeSets = error "Not Implemented"
 --     ]
 
 unitTests = map TestCase $
-    listHeapOrdTest ++
-    listHeapTest
+    buildHeapTest
 
 data Arg = Euler | AdHoc { limit::Double } | UnitTest
     deriving (Show, Data, Typeable)
