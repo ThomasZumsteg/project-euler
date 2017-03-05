@@ -15,13 +15,7 @@ import Common (exec, EulerArg, euler_main, primes, isPrime)
 
 data ListHeap a = 
     Nil | List [a] (ListHeap a) (ListHeap a)
-        deriving Show
-
-instance (Eq a) => Eq (ListHeap a) where
-    (==) Nil Nil = True
-    (==) Nil _ = False
-    (==) _ Nil = False
-    (==) (List l1 _ _) (List l2 _ _) = l1 == l2
+        deriving (Show, Eq)
 
 instance (Ord a, Num a) => Ord (ListHeap a) where
     compare Nil Nil = EQ
@@ -34,7 +28,7 @@ problem0060 = error "Not Implemented"
 
 buildHeap :: [a] -> [a] -> ListHeap a
 buildHeap [] [] = Nil
-buildHeap root [] = List root Nil Nil
+buildHeap root [] = Nil
 buildHeap root (x:xs) = List (x:root) without with
     where
         without = buildHeap root xs 
@@ -43,7 +37,33 @@ buildHeap root (x:xs) = List (x:root) without with
 buildHeapTest = [
     (List [1] (List [2] Nil Nil) (List [2,1] Nil Nil)) @=? buildHeap [] [1,2],
     (List [1] Nil Nil) @=? buildHeap [] [1],
-    (List [1] Nil Nil) @=? buildHeap [1] []
+    Nil @=? buildHeap [1] [],
+    (Nil::ListHeap Int) @=? buildHeap [] []
+    ]
+
+merge:: (Ord a, Num a) => ListHeap a -> ListHeap a -> ListHeap a
+merge Nil Nil = Nil
+merge h1 Nil = h1
+merge Nil h2 = h2
+merge h1@(List v1 l1 r1) h2@(List v2 _ _)
+    | h1 > h2 = merge h2 h1
+    | l1 == Nil = List v1 h2 r1
+    | r1 == Nil = List v1 l1 h2
+    | otherwise = List v1 l1 (merge h2 r1)
+
+mergeTest = [
+    Nil @=? merge Nil Nil,
+    (List [1] Nil Nil) @=? merge Nil (List [1] Nil Nil),
+    (List [1] Nil Nil) @=? merge (List [1] Nil Nil) Nil,
+    (List [1] (List [2] Nil Nil) Nil) @=? merge (List [1] Nil Nil) (List [2] Nil Nil)
+    ]
+
+toList :: (Ord a, Num a) => ListHeap a -> [[a]]
+toList Nil = []
+toList (List i l r) = i : (toList $ merge l r)
+
+toListTest = [
+    ([[1],[2],[3],[2,1],[3,1],[3,2],[3,2,1]]::[[Integer]]) @=? (toList $ buildHeap [] [1,2,3])
     ]
 
 primeSets :: ListHeap [Integer]
@@ -64,7 +84,9 @@ primeSets = error "Not Implemented"
 --     ]
 
 unitTests = map TestCase $
-    buildHeapTest
+    buildHeapTest ++
+    mergeTest ++
+    toListTest
 
 data Arg = Euler | AdHoc { limit::Double } | UnitTest
     deriving (Show, Data, Typeable)
