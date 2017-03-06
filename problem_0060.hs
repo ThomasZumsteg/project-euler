@@ -23,8 +23,19 @@ instance (Ord a, Num a) => Ord (ListHeap a) where
     compare Nil _ = GT
     compare (List l1 _ _) (List l2 _ _) = compare (sum l1) (sum l2)
 
-problem0060 :: Int -> [Set.Set Integer]
-problem0060 = error "Not Implemented"
+problem0060 :: Int -> [Integer]
+problem0060 n = head $ filter (\s -> len n s && (all property $ pairs s)) $ toList primeSets
+    where
+        len l ns = l == length ns
+        pairs xs = [(n, m) | n <- xs, m <- xs, m /= n]
+
+property :: (Integer, Integer) -> Bool
+property (p, q) = pqIsPrime && qpIsPrime
+    where
+        p' = show p
+        q' = show q
+        qpIsPrime = isPrime $ read $ p' ++ q'
+        pqIsPrime = isPrime $ read $ q' ++ p'
 
 buildHeap :: [a] -> [a] -> ListHeap a
 buildHeap [] [] = Nil
@@ -63,38 +74,46 @@ toList Nil = []
 toList (List i l r) = i : (toList $ merge l r)
 
 toListTest = [
+    [1] @=? ((!!0) $ toList $ buildHeap [] [1..]),
+    [2] @=? ((!!1) $ toList $ buildHeap [] [1..]),
+    [3] @=? ((!!2) $ toList $ buildHeap [] [1..]),
+    [2,1] @=? ((!!3) $ toList $ buildHeap [] [1..]),
+    [3,1] @=? ((!!4) $ toList $ buildHeap [] [1..]),
+    [4] @=? ((!!5) $ toList $ buildHeap [] [1..]),
+    [5] @=? ((!!6) $ toList $ buildHeap [] [1..]),
     ([[1],[2],[3],[2,1],[3,1],[3,2],[3,2,1]]::[[Integer]]) @=? (toList $ buildHeap [] [1,2,3])
     ]
 
-primeSets :: ListHeap [Integer]
-primeSets = error "Not Implemented"
+primeSets :: ListHeap Integer
+primeSets = buildHeap [] primes
 
--- primeSetsTest = [
---     [2] @=? (toList primeSets) !! 0,
---     [3] @=? (toList primeSets) !! 1,
---     [3,2] @=? (toList primeSets) !! 2,
---     [5] @=? (toList primeSets) !! 3,
---     [5,2] @=? (toList primeSets) !! 4,
---     [5,3] @=? (toList primeSets) !! 5,
---     [5,3,2] @=? (toList primeSets) !! 6,
---     [7] @=? (toList primeSets) !! 7,
---     [7,2] @=? (toList primeSets) !! 8,
---     [7,3] @=? (toList primeSets) !! 9,
---     [11] @=? (toList primeSets) !! 10
---     ]
+primeSetsTest = [
+    [2] @=? (toList primeSets) !! 0,
+    [3] @=? (toList primeSets) !! 1,
+    [5] @=? (toList primeSets) !! 2,
+    [3,2] @=? (toList primeSets) !! 3,
+    [5,2] @=? (toList primeSets) !! 4,
+    [7] @=? (toList primeSets) !! 5,
+    [5,3] @=? (toList primeSets) !! 6,
+    [7,2] @=? (toList primeSets) !! 7,
+    [7,3] @=? (toList primeSets) !! 8,
+    [5,3,2] @=? (toList primeSets) !! 9,
+    [11] @=? (toList primeSets) !! 10
+    ]
 
 unitTests = map TestCase $
     buildHeapTest ++
     mergeTest ++
-    toListTest
+    toListTest ++
+    primeSetsTest
 
 data Arg = Euler | AdHoc { limit::Double } | UnitTest
     deriving (Show, Data, Typeable)
 
 instance EulerArg Arg where
     exec Euler = do
-        let answer = sum $ Set.toList $ head $ problem0060 5
-        printf "Answer: %s\n" answer
+        let answer = head $ problem0060 5
+        printf "Answer: %s\n" (show answer)
     exec UnitTest = do
         runTestTT $ TestList unitTests
         return ()
