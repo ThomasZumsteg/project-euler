@@ -4,7 +4,7 @@ import qualified Data.Set as Set
 import Test.HUnit ((@=?), runTestTT, Test(..))
 import Text.Printf (printf)
 import System.Console.CmdArgs
-import Data.List (subsequences)
+import Data.List (sort)
 
 import Data.Maybe (fromJust)
 
@@ -14,10 +14,33 @@ import Common (exec, EulerArg, euler_main, primes, isPrime)
 -- Find the lowest sum for a set of five primes for which any two primes concatenate to produce another prime.
 
 class Heap h where
-    singleton :: a -> h
-    remove :: h -> Maybe (a, h)
+    singleton :: a -> h a
+    remove :: h a -> Maybe (a, h a)
+    merge :: h a -> h a -> h a
 
 data ListHeap a = Nil | Value a | List [ListHeap a]
+
+instance Heap ListHeap where
+    singleton v = Value v
+    remove Nil = Nothing
+    remove (Value v) = Just (v, Nil)
+    remove (List []) = Nothing
+    remove (List (h:hs)) = case remove h of
+        Just (v, h') -> Just (v, (merge h' (List hs)))
+        otherwise -> Nothing
+    merge h1 h2 = error "Not Implemented"
+
+instance (Ord a) => Eq (ListHeap a) where
+    (==) h1 h2 = EQ == compare h1 h2
+
+instance (Ord a, Eq a) => Ord (ListHeap a) where
+    compare Nil Nil = EQ
+    compare Nil _ = GT
+    compare _ Nil = LT
+    compare (Value v1) (Value v2) = compare v1 v2
+    compare (List (x:xs)) (List (y:ys)) = if x == y then
+        compare (List xs) (List ys) else
+        compare x y
 
 problem0060 :: Int -> [[Integer]]
 problem0060 = filter (all property . pairs) . toList . setsOfLength primes
@@ -55,10 +78,20 @@ combinationsTest = [
     ]
 
 toList :: ListHeap a -> [a]
-toList = error "Not Implemented"
+toList h = case remove h of
+    Just (v, h') -> v : toList h'
+    otherwise -> []
 
 toListTest = [
-    ]
+    "" @=? toList Nil,
+    [1] @=? toList (Value 1),
+    [1,2] @=? toList (List [Value 1, Value 2]),
+    [1,2,3,4,5] @=? toList (
+        List [
+            List [Value o | o <- [1,3..10]],
+            List [Value e | e <- [2,4..10]]
+        ]
+    )]
 
 setsOfLength :: [a] -> Int -> ListHeap [a]
 setsOfLength = error "Not Implemented"
