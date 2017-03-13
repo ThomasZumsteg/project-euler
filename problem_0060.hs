@@ -11,45 +11,48 @@ import Common (exec, EulerArg, euler_main, primes, isPrime)
 -- The primes 3, 7, 109, and 673, are quite remarkable. By taking any two primes and concatenating them in any order the result will always be prime. For example, taking 7 and 109, both 7109 and 1097 are prime. The sum of these four primes, 792, represents the lowest sum for a set of four primes with this property.
 -- Find the lowest sum for a set of five primes for which any two primes concatenate to produce another prime.
 
-problem0060 :: Int -> [Set.Set Integer]
-problem0060 n = Set.toAscList $ nLenSets n primes
+problem0060 :: Int -> Int -> [Set.Set Integer]
+problem0060 n m = filter (all property . orderings m) $ sets n primes
 
-property :: Integer -> Integer -> Bool
-property a b = isPrime $ read (show a ++ show b)
+property :: (Show a) => [a] -> Bool
+property [] = True
+property xs = isPrime $ read $ concatMap show xs
 
 propertyTest = [
-    True @=? property 3 7,
-    True @=? property 7 3,
-    False @=? property 11 7
+    True @=? property [3,7],
+    True @=? property [7,3],
+    False @=? property [11,7]
     ]
 
-nLenSets :: (Ord a) => Int -> [a] -> Set.Set(Set.Set a)
-nLenSets 0 _ = Set.singleton Set.empty
-nLenSets _ [] = Set.empty
-nLenSets n (x:xs) = Set.union with_x without_x
-    where
-        with_x = Set.map (Set.insert x) $ nLenSets (n-1) xs
-        without_x = nLenSets n xs
+sets :: (Ord a) => Int -> [a] -> [Set.Set a]
+sets = error "Not Implemented"
 
-fromLists = Set.fromList . map Set.fromList
+makeSetList = map Set.fromList 
 
-nLenSetsTest = [
-    (fromLists [[1,2],[1,3],[2,3]]) @=? nLenSets 2 [1,3,2],
-    (fromLists [[1,2],[1,3],[2,3]]) @=? nLenSets 2 [1,2,3],
-    (fromLists [[1,2]]) @=? nLenSets 2 [1,2],
-    (fromLists [[1],[2]]) @=? nLenSets 1 [1,2]
+setsTest = [
+    (makeSetList [[1,2]]) @=? sets 2 [1,2],
+    (makeSetList [[1,2],[1,3],[2,3]]) @=? sets 2 [1,2,3]
+    ]
+
+orderings :: Int -> Set.Set a -> Set.Set [a]
+orderings = error "Not Implemented"
+
+orderingsTest = [
+    (Set.fromList ["1","2","3"]) @=? orderings 1 (Set.fromList "123"),
+    (Set.fromList ["13","31","12","21","23","32"]) @=? orderings 2 (Set.fromList "123")
     ]
 
 unitTests = map TestCase $ 
     propertyTest ++
-    nLenSetsTest
+    orderingsTest ++
+    setsTest
 
 data Arg = Euler | AdHoc { limit::Double } | UnitTest
     deriving (Show, Data, Typeable)
 
 instance EulerArg Arg where
     exec Euler = do
-        let answer = sum $ Set.toList $ head $ problem0060 5
+        let answer = sum $ Set.toList $ head $ problem0060 5 2
         printf "Answer: %s\n" (show answer)
     exec UnitTest = do
         runTestTT $ TestList unitTests
