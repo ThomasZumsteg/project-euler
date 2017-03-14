@@ -45,6 +45,40 @@ setsTest = [
     --     @=? (take 6 $ sets 2 [1..])
     ]
 
+listMerge :: (Ord b) => (a -> b) -> [[a]] -> [a]
+listMerge _ [] = []
+listMerge f (x:xs) | null x = listMerge f xs
+listMerge f ((x:xs):ys) = x : listMerge f (if null xs then ys else ys')
+    where
+        ys' = insertBy (f . head) xs ys
+
+listMergeTest = [
+    [] @=? listMerge id ([]::[[Integer]]),
+    [2] @=? listMerge id [[],[2]],
+    [1,2] @=? listMerge id [[1],[2]],
+    [1,2,3] @=? listMerge id [[i] | i <- [1,2,3]],
+    [1,2,3] @=? (take 3 $ listMerge id [[i] | i <- [1..]])
+    ]
+
+insertBy :: (Ord b) => (a -> b) -> a -> [a] -> [a]
+insertBy _ x [] = [x]
+insertBy f x ys@(y:ys') = if f x < f y 
+    then x:ys 
+    else y:(insertBy f x ys')
+
+insertByTest = [
+    [0] @=? insertBy id 0 [],
+    [0,1] @=? insertBy id 0 [1],
+    [1,2,3] @=? insertBy id 2 [1,3],
+    [1,2,3,5] @=? (take 4 $ insertBy id 2 [1,3..]),
+    [[1],[2],[3]] @=? insertBy head [2] [[i] | i <- [1,3]],
+    [[1],[2],[3]] @=? (take 3 $ insertBy head [2] [[i] | i <- [1,3..]]),
+    [[2]] @=? insertBy head [2] [],
+    [[1],[2]] @=? insertBy head [2] [[1]],
+    [[1],[2],[3]] @=? insertBy head [2] [[1],[3]],
+    [[1],[2],[3]] @=? (take 3 $ insertBy head [2] [[i] | i <- [1,3..]])
+    ]
+
 merge :: (Ord b) => (a -> b) -> [a] -> [a] -> [a]
 merge _ [] ys = ys
 merge _ xs [] = xs
@@ -76,9 +110,10 @@ orderingsTest = [
 
 unitTests = map TestCase $ 
     propertyTest ++
-    orderingsTest ++
     setsTest ++
-    mergeTest
+    mergeTest ++
+    insertByTest ++
+    listMergeTest
 
 data Arg = Euler | AdHoc { limit::Double } | UnitTest
     deriving (Show, Data, Typeable)
