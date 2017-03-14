@@ -24,28 +24,61 @@ propertyTest = [
     False @=? property [11,7]
     ]
 
-sets :: (Ord a) => Int -> [a] -> [Set.Set a]
-sets = error "Not Implemented"
+sets :: (Num a, Ord a) => Int -> [a] -> [Set.Set a]
+sets _ [] = []
+sets 1 xs = map Set.singleton xs
+sets size xs@(x:xs') = merge (Set.foldl (+) 0) with_x without_x
+    where
+        with_x = map (Set.insert x) $ sets (size-1) xs'
+        without_x = sets size xs'
 
 makeSetList = map Set.fromList 
 
 setsTest = [
     (makeSetList [[1,2]]) @=? sets 2 [1,2],
-    (makeSetList [[1,2],[1,3],[2,3]]) @=? sets 2 [1,2,3]
+    (makeSetList [[1,2],[1,3],[2,3]]) @=? sets 2 [1,2,3],
+    (makeSetList [[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]) @=? sets 2 [1..4],
+    (makeSetList [[1,2],[1,3],[1,4],[2,3],[1,5],[2,4],
+        [2,5],[3,4],[3,5],[4,5]]) @=? sets 2 [1..5],
+    (makeSetList [[i] | i <- [1..5]]) @=? (take 5 $ sets 1 [1..])
+    -- (makeSetList [[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]) 
+    --     @=? (take 6 $ sets 2 [1..])
     ]
 
-orderings :: Int -> Set.Set a -> Set.Set [a]
-orderings = error "Not Implemented"
+merge :: (Ord b) => (a -> b) -> [a] -> [a] -> [a]
+merge _ [] ys = ys
+merge _ xs [] = xs
+merge f xs@(x:xs') ys@(y:ys')
+    | f x > f y = y:(merge f xs ys')
+    | otherwise = x:(merge f xs' ys)
+
+mergeTest = [
+    "" @=? merge id "" "",
+    "abc" @=? merge id "abc" "",
+    "abc" @=? merge id "" "abc",
+    "abc" @=? merge id "b" "ac",
+    [1,2,3,4] @=? (take 4 $ merge id [1,3,5] [2,4,6]),
+    [1,2,3,4] @=? (take 4 $ merge id [1,3..] [2,4..]),
+    [[1],[2],[3],[4]] @=? (take 4 $ 
+        merge sum [[i] | i <- [3,6..]] $ 
+        merge sum [[j] | j <- [1,4..]] [[k] | k <- [2,5..]])
+    ]
+
+orderings :: (Ord a) => Int -> Set.Set a -> Set.Set [a]
+orderings 1 s = Set.map (:[]) s
+orderings n s = error "Not Implemented"
 
 orderingsTest = [
     (Set.fromList ["1","2","3"]) @=? orderings 1 (Set.fromList "123"),
+    (Set.fromList ["123","132","213","231","312","321"]) @=? orderings 3 (Set.fromList "123"),
     (Set.fromList ["13","31","12","21","23","32"]) @=? orderings 2 (Set.fromList "123")
     ]
 
 unitTests = map TestCase $ 
     propertyTest ++
     orderingsTest ++
-    setsTest
+    setsTest ++
+    mergeTest
 
 data Arg = Euler | AdHoc { limit::Double } | UnitTest
     deriving (Show, Data, Typeable)
