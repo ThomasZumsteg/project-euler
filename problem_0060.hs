@@ -98,12 +98,29 @@ mergeTest = [
         merge sum [[j] | j <- [1,4..]] [[k] | k <- [2,5..]])
     ]
 
+orderings :: (Ord a) => Int -> Set.Set a -> Set.Set [a]
+orderings n s 
+    | Set.null s = Set.empty
+    | n == 1 = Set.map (:[]) s
+    | otherwise = Set.unions [(Set.map (l:) s'), (Set.map (++[l]) s'), s'']
+    where
+        ls@(l:ls') = Set.toList s
+        s' = orderings (n-1) $ Set.fromList ls'
+        s'' = orderings n $ Set.fromList ls'
+
+orderingsTest = [
+    (Set.fromList ["1","2","3"]) @=? orderings 1 (Set.fromList "123"),
+    (Set.fromList ["123","132","213","231","312","321"]) @=? orderings 3 (Set.fromList "123"),
+    (Set.fromList ["13","31","12","21","23","32"]) @=? orderings 2 (Set.fromList "123")
+    ]
+
 unitTests = map TestCase $ 
     propertyTest ++
     setsTest ++
     mergeTest ++
     insertByTest ++
-    listMergeTest
+    listMergeTest ++
+    orderingsTest
 
 data Arg = Euler | AdHoc { limit::Double } | UnitTest
     deriving (Show, Data, Typeable)
