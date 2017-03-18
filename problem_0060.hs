@@ -102,11 +102,10 @@ orderings :: (Ord a) => Int -> Set.Set a -> Set.Set [a]
 orderings n s 
     | Set.null s = Set.empty
     | n == 1 = Set.map (:[]) s
-    | otherwise = Set.unions [(Set.map (l:) s'), (Set.map (++[l]) s'), s'']
+    | otherwise = Set.unions [addHead s x | x <- Set.toList s]
     where
-        ls@(l:ls') = Set.toList s
-        s' = orderings (n-1) $ Set.fromList ls'
-        s'' = orderings n $ Set.fromList ls'
+        addHead s' x' = Set.map (x':) (orderings (n-1) $ Set.delete x' s')
+        
 
 orderingsTest = [
     (Set.fromList ["1","2","3"]) @=? orderings 1 (Set.fromList "123"),
