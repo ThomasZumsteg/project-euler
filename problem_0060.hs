@@ -121,16 +121,19 @@ unitTests = map TestCase $
     listMergeTest ++
     orderingsTest
 
-data Arg = Euler | AdHoc { limit::Double } | UnitTest
+data Arg = Euler | AdHoc { set_size::Int, cat_size::Int } | UnitTest
     deriving (Show, Data, Typeable)
 
 instance EulerArg Arg where
     exec Euler = do
         let answer = sum $ Set.toList $ head $ problem0060 5 2
         printf "Answer: %s\n" (show answer)
+    exec AdHoc{..} = do
+        let answer = problem0060 set_size cat_size
+        mapM_ (printf "%s\n" . show) answer
     exec UnitTest = do
         runTestTT $ TestList unitTests
         return ()
 
 main :: IO ()
-main = euler_main [Euler, AdHoc {limit = 0.15}, UnitTest]
+main = euler_main [Euler, AdHoc {set_size=4, cat_size=2}, UnitTest]
