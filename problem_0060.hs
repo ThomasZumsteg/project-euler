@@ -12,7 +12,24 @@ import Common (exec, EulerArg, euler_main, primes, isPrime)
 -- Find the lowest sum for a set of five primes for which any two primes concatenate to produce another prime.
 
 problem0060 :: Int -> Int -> [Set.Set Integer]
-problem0060 n m = filter (all property . orderings m) $ sets n primes
+problem0060 n m = primeSets
+
+primePair :: Integer -> Integer -> Bool
+primePair m n = isPrime (read $ shows m $ show n) &&
+                isPrime (read $ shows n $ show m)
+
+primeSets :: [Set.Set Integer]
+primeSets = do 
+    a <- primes
+    let w = filter (primePair a) $ dropWhile (<= a) primes
+    b <- w
+    let x = filter (primePair b) $ dropWhile (<= b) primes
+    c <- x
+    let y = filter (primePair c) $ dropWhile (<= c) primes
+    d <- y
+    let z = filter (primePair d) $ dropWhile (<= d) primes
+    e <- z
+    return $ Set.fromList [a,b,c,d,e]
 
 property :: (Show a) => [a] -> Bool
 property [] = True
