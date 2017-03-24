@@ -24,6 +24,60 @@ import Common (exec, EulerArg, euler_main)
 problem0061 :: Int -> Int -> [[Integer]]
 problem0061 digits setSize = error "Not Implemented"
 
+cyclical :: (Show a) => Int -> [a] -> Bool
+cyclical chars xs@(x:xs') = all match $ zip xs (xs' ++ [x])
+    where
+        match (y, z) = (take chars $ show z) == 
+            (reverse $ take chars $ reverse $ show y)
+
+cyclicalTest = [
+    True @=? cyclical 1 [1,1,1],
+    True @=? cyclical 1 [12,21],
+    True @=? cyclical 1 [12,23,31],
+    True @=? cyclical 1 [123,345,561],
+    True @=? cyclical 2 [12345,45678,78912],
+    False @=? cyclical 1 [12,23,34]
+    ]
+
+-- 1 * n^2/2 +  1/2
+-- 2 * n^2/2 +  0/2
+-- 3 * n^2/2 -  1/2
+-- 4 * n^2/2 -  2/2
+-- 5 * n^2/2 -  3/2
+-- (p-2) * n^2/2 + (1/2 - (p-3)/2)
+-- (p-2) * n^2/2 +  4/2 - p/2
+-- ((p - 2) * n^2 + 4 - p) / 2
+-- ((p - 2) * n^2 + 4 - p) / 2
+-- 2 * num =  ((p - 2) * n^2 - p + 4)
+-- (2 * num - 4 + p) / (p - 2) is square
+isPoly :: Integer -> Integer -> Bool
+isPoly order num = order > 2 && m == 0 && isNthRoot 2 d
+    where (d, m) = divMod (2 * num - 4 + order) (order - 2)
+
+isPolyTest = [
+    True @=? isPoly 3 1,
+    True @=? (all (flip isPoly 1) [3..10]),
+    False @=? (all (\n -> isPoly n n) [3..10]),
+    False @=? (any (\n -> isPoly n (n-1)) [3..10])
+    ]
+
+isNthRoot:: Integer -> Integer -> Bool
+isNthRoot n num = nThWorker 0 num
+    where
+        nThWorker low high
+            | low > high = False
+            | (mid ^ n) < num = nThWorker (mid + 1) high
+            | (mid ^ n) > n = nThWorker low (mid - 1)
+            | otherwise = True
+            where
+                mid = div (high + low) 2
+
+isNthRootTest = [
+    True @=? (all (isNthRoot 2) [1,4,9,16,25]),
+    False @=? (any (isNthRoot 2) [2,5,10,17,26]),
+    True @=? (all (isNthRoot 3) [1,8,27,64])
+    ]
+
 polyGen :: Integer -> [Integer]
 polyGen n = scanl (+) 1 [(n-1), (n-2) + (n-1)..]
 
@@ -41,7 +95,9 @@ testPolyGen = [
     ]
 
 unitTests = map TestCase $
-    testPolyGen
+    testPolyGen ++
+    cyclicalTest ++
+    isPolyTest
 
 data Arg = Euler | AdHoc { digits::Int, setSize::Int } | UnitTest
     deriving (Show, Data, Typeable)
