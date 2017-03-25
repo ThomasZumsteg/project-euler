@@ -23,6 +23,9 @@ import Common (exec, EulerArg, euler_main)
 
 problem0061 :: Int -> Int -> [[Integer]]
 problem0061 digits setSize = error "Not Implemented"
+    where
+        range = [(10^(digits - 1))..(10^digits-1)]
+        
 
 cyclical :: (Show a) => Int -> [a] -> Bool
 cyclical chars xs@(x:xs') = all match $ zip xs (xs' ++ [x])
