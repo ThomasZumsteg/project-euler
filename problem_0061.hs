@@ -22,8 +22,11 @@ import Common (exec, EulerArg, euler_main)
 -- Find the sum of the only ordered set of six cyclic 4-digit numbers for which each polygonal type: triangle, square, pentagonal, hexagonal, heptagonal, and octagonal, is represented by a different number in the set.
 
 problem0061 :: Int -> Int -> [[Integer]]
-problem0061 digits setSize = error "Not Implemented"
+problem0061 digits setSize = do
+    n <- filter (isPoly 3) [1..10^digits]
+    [[n]]
     where
+        
         range = [(10^(digits - 1))..(10^digits-1)]
         
 
@@ -42,17 +45,17 @@ cyclicalTest = [
     False @=? cyclical 1 [12,23,34]
     ]
 
--- 1 * n^2/2 +  1/2
--- 2 * n^2/2 +  0/2
--- 3 * n^2/2 -  1/2
--- 4 * n^2/2 -  2/2
--- 5 * n^2/2 -  3/2
--- (p-2) * n^2/2 + (1/2 - (p-3)/2)
--- (p-2) * n^2/2 +  4/2 - p/2
--- ((p - 2) * n^2 + 4 - p) / 2
--- ((p - 2) * n^2 + 4 - p) / 2
--- 2 * num =  ((p - 2) * n^2 - p + 4)
--- (2 * num - 4 + p) / (p - 2) is square
+-- n*(1*n+1)/2 = n(n+1)/2
+-- n*(2*n+0)/2 = n*n
+-- n*(3*n-1)/2 = n(3n-1)/2
+-- n*(4*n-2)/2 = n(2n-1)
+-- n*(5*n-3)/2 = n(5n-3)/2
+-- pNum = n*((p-2)*n+(4-p))/2
+-- pNum = n*(n*p-n*2+4-p)/2
+-- 2*pNum = n*(n*p-n*2+4-p)
+-- 2*pNum = n*(n*(p-2)-(p-2)-2)
+-- 2*pNum = (n^2*(p-2)-n*(p-2)-n)
+-- 2*pNum = (p-2)*(n^2-n)-n
 isPoly :: Integer -> Integer -> Bool
 isPoly order num = order > 2 && m == 0 && isNthRoot 2 d
     where (d, m) = divMod (2 * num - 4 + order) (order - 2)
@@ -60,7 +63,9 @@ isPoly order num = order > 2 && m == 0 && isNthRoot 2 d
 isPolyTest = [
     True @=? isPoly 3 1,
     True @=? (all (flip isPoly 1) [3..10]),
-    False @=? (all (\n -> isPoly n n) [3..10]),
+    True @=? isPoly 4 4,
+    True @=? isPoly 3 3,
+    True @=? (all (\n -> isPoly n n) [3..10]),
     False @=? (any (\n -> isPoly n (n-1)) [3..10])
     ]
 
@@ -70,12 +75,14 @@ isNthRoot n num = nThWorker 0 num
         nThWorker low high
             | low > high = False
             | (mid ^ n) < num = nThWorker (mid + 1) high
-            | (mid ^ n) > n = nThWorker low (mid - 1)
+            | (mid ^ n) > num = nThWorker low (mid - 1)
             | otherwise = True
             where
                 mid = div (high + low) 2
 
 isNthRootTest = [
+    False @=? isNthRoot 3 4,
+    True @=? isNthRoot 2 4,
     True @=? (all (isNthRoot 2) [1,4,9,16,25]),
     False @=? (any (isNthRoot 2) [2,5,10,17,26]),
     True @=? (all (isNthRoot 3) [1,8,27,64])
