@@ -52,13 +52,36 @@ cyclicalTest = [
 -- n*(5*n-3)/2 = n(5n-3)/2
 -- pNum = n*((p-2)*n+(4-p))/2
 -- pNum = n*(n*p-n*2+4-p)/2
--- 2*pNum = n*(n*p-n*2+4-p)
--- 2*pNum = n*(n*(p-2)-(p-2)-2)
--- 2*pNum = (n^2*(p-2)-n*(p-2)-n)
--- 2*pNum = (p-2)*(n^2-n)-n
+-- 2*pNum = n*(n*p-n*2+(4-p))
+-- 2*pNum = n*(n*(p-2)+(4-p))
+-- 0 = (p-2)n^2+(4-p)n+(-2*pNum)
+-- 0 = n - (-b ٍ± √(b^2 - 4*a*c) / (2*a))
+-- 0 = n - ((p-4) ± √((4-p)^2 - 4*(p-2)*(-2*pNum))) / (2*(p-2))
+-- n = ((p-4) ± √(16-8p+p^2 + 8*p*pNum-16*pNum)) / (2p-4)
+-- n = ((p-4) ± √(p^2+8(pNum-1)p+16(1-pNum))) / (2p-4)
+--
+-- CASE: pNum == 1
+-- n = ((p-4) ± √(p^2+8(1-1)p+16(1-1))) / (2p-4)
+-- n = ((p-4) ± √(p^2)) / (2p-4)
+-- n = (2p-4)/(2p-4) = 1
+-- n = (-4)/(2p-4)
+--
+-- CASE: pNum == p
+-- n = ((p-4) ± √(p^2+8(p-1)p+16(1-p))) / (2p-4)
+-- n = ((p-4) ± √(p^2+8p^2-8p+16-16p))) / (2p-4)
+-- n = ((p-4) ± √(9p^2-24p+16)) / (2p-4)
+-- n = ((p-4) ± √((3p-4)^2)) / (2p-4)
+-- n = ((p-4) ± (3p-4)) / (2p-4)
+-- n = ((p-4) + (3p-4)) / (2p-4)
+-- n = 2*(2p-4) / (2p-4) = 2
+-- n = ((p-4) - (3p-4)) / (2p-4)
+-- n = (-2p) / (2p-4)
 isPoly :: Integer -> Integer -> Bool
-isPoly order num = order > 2 && m == 0 && isNthRoot 2 d
-    where (d, m) = divMod (2 * num - 4 + order) (order - 2)
+isPoly order num = order > 2 && isNthRoot 2 radical && m == 0
+    where 
+        radical = (order^2) + 8*(num-1)*order + 16*(1-num)
+        sqrt_radical = floor $ sqrt $ fromIntegral radical
+        m = mod ((order - 4) + sqrt_radical) (2 * order - 4)
 
 isPolyTest = [
     True @=? isPoly 3 1,
@@ -66,7 +89,14 @@ isPolyTest = [
     True @=? isPoly 4 4,
     True @=? isPoly 3 3,
     True @=? (all (\n -> isPoly n n) [3..10]),
-    False @=? (any (\n -> isPoly n (n-1)) [3..10])
+    False @=? (any (\n -> isPoly n (n-1)) [3..10]),
+    True @=? isPoly 3 15,
+    False @=? isPoly 3 14,
+    True @=? isPoly 4 25,
+    True @=? isPoly 5 35,
+    True @=? isPoly 6 45,
+    True @=? isPoly 7 55,
+    True @=? isPoly 8 65
     ]
 
 isNthRoot:: Integer -> Integer -> Bool
