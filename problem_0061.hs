@@ -23,12 +23,24 @@ import Common (exec, EulerArg, euler_main)
 
 problem0061 :: Int -> Int -> [[Integer]]
 problem0061 digits setSize = do
-    n <- filter (isPoly 3) [1..10^digits]
-    [[n]]
+    a <- upperLimit $ lowerLimit $ polyGen 3
+    let tri = a
+    b <- notIn [tri] $ upperLimit $ lowerLimit $ polyGen 4
+    let squ = b
+    c <- notIn [tri,squ] $ upperLimit $ lowerLimit  $ polyGen 5
+    let pen = c
+    d <- notIn [tri,squ,pen] $ upperLimit $ lowerLimit  $ polyGen 6
+    let hex = d
+    e <- notIn [tri,squ,pen,hex] $ upperLimit $ lowerLimit  $ polyGen 7
+    let hep = e
+    f <- notIn [tri,squ,pen,hex,hep] $ upperLimit $ lowerLimit  $ polyGen 8
+    let oct = f
+    filter (cyclical 2) [[tri,squ,pen,hex,hep,oct]]
     where
-        
-        range = [(10^(digits - 1))..(10^digits-1)]
-        
+        upperLimit = takeWhile (<(10^digits-1))
+        lowerLimit = dropWhile (<(10^(digits-1)))
+        notIn others = filter (not . flip elem others)
+
 
 cyclical :: (Show a) => Int -> [a] -> Bool
 cyclical chars xs@(x:xs') = all match $ zip xs (xs' ++ [x])
