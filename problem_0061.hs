@@ -21,32 +21,20 @@ import Common (exec, EulerArg, euler_main)
 -- This is the only set of 4-digit numbers with this property.
 -- Find the sum of the only ordered set of six cyclic 4-digit numbers for which each polygonal type: triangle, square, pentagonal, hexagonal, heptagonal, and octagonal, is represented by a different number in the set.
 
-problem0061 :: Int -> Int -> [[Integer]]
-problem0061 digits setSize = do
-    a <- upperLimit $ lowerLimit $ polyGen 3
-    let tri = a
-    b <- notIn [tri] $ upperLimit $ lowerLimit $ polyGen 4
-    let squ = b
-    c <- notIn [tri,squ] $ upperLimit $ lowerLimit  $ polyGen 5
-    let pen = c
-    d <- notIn [tri,squ,pen] $ upperLimit $ lowerLimit  $ polyGen 6
-    let hex = d
-    e <- notIn [tri,squ,pen,hex] $ upperLimit $ lowerLimit  $ polyGen 7
-    let hep = e
-    f <- notIn [tri,squ,pen,hex,hep] $ upperLimit $ lowerLimit  $ polyGen 8
-    let oct = f
-    filter (cyclical 2) [[tri,squ,pen,hex,hep,oct]]
+problem0061 :: Int -> Int -> Int -> [[Integer]]
+problem0061 digits matches setSize = filter (cyclical matches) $ sets (toInteger setSize)
     where
-        upperLimit = takeWhile (<(10^digits-1))
-        lowerLimit = dropWhile (<(10^(digits-1)))
-        notIn others = filter (not . flip elem others)
+        range = takeWhile (<(10^digits-1)) . dropWhile (<(10^(digits-1)))
+        sets 1 = map (:[]) $ range $ polyGen 3 
+        sets size = [p:set | p <- range $ polyGen (size+2) , set <- sets (size-1)]
 
 
 cyclical :: (Show a) => Int -> [a] -> Bool
-cyclical chars xs@(x:xs') = all match $ zip xs (xs' ++ [x])
+cyclical n xs = firsts == lasts
     where
-        match (y, z) = (take chars $ show z) == 
-            (reverse $ take chars $ reverse $ show y)
+        chars = map show xs
+        firsts = sort $ map (take n) chars
+        lasts = sort $ map (reverse . take n . reverse) chars
 
 cyclicalTest = [
     True @=? cyclical 1 [1,1,1],
@@ -151,19 +139,19 @@ unitTests = map TestCase $
     cyclicalTest ++
     isPolyTest
 
-data Arg = Euler | AdHoc { digits::Int, setSize::Int } | UnitTest
+data Arg = Euler | AdHoc { digits::Int, setSize::Int, length::Int } | UnitTest
     deriving (Show, Data, Typeable)
 
 instance EulerArg Arg where
     exec Euler = do
-        let answer = head $ problem0061 4 6
+        let answer = head $ problem0061 4 2 6
         printf "Answer: %d\n" (sum answer)
     exec AdHoc{..} = do
-        let answer = problem0061 digits setSize
+        let answer = problem0061 length digits setSize
         mapM_ (printf "%s\n" . show) answer
     exec UnitTest = do
         runTestTT $ TestList unitTests
         return ()
 
 main :: IO ()
-main = euler_main [Euler, AdHoc {setSize=4, digits=4}, UnitTest]
+main = euler_main [Euler, AdHoc {setSize=3, digits=2, length=4}, UnitTest]
