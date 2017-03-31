@@ -22,12 +22,28 @@ import Common (exec, EulerArg, euler_main)
 -- Find the sum of the only ordered set of six cyclic 4-digit numbers for which each polygonal type: triangle, square, pentagonal, hexagonal, heptagonal, and octagonal, is represented by a different number in the set.
 
 problem0061 :: Int -> Int -> Int -> [[Integer]]
-problem0061 digits matches setSize = filter (cyclical matches) $ sets (toInteger setSize)
+problem0061 digits matches setSize = filter (numCyclical matches) $ sets (toInteger setSize)
     where
         range = takeWhile (<(10^digits-1)) . dropWhile (<(10^(digits-1)))
         sets 1 = map (:[]) $ range $ polyGen 3 
         sets size = [p:set | p <- range $ polyGen (size+2) , set <- sets (size-1)]
 
+numCyclical :: Int -> [Integer] -> Bool
+numCyclical d xs = (sort firsts) == (sort lasts)
+    where
+        l = Prelude.length $ show $ maximum xs
+        firsts = map (flip div (10^(l-d))) xs
+        lasts = map (flip mod (10^d)) xs
+
+cyclicalNumTest = [
+    True @=? numCyclical 1 [1,1,1],
+    True @=? numCyclical 1 [12,21],
+    True @=? numCyclical 1 [12,23,31],
+    True @=? numCyclical 1 [123,345,561],
+    True @=? numCyclical 2 [12345,45678,78912],
+    True @=? numCyclical 3 [123456,456789,789123],
+    False @=? numCyclical 1 [12,23,34]
+    ]
 
 cyclical :: (Show a) => Int -> [a] -> Bool
 cyclical n xs = firsts == lasts
@@ -137,7 +153,8 @@ testPolyGen = [
 unitTests = map TestCase $
     testPolyGen ++
     cyclicalTest ++
-    isPolyTest
+    isPolyTest ++
+    cyclicalNumTest
 
 data Arg = Euler | AdHoc { digits::Int, setSize::Int, length::Int } | UnitTest
     deriving (Show, Data, Typeable)
