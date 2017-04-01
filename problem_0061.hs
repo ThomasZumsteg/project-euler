@@ -4,7 +4,7 @@ import qualified Data.Set as Set
 import Test.HUnit ((@=?), runTestTT, Test(..))
 import Text.Printf (printf)
 import System.Console.CmdArgs
-import Data.List (sort, tails)
+import Data.List (sort, tails, findIndices)
 
 import Common (exec, EulerArg, euler_main)
 
@@ -28,12 +28,34 @@ problem0061 digits matches setSize = filter (numCyclical matches) $ sets (toInte
         sets 1 = map (:[]) $ range $ polyGen 3 
         sets size = [p:set | p <- range $ polyGen (size+2) , set <- sets (size-1)]
 
+chains :: (Show a) => String -> [a] -> [[a]]
+chains _ [] = [[]]
+chains p xs = [ x:chain | 
+    i <- indexes, 
+    let (x, xs') = (xs !! i, xs !^ i),
+    let p' = post x,
+    chain <- chains p' xs']
+    where
+        post = reverse . take (Prelude.length p) . reverse . show
+        indexes = findIndices ((==p) . take (Prelude.length p) . show) xs
+        (!^) js j = take j js ++ drop (j+1) js
+
+chainsTest = [
+    [[12,23,34]] @=? chains "1" [23,34,12],
+    [[1234,3456,5678]] @=? chains "12" [1234,3456,5678],
+    [] @=? chains "12" [1234,3456,6678],
+    [[1212,1234,3434,3412],[1234,3434,3412,1212]]
+        @=? chains "12" [1212,1234,3434,3412]
+    ]
+
 numCyclical :: Int -> [Integer] -> Bool
-numCyclical d xs = (sort firsts) == (sort lasts)
+numCyclical d xs = (sort $ map pre xs) == (sort $ map post xs) && 
+    any endsMatch (chains (take d $ show $ head xs) xs)
     where
         l = Prelude.length $ show $ maximum xs
-        firsts = map (flip div (10^(l-d))) xs
-        lasts = map (flip mod (10^d)) xs
+        pre = flip div (10^(l-d))
+        post = flip mod (10^d)
+        endsMatch xs = (pre $ head xs) == (post $ last xs)
 
 cyclicalNumTest = [
     True @=? numCyclical 1 [1,1,1],
@@ -42,7 +64,8 @@ cyclicalNumTest = [
     True @=? numCyclical 1 [123,345,561],
     True @=? numCyclical 2 [12345,45678,78912],
     True @=? numCyclical 3 [123456,456789,789123],
-    False @=? numCyclical 1 [12,23,34]
+    False @=? numCyclical 1 [12,23,34],
+    False @=? numCyclical 2 [5555,1234,3456,5612]
     ]
 
 cyclical :: (Show a) => Int -> [a] -> Bool
@@ -154,7 +177,8 @@ unitTests = map TestCase $
     testPolyGen ++
     cyclicalTest ++
     isPolyTest ++
-    cyclicalNumTest
+    cyclicalNumTest ++
+    chainsTest
 
 data Arg = Euler | AdHoc { digits::Int, setSize::Int, length::Int } | UnitTest
     deriving (Show, Data, Typeable)
