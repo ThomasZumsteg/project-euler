@@ -24,9 +24,11 @@ import Common (exec, EulerArg, euler_main)
 problem0061 :: Int -> Int -> Int -> [[Integer]]
 problem0061 digits matches setSize = filter (numCyclical matches) $ sets (toInteger setSize)
     where
-        range = takeWhile (<(10^digits-1)) . dropWhile (<(10^(digits-1)))
-        sets 1 = map (:[]) $ range $ polyGen 3 
-        sets size = [p:set | p <- range $ polyGen (size+2) , set <- sets (size-1)]
+        range start stop = takeWhile (<stop) . dropWhile (<start)
+        sets 1 = map (:[]) $ range (10^(digits-1)) (10^digits-1) $ polyGen 3 
+        sets size = [p:set | 
+            set <- sets (size-1),
+            p <- range (10^(digits-1)) (10^digits-1) $ polyGen (size+2)]
 
 chains :: (Show a) => String -> [a] -> [[a]]
 chains _ [] = [[]]
