@@ -22,69 +22,14 @@ import Common (exec, EulerArg, euler_main)
 -- Find the sum of the only ordered set of six cyclic 4-digit numbers for which each polygonal type: triangle, square, pentagonal, hexagonal, heptagonal, and octagonal, is represented by a different number in the set.
 
 problem0061 :: Int -> Int -> Int -> [[Integer]]
-problem0061 digits matches setSize = filter (numCyclical matches) $ sets (toInteger setSize)
+problem0061 digits matches setSize = [ e : set |
+    e <- [10^(digits-1)..10^digits-1],
+    set <- setBuilder digits matches (setSize - 1) (mod e (10^digits))]
     where
-        range start stop = takeWhile (<stop) . dropWhile (<start)
-        sets 1 = map (:[]) $ range (10^(digits-1)) (10^digits-1) $ polyGen 3 
-        sets size = [p:set | 
-            set <- sets (size-1),
-            p <- range (10^(digits-1)) (10^digits-1) $ polyGen (size+2)]
+        types = [isPoly ((fromIntegral i)+2) | i <- [1..setSize]]
 
-chains :: (Show a) => String -> [a] -> [[a]]
-chains _ [] = [[]]
-chains p xs = [ x:chain | 
-    i <- indexes, 
-    let (x, xs') = (xs !! i, xs !^ i),
-    let p' = post x,
-    chain <- chains p' xs']
-    where
-        post = reverse . take (Prelude.length p) . reverse . show
-        indexes = findIndices ((==p) . take (Prelude.length p) . show) xs
-        (!^) js j = take j js ++ drop (j+1) js
-
-chainsTest = [
-    [[12,23,34]] @=? chains "1" [23,34,12],
-    [[1234,3456,5678]] @=? chains "12" [1234,3456,5678],
-    [] @=? chains "12" [1234,3456,6678],
-    [[1212,1234,3434,3412],[1234,3434,3412,1212]]
-        @=? chains "12" [1212,1234,3434,3412]
-    ]
-
-numCyclical :: Int -> [Integer] -> Bool
-numCyclical d xs = (sort $ map pre xs) == (sort $ map post xs) && 
-    any endsMatch (chains (take d $ show $ head xs) xs)
-    where
-        l = Prelude.length $ show $ maximum xs
-        pre = flip div (10^(l-d))
-        post = flip mod (10^d)
-        endsMatch xs = (pre $ head xs) == (post $ last xs)
-
-cyclicalNumTest = [
-    True @=? numCyclical 1 [1,1,1],
-    True @=? numCyclical 1 [12,21],
-    True @=? numCyclical 1 [12,23,31],
-    True @=? numCyclical 1 [123,345,561],
-    True @=? numCyclical 2 [12345,45678,78912],
-    True @=? numCyclical 3 [123456,456789,789123],
-    False @=? numCyclical 1 [12,23,34],
-    False @=? numCyclical 2 [5555,1234,3456,5612]
-    ]
-
-cyclical :: (Show a) => Int -> [a] -> Bool
-cyclical n xs = firsts == lasts
-    where
-        chars = map show xs
-        firsts = sort $ map (take n) chars
-        lasts = sort $ map (reverse . take n . reverse) chars
-
-cyclicalTest = [
-    True @=? cyclical 1 [1,1,1],
-    True @=? cyclical 1 [12,21],
-    True @=? cyclical 1 [12,23,31],
-    True @=? cyclical 1 [123,345,561],
-    True @=? cyclical 2 [12345,45678,78912],
-    False @=? cyclical 1 [12,23,34]
-    ]
+setBuilder :: Int -> Int -> Int -> Integer -> [[Integer]]
+setBuilder _ _ 0 _ = [[]]
 
 -- n*(1*n+1)/2 = n(n+1)/2
 -- n*(2*n+0)/2 = n*n
@@ -159,28 +104,9 @@ isNthRootTest = [
     True @=? (all (isNthRoot 3) [1,8,27,64])
     ]
 
-polyGen :: Integer -> [Integer]
-polyGen n = scanl (+) 1 [(n-1), (n-2) + (n-1)..]
-
-triangle   = polyGen 3 -- [2,3,4,5] 1
-square     = polyGen 4 -- [3,5,7,9] 2 
-pentagonal = polyGen 5 -- [4,7,10,13] 3
-hexagonal  = polyGen 6 -- [5,9,13,17] 4
-heptagonal = polyGen 7
-octagonal  = polyGen 8
-
-testPolyGen = [
-    [1,3,6,10] @=? (take 4 $ polyGen 3),
-    [1,4,9,16] @=? (take 4 $ polyGen 4),
-    [1,5,12,22] @=? (take 4 $ polyGen 5)
-    ]
-
 unitTests = map TestCase $
-    testPolyGen ++
-    cyclicalTest ++
     isPolyTest ++
-    cyclicalNumTest ++
-    chainsTest
+    isNthRootTest
 
 data Arg = Euler | AdHoc { digits::Int, setSize::Int, length::Int } | UnitTest
     deriving (Show, Data, Typeable)
