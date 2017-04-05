@@ -22,14 +22,15 @@ import Common (exec, EulerArg, euler_main)
 -- Find the sum of the only ordered set of six cyclic 4-digit numbers for which each polygonal type: triangle, square, pentagonal, hexagonal, heptagonal, and octagonal, is represented by a different number in the set.
 
 problem0061 :: Int -> Int -> Int -> [[Integer]]
-problem0061 digits matches setSize = [ e : set |
-    e <- [10^(digits-1)..10^digits-1],
-    set <- setBuilder digits matches (setSize - 1) (mod e (10^digits))]
+problem0061 digits matches setSize = concat [setBuilder h t types |
+    h <- [digitStart..digitStart * 10 - 1],
+    t <- [digitStart..digitStart * 10 - 1]]
     where
+        digitStart = 10^(toInteger matches - 1)
         types = [isPoly ((fromIntegral i)+2) | i <- [1..setSize]]
 
-setBuilder :: Int -> Int -> Int -> Integer -> [[Integer]]
-setBuilder _ _ 0 _ = [[]]
+setBuilder :: Integer -> Integer -> [(Integer -> Bool)] -> [[Integer]]
+setBuilder startsWith endsWith matches = error "Not Implemented"
 
 -- n*(1*n+1)/2 = n(n+1)/2
 -- n*(2*n+0)/2 = n*n
