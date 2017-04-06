@@ -22,15 +22,29 @@ import Common (exec, EulerArg, euler_main)
 -- Find the sum of the only ordered set of six cyclic 4-digit numbers for which each polygonal type: triangle, square, pentagonal, hexagonal, heptagonal, and octagonal, is represented by a different number in the set.
 
 problem0061 :: Int -> Int -> Int -> [[Integer]]
-problem0061 digits matches setSize = concat [setBuilder h t types |
+problem0061 digits matches setSize = concat [setBuilder h t digits types |
     h <- [digitStart..digitStart * 10 - 1],
     t <- [digitStart..digitStart * 10 - 1]]
     where
         digitStart = 10^(toInteger matches - 1)
         types = [isPoly ((fromIntegral i)+2) | i <- [1..setSize]]
 
-setBuilder :: Integer -> Integer -> [(Integer -> Bool)] -> [[Integer]]
-setBuilder startsWith endsWith matches = error "Not Implemented"
+setBuilder :: Integer -> Integer -> Int -> [(Integer -> Bool)] -> [[Integer]]
+setBuilder _ _ _ [] = [[]]
+setBuilder startsWith endsWith digits matches = error "Not Implemented"
+
+matchAndRemainer :: (a -> Bool) -> [a] -> [(a, [a])]
+matchAndRemainer _ [] = []
+matchAndRemainer test (x:xs) = if test x then (x, xs) : others else others 
+    where
+        others = map (\(e, es) -> (e, x:es)) $ matchAndRemainer test xs
+
+matchAndRemainerTest = [
+    [] @=? matchAndRemainer (==11) [0..10],
+    [(1,0:[2..10])] @=? matchAndRemainer (==1) [0..10],
+    [(0,[1,2,3,4]),(2,[0,1,3,4]),(4,[0,1,2,3])] @=? 
+        matchAndRemainer ((==0) . flip mod 2) [0..4]
+    ]
 
 -- n*(1*n+1)/2 = n(n+1)/2
 -- n*(2*n+0)/2 = n*n
@@ -107,7 +121,8 @@ isNthRootTest = [
 
 unitTests = map TestCase $
     isPolyTest ++
-    isNthRootTest
+    isNthRootTest ++
+    matchAndRemainerTest
 
 data Arg = Euler | AdHoc { digits::Int, setSize::Int, length::Int } | UnitTest
     deriving (Show, Data, Typeable)
