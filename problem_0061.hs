@@ -30,20 +30,24 @@ problem0061 digits matches setSize = concat [setBuilder h t digits types |
         types = [isPoly ((fromIntegral i)+2) | i <- [1..setSize]]
 
 setBuilder :: Integer -> Integer -> Int -> [(Integer -> Bool)] -> [[Integer]]
-setBuilder _ _ _ [] = [[]]
-setBuilder startsWith endsWith digits matches = error "Not Implemented"
-
-matchAndRemainer :: (a -> Bool) -> [a] -> [(a, [a])]
-matchAndRemainer _ [] = []
-matchAndRemainer test (x:xs) = if test x then (x, xs) : others else others 
+setBuilder h t d (f:[])
+    | mDigits == 0 = if f (read (h' ++ t')) then [[ read (h' ++ t') ]] else []
+    | otherwise = [[num] | 
+        m <- [0..stop],
+        let num = read (h' ++ (printf fString m) ++ t'),
+        f num]
     where
-        others = map (\(e, es) -> (e, x:es)) $ matchAndRemainer test xs
+        h' = show h
+        t' = show t
+        mDigits = d - (Prelude.length (h' ++ t'))
+        stop = 10 ^ (toInteger mDigits) - 1::Integer
+        fString = printf "%%0%dd" mDigits
 
-matchAndRemainerTest = [
-    [] @=? matchAndRemainer (==11) [0..10],
-    [(1,0:[2..10])] @=? matchAndRemainer (==1) [0..10],
-    [(0,[1,2,3,4]),(2,[0,1,3,4]),(4,[0,1,2,3])] @=? 
-        matchAndRemainer ((==0) . flip mod 2) [0..4]
+setBuilderTest = [
+    [[8281]] @=? setBuilder 82 81 4 [isPoly 4],
+    [[2882]] @=? setBuilder 28 82 4 [isPoly 5],
+    [] @=? setBuilder 28 82 4 [isPoly 6],
+    [] @=? setBuilder 21 34 5 [isPoly 5]
     ]
 
 -- n*(1*n+1)/2 = n(n+1)/2
@@ -122,7 +126,7 @@ isNthRootTest = [
 unitTests = map TestCase $
     isPolyTest ++
     isNthRootTest ++
-    matchAndRemainerTest
+    setBuilderTest
 
 data Arg = Euler | AdHoc { digits::Int, setSize::Int, length::Int } | UnitTest
     deriving (Show, Data, Typeable)
