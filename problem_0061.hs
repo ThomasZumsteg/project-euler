@@ -31,23 +31,39 @@ problem0061 digits matches setSize = concat [setBuilder h t digits types |
 
 setBuilder :: Integer -> Integer -> Int -> [(Integer -> Bool)] -> [[Integer]]
 setBuilder h t d (f:[])
-    | mDigits == 0 = if f (read (h' ++ t')) then [[ read (h' ++ t') ]] else []
+    | mDigits == 0 = if f (addDigits d h 0 t) then [[ (addDigits d h 0 t) ]] else []
     | otherwise = [[num] | 
         m <- [0..stop],
-        let num = read (h' ++ (printf fString m) ++ t'),
+        let num = addDigits d h m t,
         f num]
     where
-        h' = show h
-        t' = show t
-        mDigits = d - (Prelude.length (h' ++ t'))
-        stop = 10 ^ (toInteger mDigits) - 1::Integer
-        fString = printf "%%0%dd" mDigits
+        (h', t') = (show h, show t)
+        mDigits = d - (Prelude.length t') - (Prelude.length h')
+        stop = 10 ^ (mDigits) - 1::Integer
 
 setBuilderTest = [
+    -- [[2882,8281]] @=? setBuilder 28 81 4 [isPoly 4, isPoly 5],
     [[8281]] @=? setBuilder 82 81 4 [isPoly 4],
     [[2882]] @=? setBuilder 28 82 4 [isPoly 5],
     [] @=? setBuilder 28 82 4 [isPoly 6],
     [] @=? setBuilder 21 34 5 [isPoly 5]
+    ]
+
+addDigits :: Int -> Integer -> Integer -> Integer -> Integer
+addDigits len h m t 
+    | mDigits <= 0 = read (h' ++ t')
+    | otherwise = read (h' ++ m' ++ t')
+    where
+        (h', t') = (show h, show t)
+        mDigits = len - (Prelude.length t') - (Prelude.length h')
+        fString = printf "%%0%dd" mDigits
+        m' = printf fString m
+
+addDigitsTest = [
+    123789 @=? addDigits 6 123 456 789,
+    123456789 @=? addDigits 9 123 456 789,
+    123 @=? addDigits 3 1 2 3,
+    1023 @=? addDigits 4 1 2 3
     ]
 
 -- n*(1*n+1)/2 = n(n+1)/2
@@ -126,7 +142,8 @@ isNthRootTest = [
 unitTests = map TestCase $
     isPolyTest ++
     isNthRootTest ++
-    setBuilderTest
+    setBuilderTest ++
+    addDigitsTest
 
 data Arg = Euler | AdHoc { digits::Int, setSize::Int, length::Int } | UnitTest
     deriving (Show, Data, Typeable)
