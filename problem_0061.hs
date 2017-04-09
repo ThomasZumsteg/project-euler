@@ -49,6 +49,19 @@ setBuilderTest = [
     [] @=? setBuilder 21 34 5 [isPoly 5]
     ]
 
+matches :: (a -> Bool) -> [a] -> [(a, [a])]
+matches _ [] = []
+matches test (x:xs) = (if test x then ((x,xs):) else id) $ others
+    where
+        others = map (addSecond x) $ matches test xs
+        addSecond e (y, ys) = (y, e:ys)
+
+matchesTest = [
+    [(1,[2,3,4,5]),(3,[1,2,4,5]),(5,[1,2,3,4])] @=?
+        matches ((==1) . flip mod 2) [1..5],
+    [(1,[2,3,4,5])] @=? matches (==1) [1..5]
+    ]
+
 addDigits :: Int -> Integer -> Integer -> Integer -> Integer
 addDigits len h m t 
     | mDigits <= 0 = read (h' ++ t')
@@ -143,7 +156,8 @@ unitTests = map TestCase $
     isPolyTest ++
     isNthRootTest ++
     setBuilderTest ++
-    addDigitsTest
+    addDigitsTest ++
+    matchesTest
 
 data Arg = Euler | AdHoc { digits::Int, setSize::Int, length::Int } | UnitTest
     deriving (Show, Data, Typeable)
