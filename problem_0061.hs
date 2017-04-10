@@ -30,15 +30,21 @@ problem0061 digits matches setSize = concat [setBuilder h t digits types |
         types = [isPoly ((fromIntegral i)+2) | i <- [1..setSize]]
 
 setBuilder :: Integer -> Integer -> Int -> [(Integer -> Bool)] -> [[Integer]]
-setBuilder h t d (f:[])
-    | mDigits == 0 = if f (addDigits d h 0 t) then [[ (addDigits d h 0 t) ]] else []
-    | otherwise = [[num] | 
-        m <- [0..stop],
-        let num = addDigits d h m t,
-        f num]
+setBuilder h t d fs@(f:_)
+    | length fs == 0 = [[]]
+    | mDigits == 0 = do
+        let num = addDigits d h 0 t
+        (f', fs') <- matches (\f -> f num) fs
+        return $ concatMap (num:) $ setBuilder (div num (div (toInteger d) 2)) t d fs'
+    | otherwise = do
+        num <- [[num] | 
+            m <- [0..stop],
+            let num = addDigits d h m t]
+        (f', fs') <- matches (\f -> f num) fs
+        return $ concatMap (num:) $ setBuilder (div num (div (toInteger d) 2)) t d fs'
     where
         (h', t') = (show h, show t)
-        mDigits = d - (Prelude.length t') - (Prelude.length h')
+        mDigits = d - (length t') - (length h')
         stop = 10 ^ (mDigits) - 1::Integer
 
 setBuilderTest = [
@@ -68,7 +74,7 @@ addDigits len h m t
     | otherwise = read (h' ++ m' ++ t')
     where
         (h', t') = (show h, show t)
-        mDigits = len - (Prelude.length t') - (Prelude.length h')
+        mDigits = len - (length t') - (length h')
         fString = printf "%%0%dd" mDigits
         m' = printf fString m
 
@@ -159,7 +165,7 @@ unitTests = map TestCase $
     addDigitsTest ++
     matchesTest
 
-data Arg = Euler | AdHoc { digits::Int, setSize::Int, length::Int } | UnitTest
+data Arg = Euler | AdHoc { digits::Int, setSize::Int, len::Int } | UnitTest
     deriving (Show, Data, Typeable)
 
 instance EulerArg Arg where
@@ -167,11 +173,11 @@ instance EulerArg Arg where
         let answer = head $ problem0061 4 2 6
         printf "Answer: %d\n" (sum answer)
     exec AdHoc{..} = do
-        let answer = problem0061 length digits setSize
+        let answer = problem0061 len digits setSize
         mapM_ (printf "%s\n" . show) answer
     exec UnitTest = do
         runTestTT $ TestList unitTests
         return ()
 
 main :: IO ()
-main = euler_main [Euler, AdHoc {setSize=3, digits=2, length=4}, UnitTest]
+main = euler_main [Euler, AdHoc {setSize=3, digits=2, len=4}, UnitTest]
