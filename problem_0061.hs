@@ -30,25 +30,25 @@ problem0061 digits matches setSize = concat [setBuilder h t digits types |
         types = [isPoly ((fromIntegral i)+2) | i <- [1..setSize]]
 
 setBuilder :: Integer -> Integer -> Int -> [(Integer -> Bool)] -> [[Integer]]
-setBuilder h t d fs@(f:_)
+setBuilder h t d fs
     | length fs == 0 = [[]]
     | mDigits == 0 = do
         let num = addDigits d h 0 t
         (f', fs') <- matches (\f -> f num) fs
         return $ concatMap (num:) $ setBuilder (div num (div (toInteger d) 2)) t d fs'
     | otherwise = do
-        num <- [[num] | 
+        num <- [num | 
             m <- [0..stop],
             let num = addDigits d h m t]
         (f', fs') <- matches (\f -> f num) fs
-        return $ concatMap (num:) $ setBuilder (div num (div (toInteger d) 2)) t d fs'
+        map (num:) $ setBuilder (div num (div (toInteger d) 2)) t d fs'
     where
         (h', t') = (show h, show t)
         mDigits = d - (length t') - (length h')
         stop = 10 ^ (mDigits) - 1::Integer
 
 setBuilderTest = [
-    -- [[2882,8281]] @=? setBuilder 28 81 4 [isPoly 4, isPoly 5],
+    [[2882,8281]] @=? setBuilder 28 81 4 [isPoly 4, isPoly 5],
     [[8281]] @=? setBuilder 82 81 4 [isPoly 4],
     [[2882]] @=? setBuilder 28 82 4 [isPoly 5],
     [] @=? setBuilder 28 82 4 [isPoly 6],
