@@ -22,68 +22,42 @@ import Common (exec, EulerArg, euler_main)
 -- Find the sum of the only ordered set of six cyclic 4-digit numbers for which each polygonal type: triangle, square, pentagonal, hexagonal, heptagonal, and octagonal, is represented by a different number in the set.
 
 problem0061 :: Int -> Int -> Int -> [[Integer]]
-problem0061 digits matches setSize = concat [setBuilder h t digits types |
-    h <- [digitStart..digitStart * 10 - 1],
-    t <- [digitStart..digitStart * 10 - 1]]
+problem0061 digits matches setSize = 
+    filter (\s -> isCircular digits s &&
+        oneOfEach types s) $ combinations setSize [start..stop]
     where
-        digitStart = 10^(toInteger matches - 1)
+        start = 10^(toInteger digits - 1)
+        stop = 10^(toInteger digits) - 1
         types = [isPoly ((fromIntegral i)+2) | i <- [1..setSize]]
 
-setBuilder :: Integer -> Integer -> Int -> [(Integer -> Bool)] -> [[Integer]]
-setBuilder h t d fs
-    | length fs == 0 = [[]]
-    | mDigits == 0 = do
-        let num = addDigits d h 0 t
-        (f', fs') <- matches (\f -> f num) fs
-        return $ concatMap (num:) $ setBuilder (div num (div (toInteger d) 2)) t d fs'
-    | otherwise = do
-        num <- [num | 
-            m <- [0..stop],
-            let num = addDigits d h m t]
-        (f', fs') <- matches (\f -> f num) fs
-        map (num:) $ setBuilder (div num (div (toInteger d) 2)) t d fs'
+combinations :: Int -> [a] -> [[a]]
+combinations 0 _ = [[]]
+combinations _ [] = []
+combinations n (x:xs) = map (x:) xs' ++ combinations n xs
     where
-        (h', t') = (show h, show t)
-        mDigits = d - (length t') - (length h')
-        stop = 10 ^ (mDigits) - 1::Integer
+        xs' = combinations (n - 1) xs
 
-setBuilderTest = [
-    [[2882,8281]] @=? setBuilder 28 81 4 [isPoly 4, isPoly 5],
-    [[8281]] @=? setBuilder 82 81 4 [isPoly 4],
-    [[2882]] @=? setBuilder 28 82 4 [isPoly 5],
-    [] @=? setBuilder 28 82 4 [isPoly 6],
-    [] @=? setBuilder 21 34 5 [isPoly 5]
+combinationsTest = [
+    [[]] @=? combinations 0 [1..10],
+    [] @=? combinations 3 ([]::[Integer]),
+    [[n] | n <- [1..10]] @=? combinations 1 [1..10],
+    [[1,2]] @=? combinations 2 [1,2],
+    [[1,2],[1,3],[2,3]] @=? combinations 2 [1,2,3]
     ]
 
-matches :: (a -> Bool) -> [a] -> [(a, [a])]
-matches _ [] = []
-matches test (x:xs) = (if test x then ((x,xs):) else id) $ others
-    where
-        others = map (addSecond x) $ matches test xs
-        addSecond e (y, ys) = (y, e:ys)
+isCircular :: Int -> [Integer] -> Bool
+isCircular = error "Not Implemented"
 
-matchesTest = [
-    [(1,[2,3,4,5]),(3,[1,2,4,5]),(5,[1,2,3,4])] @=?
-        matches ((==1) . flip mod 2) [1..5],
-    [(1,[2,3,4,5])] @=? matches (==1) [1..5]
+isCircularTest = [
+    True @=? isCircular 1 [12,23,34],
+    True @=? isCircular 2 [1234,3456,7890,9012],
+    True @=? isCircular 2 [1234,7890,3456,9012],
+    True @=? isCircular 2 [7890,3456,1234,9012],
+    False @=? isCircular 2 [1111,2222,3333,4444]
     ]
 
-addDigits :: Int -> Integer -> Integer -> Integer -> Integer
-addDigits len h m t 
-    | mDigits <= 0 = read (h' ++ t')
-    | otherwise = read (h' ++ m' ++ t')
-    where
-        (h', t') = (show h, show t)
-        mDigits = len - (length t') - (length h')
-        fString = printf "%%0%dd" mDigits
-        m' = printf fString m
-
-addDigitsTest = [
-    123789 @=? addDigits 6 123 456 789,
-    123456789 @=? addDigits 9 123 456 789,
-    123 @=? addDigits 3 1 2 3,
-    1023 @=? addDigits 4 1 2 3
-    ]
+oneOfEach :: [(a -> Bool)] -> [a] -> Bool
+oneOfEach = error "Not Implemented"
 
 -- n*(1*n+1)/2 = n(n+1)/2
 -- n*(2*n+0)/2 = n*n
@@ -161,9 +135,8 @@ isNthRootTest = [
 unitTests = map TestCase $
     isPolyTest ++
     isNthRootTest ++
-    setBuilderTest ++
-    addDigitsTest ++
-    matchesTest
+    combinationsTest ++
+    isCircularTest
 
 data Arg = Euler | AdHoc { digits::Int, setSize::Int, len::Int } | UnitTest
     deriving (Show, Data, Typeable)
