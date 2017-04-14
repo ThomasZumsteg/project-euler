@@ -46,10 +46,19 @@ combinationsTest = [
     ]
 
 isCircular :: Int -> [Integer] -> Bool
-isCircular = error "Not Implemented"
+isCircular _ [] = False
+isCircular d (x:xs) = worker (back x) xs (front x)
+    where
+        back = reverse . take d . reverse . show
+        front = take d . show
+        worker h [] t = h == t
 
 isCircularTest = [
-    True @=? isCircular 1 [12,23,34],
+    False @=? isCircular 1 [],
+    False @=? isCircular 1 [1233],
+    True @=? isCircular 1 [1231],
+    True @=? isCircular 2 [1212],
+    False @=? isCircular 1 [12,23,34],
     True @=? isCircular 2 [1234,3456,7890,9012],
     True @=? isCircular 2 [1234,7890,3456,9012],
     True @=? isCircular 2 [7890,3456,1234,9012],
