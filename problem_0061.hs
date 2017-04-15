@@ -47,11 +47,22 @@ combinationsTest = [
 
 isCircular :: Int -> [Integer] -> Bool
 isCircular _ [] = False
-isCircular d (x:xs) = worker (back x) xs (front x)
+isCircular d (x:xs) = worker (back x) xs [] (front x)
     where
         back = reverse . take d . reverse . show
         front = take d . show
-        worker h [] t = h == t
+        worker h [] _ t = if h == t then [[]] else []
+        worker h (y:ys) rem t
+            | h == front y && o
+
+
+-- [] [1234,3434,3456,3412] [] A
+-- [1234]  [3434,3456,3412] [] B [A]
+-- [1234,3434]  [3456,3412] [] C [B,A]
+-- [1234,3434,3456]  [3412] [] D [C,B,A]
+-- [1234,3434]  [3412]  [3456] E [C,B,A]
+-- [1234,3434,3412] []  [3456] F [C,B,A]
+-- [1234,3434,3412] [3456]  [] F [C,B,A]
 
 isCircularTest = [
     False @=? isCircular 1 [],
@@ -59,9 +70,9 @@ isCircularTest = [
     True @=? isCircular 1 [1231],
     True @=? isCircular 2 [1212],
     False @=? isCircular 1 [12,23,34],
-    True @=? isCircular 2 [1234,3456,7890,9012],
+    True @=? isCircular 2 [1234,3456,5678,7812],
     True @=? isCircular 2 [1234,7890,3456,9012],
-    True @=? isCircular 2 [7890,3456,1234,9012],
+    True @=? isCircular 2 [5678,3456,1234,7812],
     False @=? isCircular 2 [1111,2222,3333,4444]
     ]
 
