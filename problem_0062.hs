@@ -4,6 +4,8 @@ import Test.HUnit ((@=?), runTestTT, Test(..))
 import Text.Printf (printf)
 import System.Console.CmdArgs
 
+import Data.Maybe (isJust)
+
 import Common (exec, EulerArg, euler_main)
 
 -- The cube, 41063625 (345^3), can be permuted to produce two other cubes: 56623104 (384^3) and 66430125 (405^3). In fact, 41063625 is the smallest cube which has exactly three permutations of its digits which are also cube.
@@ -11,6 +13,38 @@ import Common (exec, EulerArg, euler_main)
 
 problem0062 :: Integer -> Int -> [[Integer]]
 problem0062 exp perms = error "Not Impelemented"
+
+powers :: Integer -> [Integer]
+powers n = filter (\base -> isJust $ binarySearch (test base) [1..n]) [2..]
+
+test :: Integer -> (Integer -> Ordering)
+test = error "Not Impelemented"
+
+powersTest = [
+    [2] @=? powers 4,
+    [2,3] @=? powers 64, 
+    [] @=? powers 3,
+    [2,3,4] @=? powers 4096
+    ]
+
+binarySearch :: (a -> Ordering) -> [a] -> Maybe a
+binarySearch test xs = worker (length xs) 0
+    where
+        worker high low | high < low = Nothing
+        worker high low = case (test x) of
+            GT -> worker (mid - 1) low
+            LT -> worker high (mid + 1)
+            EQ -> Just x
+            where
+                mid = div (high + low) 2 
+                x = xs !! mid
+
+binarySearchTest = [
+    Just 2 @=? binarySearch (compare 2) [1..10],
+    Just 5 @=? binarySearch (compare 5) [1..10],
+    Nothing @=? binarySearch (compare 11) [1..10],
+    Nothing @=? binarySearch (compare 5) [2,4..10]
+    ]
 
 permutations :: [a] -> [[a]]
 permutations [] = [[]]
@@ -26,7 +60,8 @@ permutationsTest = [
     ]
 
 unitTests = map TestCase $
-    permutationsTest
+    permutationsTest ++
+    binarySearchTest
     
 
 data Arg = Euler | UnitTest |
