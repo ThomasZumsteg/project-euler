@@ -14,11 +14,12 @@ import Common (exec, EulerArg, euler_main)
 problem0062 :: Integer -> Int -> [[Integer]]
 problem0062 exp perms = error "Not Impelemented"
 
+-- n^n = num
 powers :: Integer -> [Integer]
-powers n = filter (\base -> isJust $ binarySearch (test base) [1..n]) [2..]
+powers n = filter (error "not Implemented") [2..]
 
-test :: Integer -> (Integer -> Ordering)
-test = error "Not Impelemented"
+test :: Integer -> Integer -> (Integer -> Ordering)
+test number base exp = compare (base ^ exp) number
 
 powersTest = [
     [2] @=? powers 4,
@@ -28,22 +29,22 @@ powersTest = [
     ]
 
 binarySearch :: (a -> Ordering) -> [a] -> Maybe a
-binarySearch test xs = worker (length xs) 0
+binarySearch _ [] = Nothing
+binarySearch test xs = case test q of
+    LT -> binarySearch test ps
+    GT -> binarySearch test qs
+    EQ -> Just q
     where
-        worker high low | high < low = Nothing
-        worker high low = case (test x) of
-            GT -> worker (mid - 1) low
-            LT -> worker high (mid + 1)
-            EQ -> Just x
-            where
-                mid = div (high + low) 2 
-                x = xs !! mid
+        (ps, (q:qs)) = splitAt mid xs
+        mid = div (length xs) 2 
 
 binarySearchTest = [
     Just 2 @=? binarySearch (compare 2) [1..10],
     Just 5 @=? binarySearch (compare 5) [1..10],
     Nothing @=? binarySearch (compare 11) [1..10],
-    Nothing @=? binarySearch (compare 5) [2,4..10]
+    Nothing @=? binarySearch (compare 5) [2,4..10],
+    Just 10 @=? binarySearch (compare 10) [2,4..10],
+    Just 2 @=? binarySearch (compare 2) [2,4..10]
     ]
 
 permutations :: [a] -> [[a]]
@@ -62,7 +63,6 @@ permutationsTest = [
 unitTests = map TestCase $
     permutationsTest ++
     binarySearchTest
-    
 
 data Arg = Euler | UnitTest |
     AdHoc {exponent::Integer, numPermutations::Int} 
