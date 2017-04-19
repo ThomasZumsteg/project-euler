@@ -16,7 +16,9 @@ problem0062 exp perms = error "Not Impelemented"
 
 -- n^n = num
 powers :: Integer -> [Integer]
-powers n = filter (error "not Implemented") [2..]
+powers n = filter (error "not Implemented") [2..stop]
+    where
+        stop = floor $ (log $ fromIntegral n) / (log 2)
 
 test :: Integer -> Integer -> (Integer -> Ordering)
 test number base exp = compare (base ^ exp) number
