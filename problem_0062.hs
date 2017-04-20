@@ -4,7 +4,9 @@ import Test.HUnit ((@=?), runTestTT, Test(..))
 import Text.Printf (printf)
 import System.Console.CmdArgs
 
+import Data.List (sort)
 import Data.Maybe (isJust)
+import qualified Data.Map as Map
 
 import Common (exec, EulerArg, euler_main)
 
@@ -12,7 +14,19 @@ import Common (exec, EulerArg, euler_main)
 -- Find the smallest cube for which exactly five permutations of its digits are cube.
 
 problem0062 :: Integer -> Int -> [[Integer]]
-problem0062 exp perms = error "Not Impelemented"
+problem0062 exp perms = error "Not Implemented"
+
+cubePermutations :: Integer -> Map.Map String [Integer]
+cubePermutations limit = Map.fromListWith (++) 
+    [(digits $ cube n, [cube n]) | n <- [1..limit]]
+    where
+        cube = (flip (^) 3)
+        digits = sort . show 
+
+-- Needs to be lazy
+cubePermutationsTest = [ 
+    [1] @=? (Map.!) (cubePermutations 1000) "1"
+    ]
 
 -- n^n = num
 powers :: Integer -> [Integer]
@@ -64,7 +78,8 @@ permutationsTest = [
 
 unitTests = map TestCase $
     permutationsTest ++
-    binarySearchTest
+    binarySearchTest ++
+    cubePermutationsTest
 
 data Arg = Euler | UnitTest |
     AdHoc {exponent::Integer, numPermutations::Int} 
