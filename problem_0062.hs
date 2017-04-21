@@ -16,16 +16,22 @@ import Common (exec, EulerArg, euler_main)
 problem0062 :: Integer -> Int -> [[Integer]]
 problem0062 exp perms = error "Not Implemented"
 
-cubePermutations :: Integer -> Map.Map String [Integer]
-cubePermutations limit = Map.fromListWith (++) 
-    [(digits $ cube n, [cube n]) | n <- [1..limit]]
+cubePermutations :: Int -> Map.Map String [String]
+cubePermutations numDigits = Map.fromListWith (++) 
+    [(sort digits, [digits]) | 
+        digits <- takeWhile ((numDigits==) . length) $ 
+            dropWhile ((<numDigits) . length) $ 
+            map (show . cube) [1..]]
     where
         cube = (flip (^) 3)
-        digits = sort . show 
 
 -- Needs to be lazy
 cubePermutationsTest = [ 
-    [1] @=? (Map.!) (cubePermutations 1000) "1"
+    ["1"] @=? (Map.!) (cubePermutations 1) "1",
+    ["27"] @=? (Map.!) (cubePermutations 2) "27",
+    ["64"] @=? (Map.!) (cubePermutations 2) "46",
+    ["66430125","56623104","41063625"] @=? (Map.!) (cubePermutations 8) "01234566",
+    ["66430125","56623104","41063625"] @=? (Map.!) (cubePermutations 10) "01234566"
     ]
 
 -- n^n = num
