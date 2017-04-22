@@ -14,7 +14,9 @@ import Common (exec, EulerArg, euler_main)
 -- Find the smallest cube for which exactly five permutations of its digits are cube.
 
 problem0062 :: Integer -> Int -> [[Integer]]
-problem0062 exp perms = error "Not Implemented"
+problem0062 exp perms = map (map read) $ 
+    filter ((perms==) . length) $ 
+    concatMap (map snd . Map.toList . cubePermutations) [1..]
 
 cubePermutations :: Int -> Map.Map String [String]
 cubePermutations numDigits = Map.fromListWith (++) 
@@ -30,8 +32,7 @@ cubePermutationsTest = [
     ["1"] @=? (Map.!) (cubePermutations 1) "1",
     ["27"] @=? (Map.!) (cubePermutations 2) "27",
     ["64"] @=? (Map.!) (cubePermutations 2) "46",
-    ["66430125","56623104","41063625"] @=? (Map.!) (cubePermutations 8) "01234566",
-    ["66430125","56623104","41063625"] @=? (Map.!) (cubePermutations 10) "01234566"
+    ["66430125","56623104","41063625"] @=? (Map.!) (cubePermutations 8) "01234566"
     ]
 
 -- n^n = num
@@ -93,10 +94,11 @@ data Arg = Euler | UnitTest |
 
 instance EulerArg Arg where
     exec Euler = do
-        let answer = head $ problem0062 3 5
-        printf "Answer: %d\n" (sum answer)
+        let answer = sort $ head $ problem0062 3 5
+        printf "%d has %d cubic permultations:\n%s\n" (minimum answer) (5::Integer) 
+            (show answer)
     exec AdHoc{..} = do
-        let answer = problem0062 exponent numPermutations
+        let answer = take 10 $ problem0062 exponent numPermutations
         mapM_ (printf "%s\n" . show) answer
     exec UnitTest = do
         runTestTT $ TestList unitTests
