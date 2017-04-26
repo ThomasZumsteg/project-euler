@@ -48,7 +48,11 @@ problem0064 :: Integer -> Integer -> [(Integer,[Integer])]
 problem0064 start stop = error "Not Implemented"
 
 sqrtFractionExpansion :: Integer -> [Integer]
-sqrtFractionExpansion n = error "Not Implemented"
+sqrtFractionExpansion rt = worker n d
+    where
+        worker 0 _ = []
+        worker n d = (): worker n' d'
+
 
 sqrtFractionExpansionTest = [
     [1,2,2,2,2,2] @=? (take 6 $ sqrtFractionExpansion 2),
