@@ -47,12 +47,76 @@ import Common (exec, EulerArg, euler_main)
 problem0064 :: Integer -> Integer -> [(Integer,[Integer])]
 problem0064 start stop = error "Not Implemented"
 
+-- √23 = 4+√23-4
+--     = 4+(1/(1/(√23-4)))
+--     = 4+(1/((4+√23)/(23-16)))
+--     = 4+(1/((4+√23)/7))
+--     find the largest integer x such that 0 < (4+√23)/7 - x
+--     7x < (4+√23)
+--     (7x-4)² < 23
+--     16 < 23 ; 0
+--      9 < 23 ; 1 *
+--    100 < 23 ; 2
+-- 4+√23 = 1+(4+√23)/7-1
+--       = 1+(4+√23-7)/7
+--       = 1+(√23-3)/7
+--       = 1+1/(7/(√23-3))
+--       = 1+1/(7(√23+3)/(23-9))
+--       = 1+1/((√23+3)/2)
+-- find the largest integer x such that 0 < (3+√23)/2 - x
+--       2x < 3+√23
+--       (2x-3)² < 23
+--       9 < 23 ; 0
+--       1 < 23 ; 1
+--       1 < 23 ; 2 *
+--       64 < 23 ; 3
+-- (3+√23)/2 = 3+(3+√23)/2-3
+--           = 3+(3+√23-6)/2
+--           = 3+(√23-3)/2
+--           = 3+1/(2/(√23-3))
+--           = 3+1/(2(√23+3)/(23-9))
+--           = 3+1/((√23+3)/7)
+-- find the largest integer x such that 0 < (√23+3)/7 - x
+--           (7x-3)² < 23
+--           9 < 23 ; 0
+--           16 < 23 ; 1 *
+--           121 < 23 ; 2
+-- (3+√23)/7 = 1+(3+√23)/7-1
+--           = 1+(3+√23-7)/7
+--           = 1+(√23-4)/7
+--           = 1+(1/(7/(√23-4)))
+--           = 1+(1/((√23+4)/1))
+-- find the largest integer x such that 0 < (√23+4)/1 - x
+--           (x-4)² < 23
+--           16 < 23 ; 0
+--            9 < 23 ; 1
+--            4 < 23 ; 2
+--            1 < 23 ; 3
+--            0 < 23 ; 4
+--            1 < 23 ; 5
+--            4 < 23 ; 6
+--            9 < 23 ; 7
+--           16 < 23 ; 8 *
+--           25 < 23 ; 9
+-- (4+√23)/1 = 8+(4+√23)/1-8
+--           = 8+(4+√23-8)/1
+--           = 8+(√23-4)/1
+--           = 8+(1/(1/(√23-4)))
+--           = 8+(1/((√23+4)/(23-16)))
+--           = 8+(1/((√23+4)/7))
 sqrtFractionExpansion :: Integer -> [Integer]
-sqrtFractionExpansion rt = worker n d
-    where
-        worker 0 _ = []
-        worker n d = (): worker n' d'
+sqrtFractionExpansion = error "Not Implemented"
 
+findLargest :: (a -> Bool) -> [a] -> a
+findLargest test (x:x':xs) = if test x' 
+    then findLargest test (x':xs)
+    else x
+
+findLargestTest = [
+    8 @=? findLargest (\x -> (1*x-4)^2<23) [0..],
+    1 @=? findLargest (\x -> (7*x-3)^2<23) [0..],
+    1 @=? findLargest (\x -> (7*x-4)^2<23) [0..]
+    ]
 
 sqrtFractionExpansionTest = [
     [1,2,2,2,2,2] @=? (take 6 $ sqrtFractionExpansion 2),
@@ -62,7 +126,7 @@ sqrtFractionExpansionTest = [
     ]
 
 unitTests = map TestCase $
-    sqrtFractionExpansionTest
+    findLargestTest
 
 data Arg = Euler | UnitTest |
     AdHoc {start::Integer,stop::Integer} 
