@@ -47,7 +47,7 @@ import Common (exec, EulerArg, euler_main)
 problem0064 :: Integer -> Integer -> [(Integer,[Integer])]
 problem0064 start stop = error "Not Implemented"
 
--- √23 = 4+√23-4
+-- √23 = 4+(0+√23)/1-4
 --     = 4+(1/(1/(√23-4)))
 --     = 4+(1/((4+√23)/(23-16)))
 --     = 4+(1/((4+√23)/7))
@@ -70,22 +70,23 @@ problem0064 start stop = error "Not Implemented"
 --       1 < 23 ; 1
 --       1 < 23 ; 2 *
 --       64 < 23 ; 3
--- (3+√23)/2 = 3+(3+√23)/2-3
---           = 3+(3+√23-6)/2
+-- (3+√23)/2 = 3+(3+√23)/2-3 ; l (3) = findLargest
+--           = 3+(3+√23-6)/2 ; n' (3) = (d - n * l) 
 --           = 3+(√23-3)/2
---           = 3+1/(2/(√23-3))
---           = 3+1/(2(√23+3)/(23-9))
+--           = 3+1/(2/(√23-3)) ; d' (7) = (rt - n'^2) / d
+--           = 3+1/(2(√23+3)/(23-9)) ; 
 --           = 3+1/((√23+3)/7)
--- find the largest integer x such that 0 < (√23+3)/7 - x
+-- find the largest integer x such that 0 < (√23+3)/7 - x ; (d*x-n)^2<rt
 --           (7x-3)² < 23
 --           9 < 23 ; 0
 --           16 < 23 ; 1 *
 --           121 < 23 ; 2
--- (3+√23)/7 = 1+(3+√23)/7-1
---           = 1+(3+√23-7)/7
---           = 1+(√23-4)/7
---           = 1+(1/(7/(√23-4)))
---           = 1+(1/((√23+4)/1))
+-- (3+√23)/7 = 1+(3+√23)/7-1 ; Find the largest (1)
+--           = 1+(3+√23-7)/7 ; Multiply by the denominator
+--           = 1+(√23-4)/7 ; Subtract denominator from the numberator to make
+--           the next numberator
+--           = 1+(1/(7/(√23-4))) ; from 23 subtract the next numerator
+--           = 1+(1/((√23+4)/1)) ; 
 -- find the largest integer x such that 0 < (√23+4)/1 - x
 --           (x-4)² < 23
 --           16 < 23 ; 0
@@ -104,8 +105,29 @@ problem0064 start stop = error "Not Implemented"
 --           = 8+(1/(1/(√23-4)))
 --           = 8+(1/((√23+4)/(23-16)))
 --           = 8+(1/((√23+4)/7))
-sqrtFractionExpansion :: Integer -> [Integer]
-sqrtFractionExpansion = error "Not Implemented"
+sqrtFractionExpansion :: Integer -> [(Integer,Integer,Integer)]
+sqrtFractionExpansion sq = worker 0 1
+    where
+        worker n d = (l, n, d) : worker n' d'
+            where
+                l = findLargest (\x -> (d*x-n)^2 < sq) [0..]
+                n' = d * l + n
+                d' = div (sq - n' * n') d
+
+sqrtFractionExpansionTest = [
+    [] @=? (take 6 $ sqrtFractionExpansion 23),
+    [] @=? (take 6 $ sqrtFractionExpansion 2),
+    [] @=? (take 6 $ sqrtFractionExpansion 3),
+    [] @=? (take 6 $ sqrtFractionExpansion 4),
+    [] @=? (take 6 $ sqrtFractionExpansion 5)
+    ]
+-- sqrtFractionExpansionTest = [
+--     [4,1,3,1,8,1] @=? (take 6 $ sqrtFractionExpansion 23),
+--     [1,2,2,2,2,2] @=? (take 6 $ sqrtFractionExpansion 2),
+--     [1,1,2,1,2,1] @=? (take 6 $ sqrtFractionExpansion 3),
+--     [2          ] @=? (take 6 $ sqrtFractionExpansion 4),
+--     [2,4,4,4,4,4] @=? (take 6 $ sqrtFractionExpansion 5)
+--     ]
 
 findLargest :: (a -> Bool) -> [a] -> a
 findLargest test (x:x':xs) = if test x' 
@@ -118,15 +140,9 @@ findLargestTest = [
     1 @=? findLargest (\x -> (7*x-4)^2<23) [0..]
     ]
 
-sqrtFractionExpansionTest = [
-    [1,2,2,2,2,2] @=? (take 6 $ sqrtFractionExpansion 2),
-    [1,1,2,1,2,1] @=? (take 6 $ sqrtFractionExpansion 3),
-    [2          ] @=? (take 6 $ sqrtFractionExpansion 4),
-    [2,4,4,4,4,4] @=? (take 6 $ sqrtFractionExpansion 5)
-    ]
-
 unitTests = map TestCase $
-    findLargestTest
+    findLargestTest ++
+    sqrtFractionExpansionTest
 
 data Arg = Euler | UnitTest |
     AdHoc {start::Integer,stop::Integer} 
