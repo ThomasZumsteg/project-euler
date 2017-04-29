@@ -114,20 +114,20 @@ sqrtFractionExpansion sq = worker 0 1
                 n' = d * l + n
                 d' = div (sq - n' * n') d
 
-sqrtFractionExpansionTest = [
-    [] @=? (take 6 $ sqrtFractionExpansion 23),
-    [] @=? (take 6 $ sqrtFractionExpansion 2),
-    [] @=? (take 6 $ sqrtFractionExpansion 3),
-    [] @=? (take 6 $ sqrtFractionExpansion 4),
-    [] @=? (take 6 $ sqrtFractionExpansion 5)
-    ]
 -- sqrtFractionExpansionTest = [
---     [4,1,3,1,8,1] @=? (take 6 $ sqrtFractionExpansion 23),
---     [1,2,2,2,2,2] @=? (take 6 $ sqrtFractionExpansion 2),
---     [1,1,2,1,2,1] @=? (take 6 $ sqrtFractionExpansion 3),
---     [2          ] @=? (take 6 $ sqrtFractionExpansion 4),
---     [2,4,4,4,4,4] @=? (take 6 $ sqrtFractionExpansion 5)
+--     [] @=? (take 6 $ sqrtFractionExpansion 23),
+--     [] @=? (take 6 $ sqrtFractionExpansion 2),
+--     [] @=? (take 6 $ sqrtFractionExpansion 3),
+--     [] @=? (take 6 $ sqrtFractionExpansion 4),
+--     [] @=? (take 6 $ sqrtFractionExpansion 5)
 --     ]
+sqrtFractionExpansionTest = [
+    [4,1,3,1,8,1] @=? (take 6 $ sqrtFractionExpansion 23),
+    [1,2,2,2,2,2] @=? (take 6 $ sqrtFractionExpansion 2),
+    [1,1,2,1,2,1] @=? (take 6 $ sqrtFractionExpansion 3),
+    [2          ] @=? (take 6 $ sqrtFractionExpansion 4),
+    [2,4,4,4,4,4] @=? (take 6 $ sqrtFractionExpansion 5)
+    ]
 
 findLargest :: (a -> Bool) -> [a] -> a
 findLargest test (x:x':xs) = if test x' 
