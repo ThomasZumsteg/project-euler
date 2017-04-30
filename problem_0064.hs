@@ -47,22 +47,39 @@ import Common (exec, EulerArg, euler_main)
 problem0064 :: Integer -> Integer -> [(Integer,[Integer])]
 problem0064 start stop = error "Not Implemented"
 
--- √23 = 4+(0+√23)/1-4
+compress :: [a] -> (a,[a])
+compress = error "Not implemented"
+
+compressTest = [
+    (1, [1]) @=? (compress $ repeat 1),
+    (2, [3, 2]) @=? (compress $ cycle [2, 3])
+    ]
+
+-- find the largest intetger x such that 0 < (0+√23)/1 - x
+--     (0+√23)/1 < x
+--     23 <  x²
+--     23 <  0 : 0
+--     23 <  1 : 1
+--     23 <  4 : 2
+--     23 <  9 : 3
+--     23 < 16 : 4 *
+--     23 < 25 : 5
+-- √23 = 4+(0+√23)/1-4 ; l (4) findLargest
 --     = 4+(1/(1/(√23-4)))
---     = 4+(1/((4+√23)/(23-16)))
---     = 4+(1/((4+√23)/7))
+--     = 4+(1/((4+√23)/(23-16))) ; n' (4) = d (1) * l (4) - n (0)
+--     = 4+(1/((4+√23)/7)) ; d' (7) = (rt (23) - n'² (16)) / d (1)
 --     find the largest integer x such that 0 < (4+√23)/7 - x
 --     7x < (4+√23)
 --     (7x-4)² < 23
 --     16 < 23 ; 0
 --      9 < 23 ; 1 *
 --    100 < 23 ; 2
--- 4+√23 = 1+(4+√23)/7-1
+-- 4+√23 = 1+(4+√23)/7-1 ; l (1) findLargest
 --       = 1+(4+√23-7)/7
---       = 1+(√23-3)/7
+--       = 1+(√23-3)/7 ; (3) n' = d (7) * l (1) - n (4)
 --       = 1+1/(7/(√23-3))
 --       = 1+1/(7(√23+3)/(23-9))
---       = 1+1/((√23+3)/2)
+--       = 1+1/((√23+3)/2) ; d' = (rt - n'²) / d
 -- find the largest integer x such that 0 < (3+√23)/2 - x
 --       2x < 3+√23
 --       (2x-3)² < 23
@@ -71,7 +88,7 @@ problem0064 start stop = error "Not Implemented"
 --       1 < 23 ; 2 *
 --       64 < 23 ; 3
 -- (3+√23)/2 = 3+(3+√23)/2-3 ; l (3) = findLargest
---           = 3+(3+√23-6)/2 ; n' (3) = (d - n * l) 
+--           = 3+(3+√23-6)/2 ; n' (3) = (d (2) * l (3) - n (3)) 
 --           = 3+(√23-3)/2
 --           = 3+1/(2/(√23-3)) ; d' (7) = (rt - n'^2) / d
 --           = 3+1/(2(√23+3)/(23-9)) ; 
@@ -108,25 +125,23 @@ problem0064 start stop = error "Not Implemented"
 sqrtFractionExpansion :: Integer -> [(Integer,Integer,Integer)]
 sqrtFractionExpansion sq = worker 0 1
     where
-        worker n d = (l, n, d) : worker n' d'
+        worker n d = (l, n, d) : if l == 0 then [] else worker n' d'
             where
                 l = findLargest (\x -> (d*x-n)^2 < sq) [0..]
-                n' = d * l + n
+                n' = d * l - n
                 d' = div (sq - n' * n') d
 
--- sqrtFractionExpansionTest = [
---     [] @=? (take 6 $ sqrtFractionExpansion 23),
---     [] @=? (take 6 $ sqrtFractionExpansion 2),
---     [] @=? (take 6 $ sqrtFractionExpansion 3),
---     [] @=? (take 6 $ sqrtFractionExpansion 4),
---     [] @=? (take 6 $ sqrtFractionExpansion 5)
---     ]
 sqrtFractionExpansionTest = [
-    [4,1,3,1,8,1] @=? (take 6 $ sqrtFractionExpansion 23),
-    [1,2,2,2,2,2] @=? (take 6 $ sqrtFractionExpansion 2),
-    [1,1,2,1,2,1] @=? (take 6 $ sqrtFractionExpansion 3),
-    [2          ] @=? (take 6 $ sqrtFractionExpansion 4),
-    [2,4,4,4,4,4] @=? (take 6 $ sqrtFractionExpansion 5)
+    [(4,0,1),(1,4,7),(3,3,2),(1,3,7),(8,4,1),(1,4,7)]
+        @=? (take 6 $ sqrtFractionExpansion 23),
+    [(1,0,1),(2,1,1),(2,1,1),(2,1,1),(2,1,1),(2,1,1)]
+        @=? (take 6 $ sqrtFractionExpansion 2),
+    [(1,0,1),(1,1,2),(2,1,1),(1,1,2),(2,1,1),(1,1,2)]
+        @=? (take 6 $ sqrtFractionExpansion 3),
+    [(1,0,1),(0,1,3)]
+        @=? (take 6 $ sqrtFractionExpansion 4),
+    [(2,0,1),(4,2,1),(4,2,1),(4,2,1),(4,2,1),(4,2,1)]
+        @=? (take 6 $ sqrtFractionExpansion 5)
     ]
 
 findLargest :: (a -> Bool) -> [a] -> a
