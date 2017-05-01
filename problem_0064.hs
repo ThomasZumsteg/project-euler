@@ -45,10 +45,13 @@ import Common (exec, EulerArg, euler_main)
 -- How many continued fractions for N ≤ 10000 have an odd period?
 
 problem0064 :: Integer -> Integer -> [(Integer,[Integer])]
-problem0064 start stop = error "Not Implemented"
+problem0064 start stop = map (fsts . compress . sqrtFractionExpansion) [start..stop]
+    where
+        fsts (x, xs) = (fst x, map fst xs)
+        fst (x, _, _) = x
 
-compress :: [a] -> (a,[a])
-compress = error "Not implemented"
+compress :: (Eq a) => [a] -> (a,[a])
+compress (x:x':xs) = (x, x' : takeWhile (/=x') xs)
 
 compressTest = [
     (1, [1]) @=? (compress $ repeat 1),
@@ -157,7 +160,8 @@ findLargestTest = [
 
 unitTests = map TestCase $
     findLargestTest ++
-    sqrtFractionExpansionTest
+    sqrtFractionExpansionTest ++
+    compressTest
 
 data Arg = Euler | UnitTest |
     AdHoc {start::Integer,stop::Integer} 
@@ -165,7 +169,8 @@ data Arg = Euler | UnitTest |
 
 instance EulerArg Arg where
     exec Euler = do
-        let answer = filter (\_ -> False) $ problem0064 2 10000
+        let answer = filter (\(_, c) -> (odd $ length c) && (c /= [0])) $ 
+                problem0064 2 10000
         printf "Answer %d\n" (length answer)
     exec AdHoc{..} = do
         let answer = problem0064 start stop
