@@ -23,14 +23,17 @@ import Common (exec, EulerArg, euler_main)
 -- The sum of digits in the numerator of the 10th convergent is 1+4+5+7=17.
 -- Find the sum of digits in the numerator of the 100th convergent of the continued fraction for e.
 
-problem0065 :: (Show a) => Integer -> String -> Integer -> [a]
+problem0065 :: Integer -> String -> Integer -> [Fraction]
 problem0065 times operation value = case operation of
-    "sqrt" -> iterator sqrtFractionWorker i value
-    "e" -> iterator eFractionWorker i 0
+    "sqrt" -> take times $ iterator (sqrtFractionWorker value)
+    "e" -> take times $ iterator eFractionWorker summer
+    where
+        magicFunc = error "Not Implemented"
 
 type SqrtState = (Integer, Integer, Integer)
+type Fraction = (Integer, Integer)
 
-sqrtFractionWorker :: Integer -> SqrtState -> SqrtState 
+sqrtFractionWorker :: Integer -> [SqrtState]
 sqrtFractionWorker sq (_, n, d) = (l, n', d')
     where
         l = findLargest (\x -> (d*x-n)^2 < sq) [0..]
@@ -43,6 +46,14 @@ sqrtFractionExpansionTest = [
     (1,1,2) @=? sqrtFractionWorker 3 (2,1,1),
     (1,1,2) @=? sqrtFractionWorker 3 (2,1,1)
     ]
+
+iterator :: [a] -> (Fraction -> a -> Fraction) -> [Fraction]
+iterator xs summer = error "Not Implemented"
+
+eFractionWorker :: [Integer]
+eFractionWorker = 2 : [
+    if (1 == mod i 3) then (2 * div (i + 2) 3) else 1 
+    | i <- [0..]]
 
 findLargest :: (a -> Bool) -> [a] -> a
 findLargest test (x:x':xs) = if test x' 
@@ -57,8 +68,7 @@ findLargestTest = [
 
 unitTests = map TestCase $
     findLargestTest ++
-    sqrtFractionExpansionTest ++
-    compressTest
+    sqrtFractionExpansionTest
 
 data Arg = Euler | UnitTest |
     AdHoc {value::Integer,times::Integer,oper::String} 
@@ -70,7 +80,7 @@ instance EulerArg Arg where
         printf "Answer %s\n" answer
     exec AdHoc{..} = do
         let answer = problem0065 times oper value
-        mapM_ (printf "%s\n" . show) answer
+        mapM_ (printf "%s\n" . show) answer 
     exec UnitTest = do
         runTestTT $ TestList unitTests
         return ()
