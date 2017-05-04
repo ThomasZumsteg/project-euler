@@ -23,28 +23,33 @@ import Common (exec, EulerArg, euler_main)
 -- The sum of digits in the numerator of the 10th convergent is 1+4+5+7=17.
 -- Find the sum of digits in the numerator of the 100th convergent of the continued fraction for e.
 
-problem0065 :: Integer -> String -> Integer -> [Fraction]
+
+-- Something like map (magic $ reverse $ take n)
+problem0065 :: Int -> String -> Integer -> [Fraction]
 problem0065 times operation value = case operation of
-    "sqrt" -> take times $ iterator (sqrtFractionWorker value)
-    "e" -> take times $ iterator eFractionWorker summer
+    "sqrt" -> take times $ scanl sqrtMagicFunc (0, 1) (sqrtFraction value)
+    "e" -> take times $ scanl eMagicFunc (0, 1) eFractionWorker 
     where
-        magicFunc = error "Not Implemented"
+        eMagicFunc = error "Not Implemented"
+        sqrtMagicFunc (n, d) (i, n', d') = (d * n + i, d + i)
 
 type SqrtState = (Integer, Integer, Integer)
 type Fraction = (Integer, Integer)
 
-sqrtFractionWorker :: Integer -> [SqrtState]
-sqrtFractionWorker sq (_, n, d) = (l, n', d')
+sqrtFraction :: Integer -> [SqrtState]
+sqrtFraction sq = iterate worker (0, 0, 1)
     where
-        l = findLargest (\x -> (d*x-n)^2 < sq) [0..]
-        n' = d * l - n
-        d' = div (sq - n' * n') d
+        worker (l, n, d) = (l', n', d')
+            where
+                l' = findLargest (\x -> (d*x-n)^2 < sq) [0..]
+                n' = d * l' - n
+                d' = div (sq - n' * n') d
 
 sqrtFractionExpansionTest = [
-    (1,4,7) @=? sqrtFractionWorker 23 (4,0,1),
-    (2,1,1) @=? sqrtFractionWorker 2 (2,1,1),
-    (1,1,2) @=? sqrtFractionWorker 3 (2,1,1),
-    (1,1,2) @=? sqrtFractionWorker 3 (2,1,1)
+    (0,0,1) @=? (head $ sqrtFraction 2),
+    (1,1,1) @=? ((sqrtFraction 2) !! 1),
+    (2,1,1) @=? ((sqrtFraction 2) !! 2),
+    (2,1,1) @=? ((sqrtFraction 2) !! 3)
     ]
 
 iterator :: [a] -> (Fraction -> a -> Fraction) -> [Fraction]
@@ -54,6 +59,15 @@ eFractionWorker :: [Integer]
 eFractionWorker = 2 : [
     if (1 == mod i 3) then (2 * div (i + 2) 3) else 1 
     | i <- [0..]]
+
+eFractionWorkerTest = [
+    2 @=? (eFractionWorker !! 0),
+    1 @=? (eFractionWorker !! 1),
+    2 @=? (eFractionWorker !! 2),
+    1 @=? (eFractionWorker !! 3),
+    1 @=? (eFractionWorker !! 4),
+    4 @=? (eFractionWorker !! 5)
+    ]
 
 findLargest :: (a -> Bool) -> [a] -> a
 findLargest test (x:x':xs) = if test x' 
@@ -68,16 +82,17 @@ findLargestTest = [
 
 unitTests = map TestCase $
     findLargestTest ++
-    sqrtFractionExpansionTest
+    sqrtFractionExpansionTest ++
+    eFractionWorkerTest
 
 data Arg = Euler | UnitTest |
-    AdHoc {value::Integer,times::Integer,oper::String} 
+    AdHoc {value::Integer,times::Int,oper::String} 
     deriving (Show, Data, Typeable)
 
 instance EulerArg Arg where
     exec Euler = do
-        let answer = problem0065 100 "e" -1
-        printf "Answer %s\n" answer
+        let answer = problem0065 100 "e" (-1)
+        printf "Answer %s\n" (show answer)
     exec AdHoc{..} = do
         let answer = problem0065 times oper value
         mapM_ (printf "%s\n" . show) answer 
