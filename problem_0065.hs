@@ -35,7 +35,7 @@ problem0065 "sqrt" value = [ foldr adder (0,1) $
 problem0065 "e" value = [ foldr adder (0,1) $ 
     take n eFractionWorker | n <- [2..]]
     where
-        adder l (n, d) = (d, d * l + n)
+        adder l (d, n) = (d * l + n, d)
 
 type SqrtState = (Integer, Integer, Integer)
 type Fraction = (Integer, Integer)
@@ -95,7 +95,7 @@ data Arg = Euler | UnitTest |
 
 instance EulerArg Arg where
     exec Euler = do
-        let answer = (problem0065 "e" (-1)) !! 100
+        let answer = (problem0065 "e" (-1)) !! 99
         printf "Answer %d\n" (sum $ map digitToInt $ show $ fst answer)
     exec AdHoc{..} = do
         let answer = take times $ problem0065 oper value
