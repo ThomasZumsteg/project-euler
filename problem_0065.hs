@@ -6,6 +6,8 @@ import System.Console.CmdArgs
 
 import Common (exec, EulerArg, euler_main)
 
+import Data.Char (digitToInt)
+
 -- The square root of 2 can be written as an infinite continued fraction.
 -- √2 = 1 + (1/(2 + (1/(2 + (1/(2 + (1/(2 + ...))))))))
 -- The infinite continued fraction can be written, √2 = [1;(2)], (2) indicates that 2 repeats ad infinitum. In a similar way, √23 = [4;(1,3,1,8)].
@@ -25,13 +27,15 @@ import Common (exec, EulerArg, euler_main)
 
 
 -- Something like map (magic $ reverse $ take n)
-problem0065 :: Int -> String -> Integer -> [Fraction]
-problem0065 times operation value = case operation of
-    "sqrt" -> take times $ scanl sqrtMagicFunc (0, 1) (sqrtFraction value)
-    "e" -> take times $ scanl eMagicFunc (0, 1) eFractionWorker 
+problem0065 :: String -> Integer -> [Fraction]
+problem0065 "sqrt" value = [ foldr adder (0,1) $ 
+    take n $ sqrtFraction value | n <- [3..]]
     where
-        eMagicFunc = error "Not Implemented"
-        sqrtMagicFunc (n, d) (i, n', d') = (d * n + i, d + i)
+        adder (l, _, _) (n, d) = (d, d * l + n)
+problem0065 "e" value = [ foldr adder (0,1) $ 
+    take n eFractionWorker | n <- [2..]]
+    where
+        adder l (n, d) = (d, d * l + n)
 
 type SqrtState = (Integer, Integer, Integer)
 type Fraction = (Integer, Integer)
@@ -91,10 +95,10 @@ data Arg = Euler | UnitTest |
 
 instance EulerArg Arg where
     exec Euler = do
-        let answer = problem0065 100 "e" (-1)
-        printf "Answer %s\n" (show answer)
+        let answer = (problem0065 "e" (-1)) !! 100
+        printf "Answer %d\n" (sum $ map digitToInt $ show $ fst answer)
     exec AdHoc{..} = do
-        let answer = problem0065 times oper value
+        let answer = take times $ problem0065 oper value
         mapM_ (printf "%s\n" . show) answer 
     exec UnitTest = do
         runTestTT $ TestList unitTests
