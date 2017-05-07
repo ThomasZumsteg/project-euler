@@ -6,11 +6,11 @@ import System.Console.CmdArgs
 
 import Common (exec, EulerArg, euler_main)
 
-import Data.Maybe (mapMaybe, isJust)
+import Data.Maybe (mapMaybe)
 
 -- Consider quadratic Diophantine equations of the form:
 -- x² – Dy² = 1
--- For example, when D=13, the minimal solution in x is 649² – 13×180² = 1.
+-- For example, when D=13, the minimal solution in x is 6492 – 13×1802 = 1.
 -- It can be assumed that there are no solutions in positive integers when D is square.
 -- By finding minimal solutions in x for D = {2, 3, 5, 6, 7}, we obtain the following:
 -- 3² – 2×2² = 1
@@ -24,45 +24,38 @@ import Data.Maybe (mapMaybe, isJust)
 problem0066 :: [(Integer, Integer, Integer)]
 problem0066 = error "not Implemented"
 
+root :: Integer -> Integer -> Bool
+root nth num = error "not Implemented"
+
+rootTest = [
+    True @=? root 2 4,
+    True @=? root 3 27,
+    False @=? root 3 4,
+    False @=? root 2 27
+    ]
+
 -- √((x² - 1) / d) = y
 func :: Integer -> Integer -> Maybe Integer
-func d x = if r == 0 then integerRoot 2 q else Nothing
+func d x = if r == 0 then integerRoot q else Nothing
     where (q, r) = divMod (x * x - 1) d
 
 funcTest = [
-    Just 2 @=? func 2 3,
-    Just 1 @=? func 3 2,
-    [180] @=? mapMaybe (func 13) [2..649]
+    Just 22 @=? func 2 9,
+    Just 12 @=? func 3 22,
+    [1802] @=? mapMaybe (func 13) [1..6492]
     ]
 
 integerRoot :: Integer -> Integer -> Maybe Integer
-integerRoot nth num = if (est ^ nth) == num then Just est else Nothing
+integerRoot nth num = 
     where
-        est = round $ (fromInteger num) ** (1 / (fromInteger nth))
-
-integerRootTest = [
-    Just 2 @=? integerRoot 2 4,
-    Nothing @=? integerRoot 2 5,
-    Just 2 @=? integerRoot 3 8
-    ]
+        est = num ^ (1.0 / nth)
 
 diophantine :: (Integer -> Maybe Integer) -> [Integer]
-diophantine f = mapMaybe f [2..]
-
-diophantineTest = [
-    [2,12,70,408,2378] @=? (take 5 $ diophantine (func 2)),
-    [1,4,15,56,209] @=? (take 5 $ diophantine (func 3)),
-    [4,72,1292,23184,416020] @=? (take 5 $ diophantine (func 5)),
-    [2,20,198,1960,19402] @=? (take 5 $ diophantine (func 6)),
-    [3,48,765,12192,194307] @=? (take 5 $ diophantine (func 7)),
-    [180] @=? (take 1 $ diophantine (func 13))
-    ]
-
+diophantine f = mapMaybe f [1..]
 
 unitTests = map TestCase $
-    integerRootTest ++
-    funcTest ++
-    diophantineTest
+    rootTest ++
+    funcTest
 
 data Arg = Euler | UnitTest |
     AdHoc {times :: Int} 
