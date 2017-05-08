@@ -6,7 +6,7 @@ import System.Console.CmdArgs
 
 import Common (exec, EulerArg, euler_main)
 
-import Data.Maybe (mapMaybe, isJust)
+import Data.Maybe (mapMaybe, fromJust, isJust, isNothing)
 
 -- Consider quadratic Diophantine equations of the form:
 -- x² – Dy² = 1
@@ -22,7 +22,9 @@ import Data.Maybe (mapMaybe, isJust)
 -- Find the value of D ≤ 1000 in minimal solutions of x for which the largest value of x is obtained.
 
 problem0066 :: [(Integer, Integer, Integer)]
-problem0066 = error "not Implemented"
+problem0066 = [(x,d,y) | 
+    d <- [0..], isNothing $ integerRoot 2 d,
+    let (x, y) = head $ [(a, fromJust b) | a <- [2..], let b = func d a, isJust b]]
 
 -- √((x² - 1) / d) = y
 func :: Integer -> Integer -> Maybe Integer
@@ -65,7 +67,7 @@ unitTests = map TestCase $
     diophantineTest
 
 data Arg = Euler | UnitTest |
-    AdHoc {times :: Int} 
+    AdHoc {start :: Int, stop :: Int} 
     deriving (Show, Data, Typeable)
 
 instance EulerArg Arg where
@@ -73,12 +75,12 @@ instance EulerArg Arg where
         let (answer, _, _) = minimum $ take 1000 $ problem0066
         printf "Answer %d\n" answer
     exec AdHoc{..} = do
-        let answer = take times $ problem0066 
-        mapM_ (printf "%s\n" . show) answer 
+        let answer = drop start $ take stop $ problem0066 
+        mapM_ (\(x,d,y) -> printf "%d² - %dx%d²=1\n" x d y) answer 
     exec UnitTest = do
         runTestTT $ TestList unitTests
         return ()
 
 main :: IO ()
-main = euler_main [Euler, UnitTest, AdHoc {times=10}]
+main = euler_main [Euler, UnitTest, AdHoc {start=2, stop=10}]
 
