@@ -21,61 +21,49 @@ import Data.Maybe (mapMaybe, fromJust, isJust, isNothing)
 -- Hence, by considering minimal solutions in x for D ≤ 7, the largest x is obtained when D=5.
 -- Find the value of D ≤ 1000 in minimal solutions of x for which the largest value of x is obtained.
 
-problem0066 :: [(Integer, Integer, Integer)]
-problem0066 = [(x,d,y) | 
-    d <- [0..], isNothing $ integerRoot 2 d,
-    let (x, y) = head $ [(a, fromJust b) | a <- [2..], let b = func d a, isJust b]]
-
--- √((x² - 1) / d) = y
-func :: Integer -> Integer -> Maybe Integer
-func d x = if r == 0 then integerRoot 2 q else Nothing
-    where (q, r) = divMod (x * x - 1) d
-
-funcTest = [
-    Just 2 @=? func 2 3,
-    Just 1 @=? func 3 2,
-    [180] @=? mapMaybe (func 13) [2..649]
-    ]
-
-integerRoot :: Integer -> Integer -> Maybe Integer
-integerRoot nth num = if (est ^ nth) == num then Just est else Nothing
+-- (x, d, y)
+problem0066 :: Integer -> Integer -> [(Integer, Integer, Int)]
+problem0066 start stop = [ head $ [(x, d, fromJust y) |
+        x <- [2..], 
+        let (q, r) = divMod (x*x - 1) d,
+        let y = logSearch q squares,
+        r == 0,
+        isJust y ] | 
+    d <- [start..stop],
+    isNothing $ logSearch d squares]
     where
-        est = round $ (fromInteger num) ** (1 / (fromInteger nth))
+        squares = [i*i | i <- [0..]]
 
-integerRootTest = [
-    Just 2 @=? integerRoot 2 4,
-    Nothing @=? integerRoot 2 5,
-    Just 2 @=? integerRoot 3 8
+logSearch :: (Ord a) => a -> [a] -> Maybe Int
+logSearch needle haystack = worker 0 0
+    where
+        worker i j
+            | j < 0 = Nothing
+            | haystack !! i == needle = Just i
+            | haystack !! i < needle && haystack !! (i+j^2) < needle =
+                worker (i+j+1) (j+1)
+            | otherwise =
+                worker i (j-1)
+
+logSearchTest = [
+    Just 6 @=? logSearch 7 [1..],
+    Nothing @=? logSearch 7 [2,4..]
     ]
-
-diophantine :: (Integer -> Maybe Integer) -> [Integer]
-diophantine f = mapMaybe f [2..]
-
-diophantineTest = [
-    [2,12,70,408,2378] @=? (take 5 $ diophantine (func 2)),
-    [1,4,15,56,209] @=? (take 5 $ diophantine (func 3)),
-    [4,72,1292,23184,416020] @=? (take 5 $ diophantine (func 5)),
-    [2,20,198,1960,19402] @=? (take 5 $ diophantine (func 6)),
-    [3,48,765,12192,194307] @=? (take 5 $ diophantine (func 7)),
-    [180] @=? (take 1 $ diophantine (func 13))
-    ]
-
+        
 
 unitTests = map TestCase $
-    integerRootTest ++
-    funcTest ++
-    diophantineTest
+    logSearchTest
 
 data Arg = Euler | UnitTest |
-    AdHoc {start :: Int, stop :: Int} 
+    AdHoc {start :: Integer, stop :: Integer} 
     deriving (Show, Data, Typeable)
 
 instance EulerArg Arg where
     exec Euler = do
-        let (answer, _, _) = minimum $ take 1000 $ problem0066
+        let (answer, _, _) = minimum $ problem0066 0 1000
         printf "Answer %d\n" answer
     exec AdHoc{..} = do
-        let answer = drop start $ take stop $ problem0066 
+        let answer = problem0066 start stop
         mapM_ (\(x,d,y) -> printf "%d² - %dx%d²=1\n" x d y) answer 
     exec UnitTest = do
         runTestTT $ TestList unitTests
