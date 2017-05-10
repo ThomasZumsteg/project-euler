@@ -22,6 +22,9 @@ import Data.Maybe (mapMaybe, fromJust, isJust, isNothing)
 -- Find the value of D ≤ 1000 in minimal solutions of x for which the largest value of x is obtained.
 
 -- (x, d, y)
+-- x² - Dy² = 1
+-- (x + √Dy) (x - √Dy) = 1
+-- (x + √Dy) = 1 / (x - √Dy)
 problem0066 :: Integer -> Integer -> [(Integer, Integer, Int)]
 problem0066 start stop = [ head $ [(x, d, fromJust y) |
         x <- [2..], 
