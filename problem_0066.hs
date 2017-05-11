@@ -23,8 +23,9 @@ import Data.Maybe (mapMaybe, fromJust, isJust, isNothing)
 
 -- (x, d, y)
 -- x² - Dy² = 1
--- (x + √Dy) (x - √Dy) = 1
--- (x + √Dy) = 1 / (x - √Dy)
+-- (x² - 1) / D = y²
+-- (x² - 1) = D q²
+-- (x² - 1) is a multiple of D and a square
 problem0066 :: Integer -> Integer -> [(Integer, Integer, Int)]
 problem0066 start stop = [ head $ [(x, d, fromJust y) |
         x <- [2..], 
