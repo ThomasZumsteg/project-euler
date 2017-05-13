@@ -27,36 +27,23 @@ import Data.Maybe (mapMaybe, fromJust, isJust, isNothing)
 -- (x² - 1) = D q²
 -- (x² - 1) is a multiple of D and a square
 problem0066 :: Integer -> Integer -> [(Integer, Integer, Int)]
-problem0066 start stop = [ head $ [(x, d, fromJust y) |
-        x <- [2..], 
-        let (q, r) = divMod (x*x - 1) d,
-        let y = logSearch q squares,
-        r == 0,
-        isJust y ] | 
-    d <- [start..stop],
-    isNothing $ logSearch d squares]
-    where
-        squares = [i*i | i <- [0..]]
+problem0066 = error "Not Implemeted"
 
-logSearch :: (Ord a) => a -> [a] -> Maybe Int
-logSearch needle haystack = worker 0 0
-    where
-        worker i j
-            | j < 0 = Nothing
-            | haystack !! i == needle = Just i
-            | haystack !! i < needle && haystack !! (i+j^2) < needle =
-                worker (i+j+1) (j+1)
-            | otherwise =
-                worker i (j-1)
+-- Combinations of (y,d)
+squareDivisors :: Integer -> [(Integer, Integer)]
+squareDivisors n = [(d, q) | 
+    d <- takeWhile ((<n) . (^2)) [2..],
+    let (q, r) = divMod n (d * d),
+    r == 0]
 
-logSearchTest = [
-    Just 6 @=? logSearch 7 [1..],
-    Nothing @=? logSearch 7 [2,4..]
+squareDivisorsTest = [
+    [(2,3)] @=? squareDivisors 12,
+    [] @=? squareDivisors 15,
+    [(2,9),(3,4)] @=? squareDivisors 36
     ]
-        
 
 unitTests = map TestCase $
-    logSearchTest
+    squareDivisorsTest
 
 data Arg = Euler | UnitTest |
     AdHoc {start :: Integer, stop :: Integer} 
