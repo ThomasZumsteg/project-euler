@@ -7,6 +7,7 @@ import System.Console.CmdArgs
 import Common (exec, EulerArg, euler_main)
 
 import Data.Maybe (mapMaybe, fromJust, isJust, isNothing)
+import qualified Data.Map.Lazy as Map
 
 -- Consider quadratic Diophantine equations of the form:
 -- x² – Dy² = 1
@@ -29,12 +30,24 @@ import Data.Maybe (mapMaybe, fromJust, isJust, isNothing)
 problem0066 :: Integer -> Integer -> [(Integer, Integer, Int)]
 problem0066 = error "Not Implemeted"
 
+diophantineSolutions :: Map.Map Integer [(Integer, Integer)]
+diophantineSolutions = Map.fromListWith (flip (++))
+    [(d,[(x,y)]) | x <- [2..100], (y,d) <- squareDivisors (x * x - 1)]
+
+diophantineSolutionsTest = [
+    (3,2) @=? (head $ (Map.!) diophantineSolutions 2),
+    (7,4) @=? (head $ (Map.!) diophantineSolutions 3),
+    (9,4) @=? (head $ (Map.!) diophantineSolutions 5),
+    (5,2) @=? (head $ (Map.!) diophantineSolutions 6),
+    (8,3) @=? (head $ (Map.!) diophantineSolutions 7)
+    ]
+
 -- Combinations of (y,d)
 squareDivisors :: Integer -> [(Integer, Integer)]
 squareDivisors n = [(d, q) | 
-    d <- takeWhile ((<n) . (^2)) [2..],
+    d <- takeWhile ((<n) . (^2)) [1..],
     let (q, r) = divMod n (d * d),
-    r == 0]
+    r == 0, n /= q]
 
 squareDivisorsTest = [
     [(2,3)] @=? squareDivisors 12,
@@ -42,8 +55,35 @@ squareDivisorsTest = [
     [(2,9),(3,4)] @=? squareDivisors 36
     ]
 
+nthRootOrNothing :: Integer -> Integer -> Maybe Integer
+nthRootOrNothing nth num = num !? [n ^ nth | n <- [0..]]
+
+nthRootOrNothingTest = [
+    Nothing @=? nthRootOrNothing 2 3,
+    Just 3 @=? nthRootOrNothing 3 27,
+    Just 4 @=? nthRootOrNothing 2 16
+    ]
+
+(!?) :: (Ord a) => a -> [a] -> Maybe Integer
+needle !? haystack = iter 0 haystack
+    where
+        iter start (h:hs) = case compare needle h of
+            LT -> Nothing
+            EQ -> Just start
+            _ -> iter (1 + start) hs
+
+searchTest = [
+    Just 5 @=? 5 !? [0..10],
+    Nothing @=? 5 !? [0,2..10],
+    Nothing @=? 5 !? [0,2..],
+    Just 5 @=? 5 !? [0,1..]
+    ]
+    
 unitTests = map TestCase $
-    squareDivisorsTest
+    squareDivisorsTest ++
+    searchTest ++
+    nthRootOrNothingTest ++
+    diophantineSolutionsTest
 
 data Arg = Euler | UnitTest |
     AdHoc {start :: Integer, stop :: Integer} 
