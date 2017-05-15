@@ -27,19 +27,25 @@ import qualified Data.Map.Lazy as Map
 -- (x² - 1) / D = y²
 -- (x² - 1) = D q²
 -- (x² - 1) is a multiple of D and a square
-problem0066 :: Integer -> Integer -> [(Integer, Integer, Int)]
-problem0066 = error "Not Implemeted"
+problem0066 :: Integer -> Integer -> [(Integer, Integer, Integer)]
+problem0066 start stop = [(x, d, y) | 
+    d <- [start..stop],
+    isNothing $ nthRootOrNothing 2 d, 
+    let (x, y) = head $ diophantineSolutions d]
 
-diophantineSolutions :: Map.Map Integer [(Integer, Integer)]
-diophantineSolutions = Map.fromListWith (flip (++))
-    [(d,[(x,y)]) | x <- [2..100], (y,d) <- squareDivisors (x * x - 1)]
+diophantineSolutions :: Integer -> [(Integer, Integer)]
+diophantineSolutions v = [(x,y) | 
+    x <- [2..], 
+    (y,d) <- squareDivisors (x * x - 1), 
+    d == v]
 
 diophantineSolutionsTest = [
-    (3,2) @=? (head $ (Map.!) diophantineSolutions 2),
-    (7,4) @=? (head $ (Map.!) diophantineSolutions 3),
-    (9,4) @=? (head $ (Map.!) diophantineSolutions 5),
-    (5,2) @=? (head $ (Map.!) diophantineSolutions 6),
-    (8,3) @=? (head $ (Map.!) diophantineSolutions 7)
+    (3,2) @=? (head $ diophantineSolutions 2),
+    (7,4) @=? (head $ diophantineSolutions 3),
+    (9,4) @=? (head $ diophantineSolutions 5),
+    (5,2) @=? (head $ diophantineSolutions 6),
+    (8,3) @=? (head $ diophantineSolutions 7),
+    (8,3) @=? (head $ diophantineSolutions 29)
     ]
 
 -- Combinations of (y,d)
