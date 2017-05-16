@@ -45,7 +45,7 @@ diophantineSolutionsTest = [
     (9,4) @=? (head $ diophantineSolutions 5),
     (5,2) @=? (head $ diophantineSolutions 6),
     (8,3) @=? (head $ diophantineSolutions 7),
-    (8,3) @=? (head $ diophantineSolutions 29)
+    (9801,1820) @=? (head $ diophantineSolutions 29)
     ]
 
 -- Combinations of (y,d)
