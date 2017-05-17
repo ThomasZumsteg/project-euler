@@ -49,6 +49,7 @@ diophantineSolutionsTest = [
     ]
 
 -- Combinations of (y,d)
+-- Change to be cached
 squareDivisors :: Integer -> [(Integer, Integer)]
 squareDivisors n = [(d, q) | 
     d <- takeWhile ((<n) . (^2)) [1..],
