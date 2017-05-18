@@ -28,67 +28,43 @@ import qualified Data.Map.Lazy as Map
 -- (x² - 1) = D q²
 -- (x² - 1) is a multiple of D and a square
 problem0066 :: Integer -> Integer -> [(Integer, Integer, Integer)]
-problem0066 start stop = [(x, d, y) | 
-    d <- [start..stop],
-    isNothing $ nthRootOrNothing 2 d, 
-    let (x, y) = head $ diophantineSolutions d]
+problem0066 start stop = filter (\(_, d, _) -> (start <= d) && (d <= stop)) solutions
 
+-- x² - Dy² = 1
+-- (x² - 1) / y² = D
 diophantineSolutions :: Integer -> [(Integer, Integer)]
-diophantineSolutions v = [(x,y) | 
-    x <- [2..], 
-    (y,d) <- squareDivisors (x * x - 1), 
-    d == v]
+diophantineSolutions v = map firstAndThird $  filter ((==v) . snd) solutions
+    where
+        firstAndThird (i, _, k) = (i, k)
+        snd (_, j, _) = j
+
+solutions :: [(Integer, Integer, Integer)]
+solutions = [(x,d,y) | 
+    x <- [2..], y <- [2..x],
+    let (d,r) = divMod (x*x-1) (y*y), r == 0]
 
 diophantineSolutionsTest = [
     (3,2) @=? (head $ diophantineSolutions 2),
     (7,4) @=? (head $ diophantineSolutions 3),
     (9,4) @=? (head $ diophantineSolutions 5),
-    (5,2) @=? (head $ diophantineSolutions 6),
-    (8,3) @=? (head $ diophantineSolutions 7),
+    (5,2) @=? (head $ diophantineSolutions 6 ),
+    (8,3) @=? (head $ diophantineSolutions 7 ),
+    (17,6) @=? (head $ diophantineSolutions 8 ),
+    (19,6) @=? (head $ diophantineSolutions 10),
+    (10,3) @=? (head $ diophantineSolutions 11),
     (9801,1820) @=? (head $ diophantineSolutions 29)
     ]
 
--- Combinations of (y,d)
--- Change to be cached
-squareDivisors :: Integer -> [(Integer, Integer)]
-squareDivisors n = [(d, q) | 
-    d <- takeWhile ((<n) . (^2)) [1..],
-    let (q, r) = divMod n (d * d),
-    r == 0, n /= q]
-
-squareDivisorsTest = [
-    [(2,3)] @=? squareDivisors 12,
-    [] @=? squareDivisors 15,
-    [(2,9),(3,4)] @=? squareDivisors 36
-    ]
-
 nthRootOrNothing :: Integer -> Integer -> Maybe Integer
-nthRootOrNothing nth num = num !? [n ^ nth | n <- [0..]]
+nthRootOrNothing = error "Not implemented"
 
 nthRootOrNothingTest = [
     Nothing @=? nthRootOrNothing 2 3,
     Just 3 @=? nthRootOrNothing 3 27,
     Just 4 @=? nthRootOrNothing 2 16
     ]
-
-(!?) :: (Ord a) => a -> [a] -> Maybe Integer
-needle !? haystack = iter 0 haystack
-    where
-        iter start (h:hs) = case compare needle h of
-            LT -> Nothing
-            EQ -> Just start
-            _ -> iter (1 + start) hs
-
-searchTest = [
-    Just 5 @=? 5 !? [0..10],
-    Nothing @=? 5 !? [0,2..10],
-    Nothing @=? 5 !? [0,2..],
-    Just 5 @=? 5 !? [0,1..]
-    ]
     
 unitTests = map TestCase $
-    squareDivisorsTest ++
-    searchTest ++
     nthRootOrNothingTest ++
     diophantineSolutionsTest
 
