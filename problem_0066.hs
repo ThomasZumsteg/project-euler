@@ -7,6 +7,7 @@ import System.Console.CmdArgs
 import Common (exec, EulerArg, euler_main)
 
 import Data.Maybe (mapMaybe, fromJust, isJust, isNothing)
+import Data.List (elemIndex)
 import qualified Data.Map.Lazy as Map
 
 -- Consider quadratic Diophantine equations of the form:
@@ -30,32 +31,47 @@ import qualified Data.Map.Lazy as Map
 problem0066 :: Integer -> Integer -> [(Integer, Integer, Integer)]
 problem0066 start stop = [(x, d, y) |
     d <- [start..stop],
-    not $ elem d squares,
-    let (x, y) = (0,0)]
+    let (x, y) = sumFractionExpantion $ compressedSqrtExpansion d]
     where
         squares = [n*n | n <- [1..stop]]
 
-sumFractionExpantion :: (Integer, [Integer]) -> (Integer, Integer)
-sumFractionExpantion (x, xs) = (\(n, d) -> (x * d + n, n)) (foldr worker (0,0) xs)
+sumFractionExpantion :: ([Integer], [Integer]) -> (Integer, Integer)
+sumFractionExpantion (xs, ys@(y:_)) = foldr worker (0,1) (xs ++ ys ++ [y])
     where
         worker n (m, e) = (e * n + m, m)
 
-compressedSqrtExpansion :: Integer -> (Integer,[Integer])
+compressedSqrtExpansion :: Integer -> ([Integer],[Integer])
 compressedSqrtExpansion = fsts . compress . sqrtFraction
     where
-        fsts (x, xs) = (fst x, map fst xs)
+        fsts (xs, ys) = (map fst xs, map fst ys)
         fst (x, _, _) = x
 
-compress :: (Eq a) => [a] -> (a,[a])
-compress (x:x':xs) = (x, x' : takeWhile (/=x') xs)
+compressedSqrtExpansionTest = [
+    ([1],[2]) @=? compressedSqrtExpansion 2,
+    ([1],[1,2]) @=? compressedSqrtExpansion 3,
+    ([2],[4]) @=? compressedSqrtExpansion 5,
+    ([2],[2,4]) @=? compressedSqrtExpansion 6
+    ]
+
+compress :: (Eq a) => [a] -> ([a],[a])
+compress xs = worker xs []
+    where
+        worker (x:xs) ys = case elemIndex x ys of
+            Just i -> splitAt (length ys - i - 1) (reverse ys)
+            Nothing -> worker xs (x:ys)
 
 compressTest = [
-    (1, [1]) @=? (compress $ repeat 1),
-    (2, [3, 2]) @=? (compress $ cycle [2, 3])
+    ([], [1]) @=? (compress $ repeat 1),
+    ([], [2, 3]) @=? (compress $ cycle [2, 3]),
+    ([(1,1,1)],[(2,1,1)]) @=? (compress $ sqrtFraction 2),
+    ([(1,1,2)],[(1,1,1),(2,1,2)]) @=? (compress $ sqrtFraction 3),
+    ([(2,2,1)],[(4,2,1)]) @=? (compress $ sqrtFraction 5),
+    ([(2,2,2)],[(2,2,1),(4,2,2)]) @=? (compress $ sqrtFraction 6),
+    ([(4,4,7)],[(1,3,2),(3,3,7),(1,4,1),(8,4,7)]) @=? (compress $ sqrtFraction 23)
     ]
 
 sqrtFraction :: Integer -> [(Integer, Integer, Integer)]
-sqrtFraction sq = iterate worker (0, 0, 1)
+sqrtFraction sq = tail $ iterate worker (0, 0, 1)
     where
         worker (l, n, d) = (l', n', d')
             where
@@ -64,10 +80,9 @@ sqrtFraction sq = iterate worker (0, 0, 1)
                 d' = div (sq - n' * n') d
 
 sqrtFractionTest = [
-    (0,0,1) @=? (head $ sqrtFraction 2),
-    (1,1,1) @=? ((sqrtFraction 2) !! 1),
-    (2,1,1) @=? ((sqrtFraction 2) !! 2),
-    (2,1,1) @=? ((sqrtFraction 2) !! 3)
+    (1,1,1) @=? ((sqrtFraction 2) !! 0),
+    (2,1,1) @=? ((sqrtFraction 2) !! 1),
+    (2,1,1) @=? ((sqrtFraction 2) !! 2)
     ]
 
 findLargest :: (a -> Bool) -> [a] -> a
@@ -84,7 +99,8 @@ findLargestTest = [
 unitTests = map TestCase $
     findLargestTest ++
     compressTest ++
-    sqrtFractionTest
+    sqrtFractionTest ++
+    compressedSqrtExpansionTest
     
 data Arg = Euler | UnitTest |
     AdHoc {start :: Integer, stop :: Integer} 
