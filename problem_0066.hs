@@ -7,7 +7,7 @@ import System.Console.CmdArgs
 import Common (exec, EulerArg, euler_main)
 
 import Data.Maybe (mapMaybe, fromJust, isJust, isNothing)
-import Data.List (elemIndex)
+import Data.List (elemIndex, inits)
 import qualified Data.Map.Lazy as Map
 
 -- Consider quadratic Diophantine equations of the form:
@@ -31,12 +31,26 @@ import qualified Data.Map.Lazy as Map
 problem0066 :: Integer -> Integer -> [(Integer, Integer, Integer)]
 problem0066 start stop = [(x, d, y) |
     d <- [start..stop],
-    let (x, y) = sumFractionExpantion $ compressedSqrtExpansion d]
+    not $ ordElem d squares,
+    let (x, y) = head $ dropWhile (\(x, y) -> x*x-d*y*y/=1) $
+            continuedFractionExpansion d]
     where
+        fsts (x, _, _) = x
         squares = [n*n | n <- [1..stop]]
 
-sumFractionExpantion :: ([Integer], [Integer]) -> (Integer, Integer)
-sumFractionExpantion (xs, ys@(y:_)) = foldr worker (0,1) (xs ++ ys ++ [y])
+continuedFractionExpansion :: Integer -> [(Integer, Integer)]
+continuedFractionExpansion d = map sumFraction $ init $ inits $ sqrtFraction d 
+    where
+        sumFraction = foldr (\(v, _, _) (n, d) -> (d, d * v + n)) (0, 1)
+
+ordElem :: (Ord a, Eq a) => a -> [a] -> Bool
+ordElem x (y:ys) = case compare x y of
+    EQ -> True
+    LT -> False
+    _ -> ordElem x ys
+
+sumFractionExpantion :: [Integer] -> (Integer, Integer)
+sumFractionExpantion = foldr worker (0,1)
     where
         worker n (m, e) = (e * n + m, m)
 
