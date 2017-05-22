@@ -39,9 +39,10 @@ problem0066 start stop = [(x, d, y) |
         squares = [n*n | n <- [1..stop]]
 
 continuedFractionExpansion :: Integer -> [(Integer, Integer)]
-continuedFractionExpansion d = map sumFraction $ init $ inits $ sqrtFraction d 
+continuedFractionExpansion d = drop 2 $ map sumFraction $ 
+        tail $ inits $ sqrtFraction d 
     where
-        sumFraction = foldr (\(v, _, _) (n, d) -> (d, d * v + n)) (0, 1)
+        sumFraction = foldr (\(v, _, _) (d, n) -> (d * v + n, d)) (0, 1)
 
 ordElem :: (Ord a, Eq a) => a -> [a] -> Bool
 ordElem x (y:ys) = case compare x y of
@@ -122,7 +123,7 @@ data Arg = Euler | UnitTest |
 
 instance EulerArg Arg where
     exec Euler = do
-        let (answer, _, _) = minimum $ problem0066 0 1000
+        let (_, answer, _) = maximum $ problem0066 2 1000
         printf "Answer %d\n" answer
     exec AdHoc{..} = do
         let answer = problem0066 start stop
