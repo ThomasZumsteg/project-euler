@@ -6,7 +6,7 @@ import System.Console.CmdArgs
 
 import Common (exec, EulerArg, euler_main)
 
-import Data.List (intercalate)
+import Data.List (intercalate, sort, splitAt)
 
 data Ngon = Ngon { items :: [Integer]} deriving (Show, Eq)
 
@@ -39,8 +39,38 @@ problem0068 = error "Not Implemented"
 make_ngons :: Integer -> [Ngon]
 make_ngons = error "Not Implemeneted"
 
+fromList :: [Integer] -> Ngon
+fromList xs 
+    | mod (length xs) 2 /= 0 = error "Not the correct length"
+    | sort xs /= [1..(maximum xs)] = error "Not a proper Ngon"
+    | otherwise = worker (Ngon { items = xs })
+    where
+        worker nGon = if correctRotation nGon then nGon else (worker (rotate nGon))
+
+fromListTest = [
+    (Ngon{ items = [1,2,3,4,5,6] }) @=? fromList [1,2,3,4,5,6],
+    (Ngon{ items = [1,2,3,4,5,6] }) @=? fromList [2,3,1,5,6,4]
+    ]
+
+correctRotation :: Ngon -> Bool
+correctRotation nGon = minimum leaves == head leaves
+    where
+        leaves = map head $ arms nGon
+
+correctRotationTest = [
+    True @=? (correctRotation $ Ngon { items = [1,2,3,4,5,6] }),
+    False @=? (correctRotation $ Ngon { items = [2,3,1,5,6,4] })
+    ]
+
+rotate :: Ngon -> Ngon
+rotate (Ngon { items = xs }) = fromList (fs ++ [f] ++ ss ++ [s])
+    where
+        ((f:fs),(s:ss)) = splitAt (div (length xs) 2) xs
+
 unitTests = map TestCase $
-    testArms
+    testArms ++
+    fromListTest ++
+    correctRotationTest
     
 data Arg = Euler | UnitTest |
     AdHoc { ngon :: Integer } 
