@@ -6,7 +6,7 @@ import System.Console.CmdArgs
 
 import Common (exec, EulerArg, euler_main)
 
-import Data.List (intercalate, sort, splitAt)
+import Data.List (nub, permutations, intercalate, sort, splitAt)
 
 data Ngon = Ngon { items :: [Integer]} deriving (Show, Eq)
 
@@ -36,8 +36,13 @@ instance PrintfArg Ngon where
 problem0068 :: Integer -> Ngon
 problem0068 = error "Not Implemented"
 
+total :: Ngon -> Integer
+total = sum . head . arms 
+
 make_ngons :: Integer -> [Ngon]
-make_ngons = error "Not Implemeneted"
+make_ngons size = filter isMagic $ map fromList $ permutations [1..size]
+    where
+        isMagic n = (length $ nub $ map sum $ arms n) == 1
 
 fromList :: [Integer] -> Ngon
 fromList xs 
