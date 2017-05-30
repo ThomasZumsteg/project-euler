@@ -39,6 +39,58 @@ problem0068 = error "Not Implemented"
 total :: Ngon -> Integer
 total = sum . head . arms 
 
+-- inner + outer = (n + 1) * n / 2
+-- 7 * 3 = 21
+--
+-- (2 * inner + outer) / (n / 2)
+-- (2 * ((n + 1) * n / 2 - outer) + outer) / (n / 2)
+-- 2 * ((n + 1) * n - outer) / n
+-- 2 * ((n + 1) * n - outer) / n
+--
+-- (2 * inner + outer) / (n / 2)
+-- (2 * inner + ((n + 1) * n / 2) - inner) / (n / 2)
+-- (inner + ((n + 1) * n / 2)) / (n / 2)
+-- (2 * inner + ((n + 1) * n)) / n
+-- (2 * inner / n) + n + 1 = group sum
+--
+-- 2 * (1+2+3+4+5) / 10 + 10 + 1 = 3 + 10 + 1 =  14
+-- 2 * (6+7+8+9+10) / 10 + 10 + 1 = 8 + 10 + 1 =  19
+--
+-- 2 * (1+2+3) / 6 + 6 + 1 = 2 + 6 + 1 =  9
+-- 2 * (1+2+6) / 6 + 6 + 1 = 3 + 6 + 1 = 10
+-- 2 * (2+3+4) / 6 + 6 + 1 = 3 + 6 + 1 = 10
+-- 2 * (3+4+5) / 6 + 6 + 1 = 4 + 6 + 1 = 11
+-- 2 * (4+5+6) / 6 + 6 + 1 = 5 + 6 + 1 = 12
+makeNgonsFaster :: Integer -> [Ngon]
+makeNgonsFaster size = [ fromList $ inner ++ outer |
+    outer <- outers,
+    let inner = filter (not . flip elem outer) [1..size] ]
+    where
+        outers = [ x:xs' |
+            (x:xs) <- buildList (div size 2) [1..size],
+            xs' <- permutations xs,
+            0 == mod (2 * sum (x:xs')) size ]
+        targets = [ t |
+            let small = div (((div size 2) + 1) * size) 4
+                large = (div ((size + 1) * size) 2) - small,
+            t <- [small..large]]
+
+makeNgonsFasterTest = [
+    (make_ngons 4) @=? (makeNgonsFaster 4)
+    ]
+
+buildList :: Integer -> [Integer] -> [[Integer]]
+buildList 0 _ = [[]]
+buildList _ [] = []
+buildList l (x:xs) = (map (x:) (buildList (l-1) xs)) ++ (buildList l xs)
+
+buildListTest = [
+    [[1,2,3]] @=? buildList 3 [1..3],
+    [[]] @=? buildList 0 [1..3],
+    [[1],[2],[3]] @=? buildList 1 [1..3],
+    [[1,2],[1,3],[2,3]] @=? buildList 2 [1..3]
+    ]
+
 make_ngons :: Integer -> [Ngon]
 make_ngons size = filter isMagic $ map fromList $ permutations [1..size]
     where
@@ -75,7 +127,9 @@ rotate (Ngon { items = xs }) = fromList (fs ++ [f] ++ ss ++ [s])
 unitTests = map TestCase $
     testArms ++
     fromListTest ++
-    correctRotationTest
+    correctRotationTest ++
+    buildListTest ++
+    makeNgonsFasterTest
     
 data Arg = Euler | UnitTest |
     AdHoc { ngon :: Integer } 
