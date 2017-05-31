@@ -64,16 +64,24 @@ total = sum . head . arms
 makeNgonsFaster :: Integer -> [Ngon]
 makeNgonsFaster size = [ fromList $ inner ++ outer |
     outer <- outers,
-    let inner = filter (not . flip elem outer) [1..size] ]
+    let inner = makeInner size outer ]
     where
         outers = [ x:xs' |
             (x:xs) <- buildList (div size 2) [1..size],
-            xs' <- permutations xs,
-            0 == mod (2 * sum (x:xs')) size ]
-        targets = [ t |
-            let small = div (((div size 2) + 1) * size) 4
-                large = (div ((size + 1) * size) 2) - small,
-            t <- [small..large]]
+            0 == mod (2 * sum (x:xs)) size,
+            xs' <- permutations xs ]
+
+-- XXX: Fix me
+makeInner :: Integer -> [Integer] -> [Integer]
+makeInner size outer@(o:os) = error "Not Implemented"
+    where
+        target = div (2 * ((size + 1) * size - (sum outer))) size
+
+makeInnerTest = [
+    [1,2,3] @=? makeInner 6 [4,5,6],
+    [1,3,2] @=? makeInner 6 [4,6,5],
+    [4,6,5] @=? makeInner 6 [1,3,2]
+    ]
 
 makeNgonsFasterTest = [
     (make_ngons 4) @=? (makeNgonsFaster 4)
@@ -129,7 +137,8 @@ unitTests = map TestCase $
     fromListTest ++
     correctRotationTest ++
     buildListTest ++
-    makeNgonsFasterTest
+    makeNgonsFasterTest ++
+    makeInnerTest
     
 data Arg = Euler | UnitTest |
     AdHoc { ngon :: Integer } 
