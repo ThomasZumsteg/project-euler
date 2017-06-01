@@ -71,11 +71,28 @@ makeNgonsFaster size = [ fromList $ inner ++ outer |
             0 == mod (2 * sum (x:xs)) size,
             xs' <- permutations xs ]
 
--- XXX: Fix me
+-- XXX: find a,b,c,d,... given z,y,x,w,... and t
+--  i0 i1 i2 o0 o1 o2
+-- [1  2  3  4  5  6]
+--  o(n) + i(n-1) + i(n-2) = t
+--  t - o(0) - i( 2) = i( 1)
+--  t - o(1) - i( 1) = i( 0)
+--  t - o(2) - i( 0) = i( 2)
+--
+--  t - o(1) - i( 1) = i( 0)
+--  t - o(1) - t + o(0) + i( 2) = i( 0)
+--  o(0) - o(1) + i( 2) = i( 0)
+--  o(0) - o(1) - o(2) + t  = 2*i( 0)
+--  2*4 + 9 - 4 - 5 - 6 = 2 = 2 * 1 = 2*i( 0)
+--  2*5 + 9 - 4 - 5 - 6 = 4 = 2 * 2 = 2*i( 1)
+--  2*6 + 9 - 4 - 5 - 6 = 6 = 2 * 3 = 2*i( 2)
 makeInner :: Integer -> [Integer] -> [Integer]
-makeInner size outer@(o:os) = error "Not Implemented"
+makeInner size outer = [inner i | i <- [0..((div (fromIntegral size) 2)-1)]]
     where
-        target = div (2 * ((size + 1) * size - (sum outer))) size
+        s = sum outer
+        target = div (2 * ((size + 1) * size - s)) size
+        inner i = div (2 * (outer !! i) - s + target) 2
+
 
 makeInnerTest = [
     [1,2,3] @=? makeInner 6 [4,5,6],
