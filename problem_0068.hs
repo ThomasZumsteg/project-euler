@@ -74,30 +74,62 @@ makeNgonsFaster size = [ fromList $ inner ++ outer |
 -- XXX: find a,b,c,d,... given z,y,x,w,... and t
 --  i0 i1 i2 o0 o1 o2
 -- [1  2  3  4  5  6]
---  o(n) + i(n-1) + i(n-2) = t
---  t - o(0) - i( 2) = i( 1)
---  t - o(1) - i( 1) = i( 0)
---  t - o(2) - i( 0) = i( 2)
+-- 4,2,3; 5,3,1; 6,1,2
+-- target = 9
+--  t - o(1) - i(2) = i(0) # 9 - 5 - 3 = 1
+--  t - o(2) - i(0) = i(1) # 9 - 6 - 1 = 2
+--  t - o(0) - i(1) = i(2) # 9 - 4 - 2 = 3
+--  i(0) = t - o(1) - i(2)
+--  i(0) = t - o(1) - (t - o(0) - i(1))
+--  i(0) = - o(1) + o(0) + i(1)
+--  i(0) = - o(1) + o(0) + (t - o(2) - i(0))
+--  i(0) = t - o(1) + o(0) - o(2) - i(0)
+--  2*i(0) = t + o(0) - o(1) - o(2)
 --
---  t - o(1) - i( 1) = i( 0)
---  t - o(1) - t + o(0) + i( 2) = i( 0)
---  o(0) - o(1) + i( 2) = i( 0)
---  o(0) - o(1) - o(2) + t  = 2*i( 0)
---  2*4 + 9 - 4 - 5 - 6 = 2 = 2 * 1 = 2*i( 0)
---  2*5 + 9 - 4 - 5 - 6 = 4 = 2 * 2 = 2*i( 1)
---  2*6 + 9 - 4 - 5 - 6 = 6 = 2 * 3 = 2*i( 2)
+--  i(1) = t - o(2) - i(0)
+--  i(1) = t - o(2) - (t - o(1) - i(2))
+--  i(1) = - o(2) + o(1) + i(2)
+--  i(1) = - o(2) + o(1) + (t - o(0) - i(1))
+--  i(1) = t - o(2) + o(1) - o(0) - i(1)
+--  2*i(1) = t + o(1) - o(2) - o(0)
+--
+--  i0 i1 i2 i3 i4 o0 o1 o2 o3 o4
+-- [4, 3, 2, 1, 5, 6, 8, 10,7, 9 ]
+-- 6,3,5; 8,2,4; 10,1,3; 7,5,2; 9,4,1
+-- target = 14
+--  t - o(1) - i(2) = i(0) # 14 - 8 - 2 = 4
+--  t - o(2) - i(3) = i(1) # 14 -10 - 1 = 3
+--  t - o(3) - i(4) = i(2) # 14 - 7 - 5 = 2
+--  t - o(4) - i(0) = i(3) # 14 - 9 - 4 = 1
+--  t - o(0) - i(1) = i(4) # 14 - 6 - 3 = 5
+--
+-- i(0) = t - o(1) - i(2)
+-- i(0) = t - o(1) - (t - o(3) - i(4))
+-- i(0) = - o(1) + o(3) + i(4)
+-- i(0) = - o(1) + o(3) + (t - o(0) - i(1))
+-- i(0) = t - o(1) + o(3) - o(0) - i(1)
+-- i(0) = t - o(1) + o(3) - o(0) - (t - o(2) - i(3))
+-- i(0) = - o(1) + o(3) - o(0) + o(2) + i(3)
+-- i(0) = - o(1) + o(3) - o(0) + o(2) + (t - o(4) - i(0))
+-- i(0) = t - o(1) + o(3) - o(0) + o(2) - o(4) - i(0)
+-- 2*i(0) = t - o(0) - o(1) + o(2) + o(3) - o(4)
+-- 
+-- 2*i(1) = t - o(0) - o(1) - o(2) + o(3) + o(4) # 14 - 6 - 8 -10 + 7 + 9 = 6 = 2*3
 makeInner :: Integer -> [Integer] -> [Integer]
-makeInner size outer = [inner i | i <- [0..((div (fromIntegral size) 2)-1)]]
+makeInner size outer = [div (target + inner i) 2 |
+        i <- [0..((div (fromIntegral size) 2)-1)]]
     where
         s = sum outer
         target = div (2 * ((size + 1) * size - s)) size
-        inner i = div (2 * (outer !! i) - s + target) 2
+        mask = [ 1,-1,-1]
+        inner i = sum $ map (uncurry (*)) $ zip (reverse outer) $ drop (i+1) $ cycle mask
 
 
 makeInnerTest = [
     [1,2,3] @=? makeInner 6 [4,5,6],
     [1,3,2] @=? makeInner 6 [4,6,5],
-    [4,6,5] @=? makeInner 6 [1,3,2]
+    [4,6,5] @=? makeInner 6 [1,3,2],
+    [4,3,2,1,5] @=? makeInner 10 [6,8,10,7,9]
     ]
 
 makeNgonsFasterTest = [
