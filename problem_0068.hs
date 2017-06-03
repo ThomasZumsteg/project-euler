@@ -8,7 +8,7 @@ import Common (exec, EulerArg, euler_main)
 
 import Data.List (nub, permutations, intercalate, sort, splitAt)
 
-data Ngon = Ngon { items :: [Integer]} deriving (Show, Eq)
+data Ngon = Ngon { items :: [Integer]} deriving (Show, Eq, Ord)
 
 -- [1 2 3 4 5 6]
 --    b c a
@@ -62,7 +62,7 @@ total = sum . head . arms
 -- 2 * (3+4+5) / 6 + 6 + 1 = 4 + 6 + 1 = 11
 -- 2 * (4+5+6) / 6 + 6 + 1 = 5 + 6 + 1 = 12
 makeNgonsFaster :: Integer -> [Ngon]
-makeNgonsFaster size = [ fromList $ inner ++ outer |
+makeNgonsFaster size = [ (Ngon { items = inner ++ outer }) |
     outer <- outers,
     let inner = makeInner size outer ]
     where
@@ -73,9 +73,10 @@ makeNgonsFaster size = [ fromList $ inner ++ outer |
 
 -- XXX: find a,b,c,d,... given z,y,x,w,... and t
 --  i0 i1 i2 o0 o1 o2
--- [1  2  3  4  5  6]
--- 4,2,3; 5,3,1; 6,1,2
--- target = 9
+-- [1  2  3  4  5  6] target = 9
+-- i[0] = t - o[1] + o[0] - o[2]
+--  2*1 = 9 -   5  +   4  -   6
+--
 --  t - o(1) - i(2) = i(0) # 9 - 5 - 3 = 1
 --  t - o(2) - i(0) = i(1) # 9 - 6 - 1 = 2
 --  t - o(0) - i(1) = i(2) # 9 - 4 - 2 = 3
@@ -113,17 +114,48 @@ makeNgonsFaster size = [ fromList $ inner ++ outer |
 -- i(0) = - o(1) + o(3) - o(0) + o(2) + (t - o(4) - i(0))
 -- i(0) = t - o(1) + o(3) - o(0) + o(2) - o(4) - i(0)
 -- 2*i(0) = t - o(0) - o(1) + o(2) + o(3) - o(4)
--- 
 -- 2*i(1) = t - o(0) - o(1) - o(2) + o(3) + o(4) # 14 - 6 - 8 -10 + 7 + 9 = 6 = 2*3
+--
+--  i0 i1 i2 i3 i4 i5 i6 o0 o1 o2 o3 o4 o5 o6
+-- [ 2, 6, 7, 4, 1, 3, 5, 8,10, 9,11,12,13,14] target = 19
+-- i[0] =  t - o[1] - o[2] + o[3] + o[4] - o[5] - o[6]
+-- i[0] =  t + o[0] - o[1] - o[2] + o[3] + o[4] - o[5] - o[6]
+--   2  = 19 +   8  -  10  -   9  +  11  +  12  -  13  -  14
+--    2:-       (take 1 $ drop 2) 0
+--    6:+--     (take 3 $ drop 1) 1
+--   10:--++-   (take 5 $ drop 2) 2
+--   14:+--++-- (take 7 $ drop 1) 3
+-- 4,2,3; 5,3,1; 6,1,2 =  9 ok
+-- 4,3,2; 6,2,1; 5,1,3 =  9 ok
+-- 1,7,3; 6,3,2; 2,2,7 =  9 xx
+-- 2,3,5; 4,5,1; 6,1,3 = 10 ok
+-- 1,4,5; 5,5,0; 6,0,4 = 10 xx
+-- 1,5,4; 6,4,0; 5,0,5 = 10 xx
+-- 2,5,3; 6,3,1; 4,1,5 = 10 ok
+-- 3,3,4; 4,4,2; 5,2,3 = 10 xx
+-- 3,4,3; 5,3,2; 4,2,4 = 10 xx
+-- 1,3,7; 2,7,2; 6,2,3 = 11 ok
+-- 1,4,6; 3,6,2; 5,2,4 = 11 ok
+-- 1,6,4; 5,4,2; 3,2,6 = 11 ok
+--
+-- 4,2,3; 5,3,1; 6,1,2 =  9
+-- 4,3,2; 6,2,1; 5,1,3 =  9
+-- 2,3,5; 4,5,1; 6,1,3 = 10
+-- 2,5,3; 6,3,1; 4,1,5 = 10
+-- 1,4,6; 3,6,2; 5,2,4 = 11
+-- 1,6,4; 5,4,2; 3,2,6 = 11
+-- 1,5,6; 2,6,4; 3,4,5 = 12
+-- 1,6,5; 3,5,4; 2,4,6 = 12
 makeInner :: Integer -> [Integer] -> [Integer]
 makeInner size outer = [div (target + inner i) 2 |
         i <- [0..((div (fromIntegral size) 2)-1)]]
     where
         s = sum outer
         target = div (2 * ((size + 1) * size - s)) size
-        mask = [ 1,-1,-1]
+        masks = map (\(d,t) -> take t $ drop d $ cycle [1,1,-1,-1]) $ 
+                zip (cycle [2,1]) [1,3..] 
+        mask = masks !! (fromIntegral $ div (size-2) 4)
         inner i = sum $ map (uncurry (*)) $ zip (reverse outer) $ drop (i+1) $ cycle mask
-
 
 makeInnerTest = [
     [1,2,3] @=? makeInner 6 [4,5,6],
@@ -133,7 +165,7 @@ makeInnerTest = [
     ]
 
 makeNgonsFasterTest = [
-    (make_ngons 4) @=? (makeNgonsFaster 4)
+    (sort $ nub $ make_ngons 6) @=? (sort $ makeNgonsFaster 6)
     ]
 
 buildList :: Integer -> [Integer] -> [[Integer]]
@@ -155,8 +187,8 @@ make_ngons size = filter isMagic $ map fromList $ permutations [1..size]
 
 fromList :: [Integer] -> Ngon
 fromList xs 
-    | mod (length xs) 2 /= 0 = error "Not the correct length"
-    | sort xs /= [1..(maximum xs)] = error "Not a proper Ngon"
+    | mod (length xs - 2) 4 /= 0 = error "Not the correct length"
+    | sort xs /= [1..(maximum xs)] = error ("Not a proper Ngon { items= " ++ show xs ++ " }")
     | otherwise = worker (Ngon { items = xs })
     where
         worker nGon = if correctRotation nGon then nGon else (worker (rotate nGon))
