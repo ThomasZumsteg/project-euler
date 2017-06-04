@@ -34,7 +34,7 @@ instance PrintfArg Ngon where
         intercalate "; " . map (intercalate "," . map show) . arms
 
 problem0068 :: Integer -> Ngon
-problem0068 = error "Not Implemented"
+problem0068 n = last $ makeNgonsFaster n
 
 total :: Ngon -> Integer
 total = sum . head . arms 
@@ -62,9 +62,11 @@ total = sum . head . arms
 -- 2 * (3+4+5) / 6 + 6 + 1 = 4 + 6 + 1 = 11
 -- 2 * (4+5+6) / 6 + 6 + 1 = 5 + 6 + 1 = 12
 makeNgonsFaster :: Integer -> [Ngon]
-makeNgonsFaster size = [ (Ngon { items = inner ++ outer }) |
+makeNgonsFaster size = [ Ngon { items = inner ++ outer } |
     outer <- outers,
-    let inner = makeInner size outer ]
+    let inner = makeInner size outer
+        items = inner ++ outer,
+        sort items == [1..size]]
     where
         outers = [ x:xs' |
             (x:xs) <- buildList (div size 2) [1..size],
@@ -125,18 +127,18 @@ makeNgonsFaster size = [ (Ngon { items = inner ++ outer }) |
 --    6:+--     (take 3 $ drop 1) 1
 --   10:--++-   (take 5 $ drop 2) 2
 --   14:+--++-- (take 7 $ drop 1) 3
--- 4,2,3; 5,3,1; 6,1,2 =  9 ok
--- 4,3,2; 6,2,1; 5,1,3 =  9 ok
+-- 1,3,7; 2,7,2; 6,2,3 = 11 ok
+-- 1,4,5; 5,5,0; 6,0,4 = 10 xx
+-- 1,4,6; 3,6,2; 5,2,4 = 11 ok
+-- 1,5,4; 6,4,0; 5,0,5 = 10 xx
+-- 1,6,4; 5,4,2; 3,2,6 = 11 ok
 -- 1,7,3; 6,3,2; 2,2,7 =  9 xx
 -- 2,3,5; 4,5,1; 6,1,3 = 10 ok
--- 1,4,5; 5,5,0; 6,0,4 = 10 xx
--- 1,5,4; 6,4,0; 5,0,5 = 10 xx
 -- 2,5,3; 6,3,1; 4,1,5 = 10 ok
 -- 3,3,4; 4,4,2; 5,2,3 = 10 xx
 -- 3,4,3; 5,3,2; 4,2,4 = 10 xx
--- 1,3,7; 2,7,2; 6,2,3 = 11 ok
--- 1,4,6; 3,6,2; 5,2,4 = 11 ok
--- 1,6,4; 5,4,2; 3,2,6 = 11 ok
+-- 4,2,3; 5,3,1; 6,1,2 =  9 ok
+-- 4,3,2; 6,2,1; 5,1,3 =  9 ok
 --
 -- 4,2,3; 5,3,1; 6,1,2 =  9
 -- 4,3,2; 6,2,1; 5,1,3 =  9
@@ -227,14 +229,14 @@ data Arg = Euler | UnitTest |
 
 instance EulerArg Arg where
     exec Euler = do
-        let answer = problem0068 5
-        printf "Answer %v\n" answer
+        let answer = problem0068 10
+        printf "Answer %v\n" (concat $ concat $ map (map show) $ arms answer)
     exec AdHoc{..} = do
-        let answer = make_ngons ngon
+        let answer = makeNgonsFaster ngon
         mapM_ (printf "ngon: %v\n") answer
     exec UnitTest = do
         runTestTT $ TestList unitTests
         return ()
 
 main :: IO ()
-main = euler_main [Euler, UnitTest, AdHoc { ngon = 5 }]
+main = euler_main [Euler, UnitTest, AdHoc { ngon = 6 }]
