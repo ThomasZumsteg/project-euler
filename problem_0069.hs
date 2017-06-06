@@ -24,36 +24,39 @@ import qualified Data.Set as S
 -- It can be seen that n=6 produces a maximum n/φ(n) for n ≤ 10.
 -- Find the value of n ≤ 1,000,000 for which n/φ(n) is a maximum.
 
-problem0069 :: Int -> S.Set Integer
-problem0069 n = maximumBy size $ take n relativePrimes
+problem0069 :: Int -> (Int, S.Set Integer)
+problem0069 n = maximumBy size $ take n $ zip [0..] relativePrimes
     where
-        size a b = compare (S.size a) (S.size b)
+        size (ia, sa) (ib, sb) = compare ((S.size sb) * ia) ((S.size sa) * ib)
 
 relativePrimes :: [S.Set Integer]
-relativePrimes = foldr updateSets (repeat S.empty) [1,2..]
+relativePrimes = [S.fromList [n | n <- [1..i], 1 == gcd i n] | i <- [0..]]
 
-updateSets :: Integer -> [S.Set Integer] -> [S.Set Integer]
-updateSets n sets = [if mod n i == 0 then S.insert n s else s | 
-    (i, s) <- zip [1..] sets]
+relativePrimesTest = [
+    S.fromList []    @=? (relativePrimes !! 0),
+    S.fromList [1]   @=? (relativePrimes !! 1),
+    S.fromList [1]   @=? (relativePrimes !! 2),
+    S.fromList [1,2] @=? (relativePrimes !! 3)
+    ]
 
 unitTests = map TestCase $
-    []
+    relativePrimesTest
 
 data Arg = Euler | UnitTest |
-    AdHoc {} 
+    AdHoc { limit::Int } 
     deriving (Show, Data, Typeable)
 
 instance EulerArg Arg where
     exec Euler = do
         let answer = problem0069 1000000
         printf "Answer %s\n" (show answer)
-    exec AdHoc = do
-        let answer = problem0069 10
-        printf "Answer %s\n" (show answer)
+    exec AdHoc {..} = do
+        let answer = problem0069 limit
+        printf "Answer %d: %d\n" (fst answer) (S.size $ snd answer)
     exec UnitTest = do
         runTestTT $ TestList unitTests
         return ()
 
 main :: IO ()
-main = euler_main [Euler, UnitTest, AdHoc {}]
+main = euler_main [Euler, UnitTest, AdHoc { limit= 10 }]
 
