@@ -39,6 +39,16 @@ relativePrimesTest = [
     S.fromList [1,2] @=? (relativePrimes !! 3)
     ]
 
+fastRPrimes :: [S.Set Integer]
+fastRPrimes = (worker $ map S.fromList $ scanl (flip (:)) [] [1..])
+    where
+        worker (xs:xss) = xs : (worker (mapNth x (S.delete x) xss))
+            where
+                x = maximum xs
+
+mapNth :: Integer -> (a -> a) -> [a] -> [a]
+mapNth n f xs = error "not Implemented"
+
 unitTests = map TestCase $
     relativePrimesTest
 
