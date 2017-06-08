@@ -25,7 +25,7 @@ import qualified Data.Set as S
 -- Find the value of n ≤ 1,000,000 for which n/φ(n) is a maximum.
 
 problem0069 :: Int -> (Int, S.Set Integer)
-problem0069 n = maximumBy size $ take n $ zip [0..] relativePrimes
+problem0069 n = maximumBy size $ take n $ zip [0..] fastRPrimes
     where
         size (ia, sa) (ib, sb) = compare ((S.size sb) * ia) ((S.size sa) * ib)
 
@@ -40,17 +40,34 @@ relativePrimesTest = [
     ]
 
 fastRPrimes :: [S.Set Integer]
-fastRPrimes = (worker $ map S.fromList $ scanl (flip (:)) [] [1..])
+fastRPrimes = worker $ zip [0..] $ repeat S.empty
     where
-        worker (xs:xss) = xs : (worker (mapNth x (S.delete x) xss))
+        worker ((0, xs):xss) = xs : (worker xss)
+        worker ((i, xs):xss) = xs : (worker $ mapNth i add id xss)
             where
-                x = maximum xs
+                add (j, s) = (j, S.insert i s)
 
-mapNth :: Integer -> (a -> a) -> [a] -> [a]
-mapNth n f xs = error "not Implemented"
+fastRPrimesTest = [
+    S.empty          @=? (fastRPrimes !! 0),
+    S.fromList []    @=? (fastRPrimes !! 1),
+    S.fromList [1]   @=? (fastRPrimes !! 2),
+    S.fromList [1,2] @=? (fastRPrimes !! 3),
+    S.fromList [1,3] @=? (fastRPrimes !! 4)
+    ]
+
+mapNth :: Integer -> (a -> b) -> (a -> b) -> [a] -> [b]
+mapNth n t f xs = [(if 0 == mod i n then t else f) x | (i, x) <- zip [0..] xs]
+
+mapNthTest = [
+    [2,1,2,1] @=? mapNth 2 (+1) id [1,1,1,1],
+    [1,2,1,2] @=? mapNth 2 id (+1) [1,1,1,1],
+    [3,1,1,3,1,1,3] @=? mapNth 3 (+2) id [1,1,1,1,1,1,1]
+    ]
 
 unitTests = map TestCase $
-    relativePrimesTest
+    relativePrimesTest ++
+    fastRPrimesTest ++
+    mapNthTest
 
 data Arg = Euler | UnitTest |
     AdHoc { limit::Int } 
