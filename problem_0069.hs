@@ -4,7 +4,7 @@ import Test.HUnit ((@=?), runTestTT, Test(..))
 import Text.Printf (printf, PrintfArg, formatArg, formatString)
 import System.Console.CmdArgs
 
-import Common (exec, EulerArg, euler_main)
+import Common (exec, EulerArg, euler_main, primes)
 
 import Data.List (maximumBy)
 import qualified Data.Set as S
@@ -25,16 +25,18 @@ import qualified Data.Set as S
 -- Find the value of n ≤ 1,000,000 for which n/φ(n) is a maximum.
 
 problem0069 :: Int -> (Int, S.Set Integer)
-problem0069 n = maximumBy size $ take n $ zip [0..] fastRPrimes
+problem0069 n = (solution, relativePrimes !! solution)
     where
-        size (ia, sa) (ib, sb) = compare ((S.size sb) * ia) ((S.size sa) * ib)
+        solution = fromIntegral $ last $ 
+            takeWhile ((>) (toInteger n)) $ scanl1 (*) primes
 
 relativePrimes :: [S.Set Integer]
-relativePrimes = [S.fromList [n | n <- [1..i], 1 == gcd i n] | i <- [0..]]
+relativePrimes = S.empty : S.empty : 
+    [S.fromList [n | n <- [1..i], 1 == gcd i n] | i <- [2..]]
 
 relativePrimesTest = [
     S.fromList []    @=? (relativePrimes !! 0),
-    S.fromList [1]   @=? (relativePrimes !! 1),
+    S.fromList []   @=? (relativePrimes !! 1),
     S.fromList [1]   @=? (relativePrimes !! 2),
     S.fromList [1,2] @=? (relativePrimes !! 3)
     ]
@@ -42,8 +44,10 @@ relativePrimesTest = [
 fastRPrimes :: [S.Set Integer]
 fastRPrimes = worker $ zip [0..] $ repeat S.empty
     where
-        worker ((0, xs):xss) = xs : (worker xss)
-        worker ((i, xs):xss) = xs : (worker $ mapNth i add id xss)
+        worker ((i, xs):xss) = xs : (worker $ (case i of
+            0 -> id
+            1 -> map add 
+            _ -> mapNth i id add) xss)
             where
                 add (j, s) = (j, S.insert i s)
 
@@ -56,12 +60,12 @@ fastRPrimesTest = [
     ]
 
 mapNth :: Integer -> (a -> b) -> (a -> b) -> [a] -> [b]
-mapNth n t f xs = [(if 0 == mod i n then t else f) x | (i, x) <- zip [0..] xs]
+mapNth n t f xs = [(if 0 == mod i n then t else f) x | (i, x) <- zip [1..] xs]
 
 mapNthTest = [
-    [2,1,2,1] @=? mapNth 2 (+1) id [1,1,1,1],
-    [1,2,1,2] @=? mapNth 2 id (+1) [1,1,1,1],
-    [3,1,1,3,1,1,3] @=? mapNth 3 (+2) id [1,1,1,1,1,1,1]
+    [1,2,1,2,1] @=? mapNth 2 (+1) id [1,1,1,1,1],
+    [2,1,2,1,2] @=? mapNth 2 id (+1) [1,1,1,1,1],
+    [1,1,3,1,1,3] @=? mapNth 3 (+2) id [1,1,1,1,1,1]
     ]
 
 unitTests = map TestCase $
@@ -75,8 +79,8 @@ data Arg = Euler | UnitTest |
 
 instance EulerArg Arg where
     exec Euler = do
-        let answer = problem0069 1000000
-        printf "Answer %s\n" (show answer)
+        let answer = problem0069 10000000
+        printf "Answer %d\n" (fst answer)
     exec AdHoc {..} = do
         let answer = problem0069 limit
         printf "Answer %d: %d\n" (fst answer) (S.size $ snd answer)
