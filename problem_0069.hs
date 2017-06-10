@@ -42,12 +42,9 @@ relativePrimesTest = [
     ]
 
 fastRPrimes :: [S.Set Integer]
-fastRPrimes = worker $ zip [0..] $ repeat S.empty
+fastRPrimes = S.empty : S.empty : (worker $ zip [2..] $ repeat $ S.singleton 1)
     where
-        worker ((i, xs):xss) = xs : (worker $ (case i of
-            0 -> id
-            1 -> map add 
-            _ -> mapNth i id add) xss)
+        worker ((i, xs):xss) = xs : (worker $ mapNth i add id xss)
             where
                 add (j, s) = (j, S.insert i s)
 
@@ -60,12 +57,12 @@ fastRPrimesTest = [
     ]
 
 mapNth :: Integer -> (a -> b) -> (a -> b) -> [a] -> [b]
-mapNth n t f xs = [(if 0 == mod i n then t else f) x | (i, x) <- zip [1..] xs]
+mapNth n t f xs = [(if 0 == mod i n then t else f) x | (i, x) <- zip [0..] xs]
 
 mapNthTest = [
-    [1,2,1,2,1] @=? mapNth 2 (+1) id [1,1,1,1,1],
-    [2,1,2,1,2] @=? mapNth 2 id (+1) [1,1,1,1,1],
-    [1,1,3,1,1,3] @=? mapNth 3 (+2) id [1,1,1,1,1,1]
+    [2,1,2,1] @=? mapNth 2 (+1) id [1,1,1,1],
+    [1,2,1,2] @=? mapNth 2 id (+1) [1,1,1,1],
+    [3,1,1,3,1,1,3] @=? mapNth 3 (+2) id [1,1,1,1,1,1,1]
     ]
 
 unitTests = map TestCase $
