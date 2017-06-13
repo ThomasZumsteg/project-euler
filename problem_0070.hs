@@ -42,7 +42,7 @@ phi 1 = []
 phi n = 1 : [i | i <- [2..(n-1)], 1 == gcd i n]
 
 phiTest = [
-    [1] @=? phi 1,
+    [] @=? phi 1,
     [1] @=? phi 2,
     [1,2] @=? phi 3,
     [1,3] @=? phi 4,
@@ -57,7 +57,13 @@ phiTest = [
 primeFactorsList :: [[Integer]]
 primeFactorsList = []  : [] : (worker 2 $ repeat [])
     where
-        worker i (x:xs) = error "Not Implemented"
+        worker i (x:xs) 
+            | x == [] = [i] : (worker (i+1) $ mapNth i (i:) xs)
+            | prod == i = x : (worker (i+1) xs)
+            | otherwise = ((primeFactorsList !! rem) ++ x) : (worker (i+1) xs)
+                where
+                    prod = foldl1 (*) x
+                    rem = fromInteger $ div i prod
 
 primeFactorsListTest = [
     [] @=? primeFactorsList !! 0,
@@ -66,23 +72,32 @@ primeFactorsListTest = [
     [3] @=? primeFactorsList !! 3,
     [2,2] @=? primeFactorsList !! 4,
     [5] @=? primeFactorsList !! 5,
-    [2,3] @=? primeFactorsList !! 6,
+    [3,2] @=? primeFactorsList !! 6,
     [7] @=? primeFactorsList !! 7,
     [2,2,2] @=? primeFactorsList !! 8,
     [3,3] @=? primeFactorsList !! 9,
-    [2,5] @=? primeFactorsList !! 10
+    [5,2] @=? primeFactorsList !! 10
     ]
 
-mapNth :: Int -> (a -> a) -> [a] -> [a]
-mapNth n f xs = worker 1 xs
+mapNth :: Integer -> (a -> a) -> [a] -> [a]
+mapNth n f xs = worker 2 xs
     where
+        worker _ [] = []
         worker i (x:xs) = x' : worker i' xs
             where 
-                x' = if i == 0 then f x else x
-                i' = if i == n then 0 else i + 1
+                x' = if i == 1 then f x else x
+                i' = if i < n then i + 1 else 1
+
+mapNthTest = [
+    [1,2,1,2] @=? mapNth 2 (+1) [1,1,1,1],
+    [1,1,3,1] @=? mapNth 3 (+2) [1,1,1,1],
+    [[],[1],[],[1]] @=? mapNth 2 (1:) [[],[],[],[]]
+    ]
 
 unitTests = map TestCase $
-    phiTest
+    phiTest ++
+    mapNthTest ++
+    primeFactorsListTest
 
 data Arg = Euler | UnitTest |
     AdHoc { adhocLowerLimit::Integer, adhocUpperLimit::Integer } 
