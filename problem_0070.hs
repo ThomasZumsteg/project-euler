@@ -14,27 +14,27 @@ import Data.List (minimumBy, sort, group)
 -- Find the value of n, 1 < n < 10⁷, for which φ(n) is a permutation of n and the ratio n/φ(n) produces a minimum
 
 data Problem = Problem { pLowerLimit :: Integer, pUpperLimit :: Integer }
-data AdHocReturn = AdHocReturn { num :: Integer, rPrimes :: [Integer] }
+data AdHocReturn = AdHocReturn { num :: Integer, ah_phi :: Integer }
 
 instance PrintfArg AdHocReturn where
-    formatArg (AdHocReturn { num = n, rPrimes = rps }) = formatString $
-            ((printf "%7d:%7d - %4.2f %s" n len frac (show rps))::String)
+    formatArg (AdHocReturn { num = n, ah_phi = ah_phi }) = formatString $
+            ((printf "%7d:%7d - %4.2f" n len frac)::String)
         where
-            len = toInteger $ length rps
+            len = ah_phi
             frac = ((fromInteger n) / (fromInteger len))::Double
 
 problem :: Problem -> Integer
 problem (Problem lower upper) = minimumBy nOverPhi $ 
     filter permutations [lower..upper]
     where
-        size = toInteger . length . phi
+        size = factorPhi . primeFactors 
         permutations n = (sort $ show n) == (sort $ show $ size n)
         nOverPhi a b = compare (a * size b) (b * size a) 
 
 adhoc :: Arg -> [AdHocReturn]
 adhoc (AdHoc start stop) = [AdHocReturn n p | 
     n <- [start..stop],
-    let p = phi n]
+    let p = factorPhi $ primeFactors n]
 
 phi :: Integer -> [Integer]
 phi 0 = []
@@ -64,6 +64,21 @@ factorPhiTest = [
     2 @=? factorPhi [3],
     4 @=? factorPhi [5],
     2 * 4 @=? factorPhi [3,5]
+    ]
+
+primeFactors :: Integer -> [Integer]
+primeFactors n = worker n primes
+    where
+        worker n ps@(p:ps')
+            | n == 1 = []   
+            | r == 0 = p : worker q ps
+            | otherwise = worker n ps'
+                where
+                    (q, r) = divMod n p
+
+primeFactorsTest = [
+    [2,5] @=? primeFactors 10,
+    [2,2,2] @=? primeFactors 8
     ]
 
 primeFactorsList :: [[Integer]]
@@ -110,7 +125,8 @@ unitTests = map TestCase $
     phiTest ++
     mapNthTest ++
     primeFactorsListTest ++
-    factorPhiTest
+    factorPhiTest ++
+    primeFactorsTest
 
 data Arg = Euler | UnitTest |
     AdHoc { adhocLowerLimit::Integer, adhocUpperLimit::Integer } 
@@ -128,4 +144,4 @@ instance EulerArg Arg where
         return ()
 
 main :: IO ()
-main = euler_main [Euler, UnitTest, AdHoc { adhocLowerLimit = 1, adhocUpperLimit = 107 }]
+main = euler_main [Euler, UnitTest, AdHoc { adhocLowerLimit = 1, adhocUpperLimit = 100 }]
