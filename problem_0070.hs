@@ -54,6 +54,37 @@ phiTest = [
     [1,3,7,9] @=? phi 10
     ]
 
+fastPhi :: [Integer]
+fastPhi = 0 : 0 : (fastPhiWorker 2 [2..])
+
+fastPhiTest = [ 
+    (toInteger $ length $ phi 1) @=? fastPhi !! 1,
+    (toInteger $ length $ phi 2) @=? fastPhi !! 2,
+    (toInteger $ length $ phi 3) @=? fastPhi !! 3,
+    (toInteger $ length $ phi 4) @=? fastPhi !! 4,
+    (toInteger $ length $ phi 5) @=? fastPhi !! 5,
+    (toInteger $ length $ phi 6) @=? fastPhi !! 6,
+    (toInteger $ length $ phi 7) @=? fastPhi !! 7,
+    (toInteger $ length $ phi 10) @=? fastPhi !! 10,
+    (toInteger $ length $ phi 100) @=? fastPhi !! 100
+    ]   
+
+fastPhiWorker :: Integer -> [Integer] -> [Integer]
+fastPhiWorker i (x:xs)
+    | i == x = (x - 1) : fastPhiWorker (i+1) xs'
+    | otherwise = x : fastPhiWorker (i+1) xs
+        where
+            x' = fromInteger x
+            xs' = updateNth update (x'-1) xs
+            update n = (x-1) * div n x
+
+updateNth :: (a -> a) -> Int -> [a] -> [a]
+updateNth update i xs = worker i xs
+    where
+        worker _ [] = []
+        worker 0 (x:xs) = update x : worker i xs
+        worker n (x:xs) = x : worker (n-1) xs
+
 factorPhi :: [Integer] -> Integer
 factorPhi primeFactors = foldl calculatePhi 1 $ group $ sort primeFactors
     where
@@ -126,7 +157,8 @@ unitTests = map TestCase $
     mapNthTest ++
     primeFactorsListTest ++
     factorPhiTest ++
-    primeFactorsTest
+    primeFactorsTest ++
+    fastPhiTest
 
 data Arg = Euler | UnitTest |
     AdHoc { adhocLowerLimit::Integer, adhocUpperLimit::Integer } 
