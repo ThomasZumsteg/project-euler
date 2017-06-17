@@ -13,7 +13,7 @@ import Data.List (minimumBy, sort, group)
 -- Interestingly, φ(87109)=79180, and it can be seen that 87109 is a permutation of 79180.
 -- Find the value of n, 1 < n < 10⁷, for which φ(n) is a permutation of n and the ratio n/φ(n) produces a minimum
 
-data Problem = Problem { pLowerLimit :: Integer, pUpperLimit :: Integer }
+data Problem = Problem { pLowerLimit :: Int, pUpperLimit :: Int }
 data AdHocReturn = AdHocReturn { num :: Integer, ah_phi :: Integer }
 
 instance PrintfArg AdHocReturn where
@@ -24,10 +24,10 @@ instance PrintfArg AdHocReturn where
             frac = ((fromInteger n) / (fromInteger len))::Double
 
 problem :: Problem -> Integer
-problem (Problem lower upper) = minimumBy nOverPhi $ 
+problem (Problem lower upper) = toInteger $ minimumBy nOverPhi $ 
     filter permutations [lower..upper]
     where
-        size = factorPhi . primeFactors 
+        size = (!!) fastPhi
         permutations n = (sort $ show n) == (sort $ show $ size n)
         nOverPhi a b = compare (a * size b) (b * size a) 
 
@@ -35,6 +35,33 @@ adhoc :: Arg -> [AdHocReturn]
 adhoc (AdHoc start stop) = [AdHocReturn n p | 
     n <- [start..stop],
     let p = factorPhi $ primeFactors n]
+
+iterPhi :: (Integral a) => a -> (a -> a -> a) -> a
+iterPhi stop select 
+    | stop <= 1 = error (printf "%d must be 2 or greater" (toInteger stop))
+    | stop == 2 = 1
+    | otherwise = snd $ foldl update (3, select 2 3) []
+    where
+        update (n, selected) primes = update state primes'
+            where
+                state = (n+1, select phi selected)
+                prime = phi == n-1
+                primes' = if prime then n:primes else primes
+                phi = foldl divAll n primes
+
+divAll :: (Integral a) => a -> a -> a
+divAll n d = if r == 0 then divAll q d else n
+    where
+        (q, r) = divMod n d
+
+divAllTest = [
+    2 @=? divAll 18 3,
+    2 @=? divAll (3*3*3*3*2) 3,
+    (2*7*8) @=? divAll (2*5*5*7*8) 5,
+    (6*3*2) @=? divAll (17*6*3*2) 17,
+    101 @=? divAll 101 3,
+    7 @=? divAll (7*5*5*5*5*5*5) 5
+    ]
 
 phi :: Integer -> [Integer]
 phi 0 = []
@@ -54,28 +81,27 @@ phiTest = [
     [1,3,7,9] @=? phi 10
     ]
 
-fastPhi :: [Integer]
+fastPhi :: [Int]
 fastPhi = 0 : 0 : (fastPhiWorker 2 [2..])
 
 fastPhiTest = [ 
-    (toInteger $ length $ phi 1) @=? fastPhi !! 1,
-    (toInteger $ length $ phi 2) @=? fastPhi !! 2,
-    (toInteger $ length $ phi 3) @=? fastPhi !! 3,
-    (toInteger $ length $ phi 4) @=? fastPhi !! 4,
-    (toInteger $ length $ phi 5) @=? fastPhi !! 5,
-    (toInteger $ length $ phi 6) @=? fastPhi !! 6,
-    (toInteger $ length $ phi 7) @=? fastPhi !! 7,
-    (toInteger $ length $ phi 10) @=? fastPhi !! 10,
-    (toInteger $ length $ phi 100) @=? fastPhi !! 100
+    (length $ phi 1) @=? fastPhi !! 1,
+    (length $ phi 2) @=? fastPhi !! 2,
+    (length $ phi 3) @=? fastPhi !! 3,
+    (length $ phi 4) @=? fastPhi !! 4,
+    (length $ phi 5) @=? fastPhi !! 5,
+    (length $ phi 6) @=? fastPhi !! 6,
+    (length $ phi 7) @=? fastPhi !! 7,
+    (length $ phi 10) @=? fastPhi !! 10,
+    (length $ phi 100) @=? fastPhi !! 100
     ]   
 
-fastPhiWorker :: Integer -> [Integer] -> [Integer]
+fastPhiWorker :: Int -> [Int] -> [Int]
 fastPhiWorker i (x:xs)
     | i == x = (x - 1) : fastPhiWorker (i+1) xs'
     | otherwise = x : fastPhiWorker (i+1) xs
         where
-            x' = fromInteger x
-            xs' = updateNth update (x'-1) xs
+            xs' = updateNth update (x-1) xs
             update n = (x-1) * div n x
 
 updateNth :: (a -> a) -> Int -> [a] -> [a]
@@ -158,7 +184,8 @@ unitTests = map TestCase $
     primeFactorsListTest ++
     factorPhiTest ++
     primeFactorsTest ++
-    fastPhiTest
+    fastPhiTest ++
+    divAllTest
 
 data Arg = Euler | UnitTest |
     AdHoc { adhocLowerLimit::Integer, adhocUpperLimit::Integer } 
