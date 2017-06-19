@@ -36,31 +36,40 @@ adhoc (AdHoc start stop) = [AdHocReturn n p |
     n <- [start..stop],
     let p = factorPhi $ primeFactors n]
 
-iterPhi :: (Integral a) => a -> (a -> a -> a) -> a
-iterPhi stop select 
-    | stop <= 1 = error (printf "%d must be 2 or greater" (toInteger stop))
-    | stop == 2 = 1
-    | otherwise = snd $ foldl update (3, select 2 3) []
+foldPhi :: [Integer]
+foldPhi = -1 : -1 : foldMapl updater [] [2..]
+
+foldMapl :: (s -> a -> (b, s)) -> s -> [a] -> [b]
+foldMapl _ _ [] = []
+foldMapl update s (x:xs) = x' : foldMapl update s' xs
     where
-        update (n, selected) primes = update state primes'
+        (x', s') = update s x
+
+foldMaplTest = [
+    [1,2,3] @=? foldMapl (\s a -> (s + a, s + a)) 0 [1,1,1],
+    [1,2,2,4,2,6,4,6,4,10,4,12,6,8,8,16,6,18,8] @=? foldMapl updater [] [2..20]
+    ]
+
+updater :: (Integral a) => [a] -> a -> (a, [a])
+updater primes v 
+    | v == v' = (v - 1, v:primes)
+    | otherwise = (v', primes)
+    where
+        v' = foldl worker v primes
             where
-                state = (n+1, select phi selected)
-                prime = phi == n-1
-                primes' = if prime then n:primes else primes
-                phi = foldl divAll n primes
+                worker val prime = if 0 == mod v prime
+                    then (div val prime) * (prime - 1)
+                    else val
 
-divAll :: (Integral a) => a -> a -> a
-divAll n d = if r == 0 then divAll q d else n
-    where
-        (q, r) = divMod n d
-
-divAllTest = [
-    2 @=? divAll 18 3,
-    2 @=? divAll (3*3*3*3*2) 3,
-    (2*7*8) @=? divAll (2*5*5*7*8) 5,
-    (6*3*2) @=? divAll (17*6*3*2) 17,
-    101 @=? divAll 101 3,
-    7 @=? divAll (7*5*5*5*5*5*5) 5
+updaterTest = [
+    (2, [3,2]) @=? updater [2] 3,
+    (2, [3,2]) @=? updater [3,2] 4,
+    (4, [5,3,2]) @=? updater [3,2] 5,
+    (2, [5,3,2]) @=? updater [5,3,2] 6,
+    (6, [7,5,3,2]) @=? updater [5,3,2] 7,
+    (4, [7,5,3,2]) @=? updater [7,5,3,2] 8,
+    (6, [2,3,5,7]) @=? updater [2,3,5,7] 9,
+    (6, [7,5,3,2]) @=? updater [7,5,3,2] 9
     ]
 
 phi :: Integer -> [Integer]
@@ -185,7 +194,8 @@ unitTests = map TestCase $
     factorPhiTest ++
     primeFactorsTest ++
     fastPhiTest ++
-    divAllTest
+    foldMaplTest ++
+    updaterTest
 
 data Arg = Euler | UnitTest |
     AdHoc { adhocLowerLimit::Integer, adhocUpperLimit::Integer } 
