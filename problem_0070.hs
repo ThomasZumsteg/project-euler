@@ -24,12 +24,12 @@ instance PrintfArg AdHocReturn where
             frac = ((fromInteger n) / (fromInteger len))::Double
 
 problem :: Problem -> Integer
-problem (Problem lower upper) = toInteger $ minimumBy nOverPhi $ 
-    filter permutations [lower..upper]
+problem (Problem lower upper) = toInteger $ fst $ minimumBy aOverb $ filter permutations items
     where
-        size = (!!) fastPhi
-        permutations n = (sort $ show n) == (sort $ show $ size n)
-        nOverPhi a b = compare (a * size b) (b * size a) 
+        phi = length . slowPhi
+        items = zip [lower..upper] $ map phi [lower..upper]
+        permutations (a, b) = (sort $ show a) == (sort $ show b)
+        aOverb (n_a, phi_a) (n_b, phi_b) = compare (n_a * phi_b) (n_b * phi_a) 
 
 adhoc :: Arg -> [AdHocReturn]
 adhoc (AdHoc start stop) = [AdHocReturn n p | 
@@ -72,37 +72,37 @@ updaterTest = [
     (6, [7,5,3,2]) @=? updater [7,5,3,2] 9
     ]
 
-phi :: Integer -> [Integer]
-phi 0 = []
-phi 1 = []
-phi n = 1 : [i | i <- [2..(n-1)], 1 == gcd i n]
+slowPhi :: (Integral a) => a -> [a]
+slowPhi 0 = []
+slowPhi 1 = []
+slowPhi n = 1 : [i | i <- [2..(n-1)], 1 == gcd i n]
 
 phiTest = [
-    [] @=? phi 1,
-    [1] @=? phi 2,
-    [1,2] @=? phi 3,
-    [1,3] @=? phi 4,
-    [1,2,3,4] @=? phi 5,
-    [1,5] @=? phi 6,
-    [1,2,3,4,5,6] @=? phi 7,
-    [1,3,5,7] @=? phi 8,
-    [1,2,4,5,7,8] @=? phi 9,
-    [1,3,7,9] @=? phi 10
+    [] @=? slowPhi 1,
+    [1] @=? slowPhi 2,
+    [1,2] @=? slowPhi 3,
+    [1,3] @=? slowPhi 4,
+    [1,2,3,4] @=? slowPhi 5,
+    [1,5] @=? slowPhi 6,
+    [1,2,3,4,5,6] @=? slowPhi 7,
+    [1,3,5,7] @=? slowPhi 8,
+    [1,2,4,5,7,8] @=? slowPhi 9,
+    [1,3,7,9] @=? slowPhi 10
     ]
 
 fastPhi :: [Int]
 fastPhi = 0 : 0 : (fastPhiWorker 2 [2..])
 
 fastPhiTest = [ 
-    (length $ phi 1) @=? fastPhi !! 1,
-    (length $ phi 2) @=? fastPhi !! 2,
-    (length $ phi 3) @=? fastPhi !! 3,
-    (length $ phi 4) @=? fastPhi !! 4,
-    (length $ phi 5) @=? fastPhi !! 5,
-    (length $ phi 6) @=? fastPhi !! 6,
-    (length $ phi 7) @=? fastPhi !! 7,
-    (length $ phi 10) @=? fastPhi !! 10,
-    (length $ phi 100) @=? fastPhi !! 100
+    (length $ slowPhi 1) @=? fastPhi !! 1,
+    (length $ slowPhi 2) @=? fastPhi !! 2,
+    (length $ slowPhi 3) @=? fastPhi !! 3,
+    (length $ slowPhi 4) @=? fastPhi !! 4,
+    (length $ slowPhi 5) @=? fastPhi !! 5,
+    (length $ slowPhi 6) @=? fastPhi !! 6,
+    (length $ slowPhi 7) @=? fastPhi !! 7,
+    (length $ slowPhi 10) @=? fastPhi !! 10,
+    (length $ slowPhi 100) @=? fastPhi !! 100
     ]   
 
 fastPhiWorker :: Int -> [Int] -> [Int]
