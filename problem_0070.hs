@@ -6,7 +6,7 @@ import System.Console.CmdArgs
 
 import Common (exec, EulerArg, euler_main, primes)
 
-import Data.List (minimumBy, sort, group)
+import Data.List (minimumBy, sort, group, foldl')
 
 -- Euler's Totient function, φ(n) [sometimes called the phi function], is used to determine the number of positive numbers less than or equal to n which are relatively prime to n. For example, as 1, 2, 4, 5, 7, and 8, are all less than nine and relatively prime to nine, φ(9)=6.
 -- The number 1 is considered to be relatively prime to every positive number, so φ(1)=1.
@@ -26,7 +26,7 @@ instance PrintfArg AdHocReturn where
 problem :: Problem -> Integer
 problem (Problem lower upper) = toInteger $ fst $ minimumBy aOverb $ filter permutations items
     where
-        phi = length . slowPhi
+        phi = (!!) foldPhi
         items = zip [lower..upper] $ map phi [lower..upper]
         permutations (a, b) = (sort $ show a) == (sort $ show b)
         aOverb (n_a, phi_a) (n_b, phi_b) = compare (n_a * phi_b) (n_b * phi_a) 
@@ -36,40 +36,29 @@ adhoc (AdHoc start stop) = [AdHocReturn n p |
     n <- [start..stop],
     let p = factorPhi $ primeFactors n]
 
-foldPhi :: [Integer]
-foldPhi = -1 : -1 : foldMapl updater [] [2..]
+foldPhi :: (Integral a) => [a]
+foldPhi = 0 : 0 : foldPhiWorker id [2..]
 
-foldMapl :: (s -> a -> (b, s)) -> s -> [a] -> [b]
-foldMapl _ _ [] = []
-foldMapl update s (x:xs) = x' : foldMapl update s' xs
-    where
-        (x', s') = update s x
-
-foldMaplTest = [
-    [1,2,3] @=? foldMapl (\s a -> (s + a, s + a)) 0 [1,1,1],
-    [1,2,2,4,2,6,4,6,4,10,4,12,6,8,8,16,6,18,8] @=? foldMapl updater [] [2..20]
+foldPhiTest = [
+    (map (length . slowPhi) [0..10]) @=? (take 11 foldPhi)
     ]
 
-updater :: (Integral a) => [a] -> a -> (a, [a])
-updater primes v 
-    | v == v' = (v - 1, v:primes)
-    | otherwise = (v', primes)
+foldPhiWorker :: (Integral a) => (a -> a) -> [a] -> [a]
+foldPhiWorker _ [] = []
+foldPhiWorker update (x:xs) = (if x == x' then (x' - 1) else x') : foldPhiWorker update' xs
     where
-        v' = foldl worker v primes
-            where
-                worker val prime = if 0 == mod v prime
-                    then (div val prime) * (prime - 1)
-                    else val
+        x' = update x
+        update' n
+            | x' /= x = update n
+            | 0 == mod n x = ((*(x-1)) . flip div x) $ update n
+            | otherwise = update n
 
-updaterTest = [
-    (2, [3,2]) @=? updater [2] 3,
-    (2, [3,2]) @=? updater [3,2] 4,
-    (4, [5,3,2]) @=? updater [3,2] 5,
-    (2, [5,3,2]) @=? updater [5,3,2] 6,
-    (6, [7,5,3,2]) @=? updater [5,3,2] 7,
-    (4, [7,5,3,2]) @=? updater [7,5,3,2] 8,
-    (6, [2,3,5,7]) @=? updater [2,3,5,7] 9,
-    (6, [7,5,3,2]) @=? updater [7,5,3,2] 9
+foldPhiWorkerTest = [
+    [] @=? foldPhiWorker id [],
+    [1] @=? foldPhiWorker id [2],
+    [1,2] @=? foldPhiWorker id [2,3],
+    [1,2,2] @=? foldPhiWorker id [2,3,4],
+    [1,2,2,4,2,6,4,6,4] @=? foldPhiWorker id [2..10]
     ]
 
 slowPhi :: (Integral a) => a -> [a]
@@ -194,8 +183,8 @@ unitTests = map TestCase $
     factorPhiTest ++
     primeFactorsTest ++
     fastPhiTest ++
-    foldMaplTest ++
-    updaterTest
+    foldPhiWorkerTest ++
+    foldPhiTest
 
 data Arg = Euler | UnitTest |
     AdHoc { adhocLowerLimit::Integer, adhocUpperLimit::Integer } 
@@ -203,7 +192,7 @@ data Arg = Euler | UnitTest |
 
 instance EulerArg Arg where
     exec Euler = do
-        let answer = problem (Problem { pLowerLimit = 1, pUpperLimit = 10^7 })
+        let answer = problem (Problem { pLowerLimit = 1, pUpperLimit = 10^4 })
         printf "Answer %d\n" answer
     exec args@(AdHoc {..}) = do
         let answers = adhoc args
