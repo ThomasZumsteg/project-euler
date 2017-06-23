@@ -36,6 +36,15 @@ adhoc (AdHoc start stop) = [AdHocReturn n p |
     n <- [start..stop],
     let p = factorPhi $ primeFactors n]
 
+foldMin :: (Ord b) => [a] -> (a -> b) -> (b -> b -> Ordering) -> Maybe b -> Maybe b
+foldMin [] _ _ result = result
+foldMin (x:xs) m_func cmp_func result
+    | Nothing == result = x'
+    | LT == compare result x' = foldMin xs m_func cmp_func x'
+    | otherwise = foldMin xs m_func cmp_func result
+    where
+        x' = Just $ m_func x
+
 foldPhi :: (Integral a) => [a]
 foldPhi = 0 : 0 : foldPhiWorker id [2..]
 
