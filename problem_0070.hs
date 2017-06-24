@@ -26,49 +26,15 @@ instance PrintfArg AdHocReturn where
 problem :: Problem -> Integer
 problem (Problem lower upper) = toInteger $ fst $ minimumBy aOverb $ filter permutations items
     where
-        phi = (!!) foldPhi
+        phi = length . slowPhi
         items = zip [lower..upper] $ map phi [lower..upper]
         permutations (a, b) = (sort $ show a) == (sort $ show b)
         aOverb (n_a, phi_a) (n_b, phi_b) = compare (n_a * phi_b) (n_b * phi_a) 
 
 adhoc :: Arg -> [AdHocReturn]
 adhoc (AdHoc start stop) = [AdHocReturn n p | 
-    n <- [start..stop],
-    let p = factorPhi $ primeFactors n]
-
-foldMin :: (Ord b) => [a] -> (a -> b) -> (b -> b -> Ordering) -> Maybe b -> Maybe b
-foldMin [] _ _ result = result
-foldMin (x:xs) m_func cmp_func result
-    | Nothing == result = x'
-    | LT == compare result x' = foldMin xs m_func cmp_func x'
-    | otherwise = foldMin xs m_func cmp_func result
-    where
-        x' = Just $ m_func x
-
-foldPhi :: (Integral a) => [a]
-foldPhi = 0 : 0 : foldPhiWorker id [2..]
-
-foldPhiTest = [
-    (map (length . slowPhi) [0..10]) @=? (take 11 foldPhi)
-    ]
-
-foldPhiWorker :: (Integral a) => (a -> a) -> [a] -> [a]
-foldPhiWorker _ [] = []
-foldPhiWorker update (x:xs) = (if x == x' then (x' - 1) else x') : foldPhiWorker update' xs
-    where
-        x' = update x
-        update' n
-            | x' /= x = update n
-            | 0 == mod n x = ((*(x-1)) . flip div x) $ update n
-            | otherwise = update n
-
-foldPhiWorkerTest = [
-    [] @=? foldPhiWorker id [],
-    [1] @=? foldPhiWorker id [2],
-    [1,2] @=? foldPhiWorker id [2,3],
-    [1,2,2] @=? foldPhiWorker id [2,3,4],
-    [1,2,2,4,2,6,4,6,4] @=? foldPhiWorker id [2..10]
-    ]
+    phi <- [stop..start],
+    let p = primeFactors]
 
 slowPhi :: (Integral a) => a -> [a]
 slowPhi 0 = []
@@ -88,112 +54,8 @@ phiTest = [
     [1,3,7,9] @=? slowPhi 10
     ]
 
-fastPhi :: [Int]
-fastPhi = 0 : 0 : (fastPhiWorker 2 [2..])
-
-fastPhiTest = [ 
-    (length $ slowPhi 1) @=? fastPhi !! 1,
-    (length $ slowPhi 2) @=? fastPhi !! 2,
-    (length $ slowPhi 3) @=? fastPhi !! 3,
-    (length $ slowPhi 4) @=? fastPhi !! 4,
-    (length $ slowPhi 5) @=? fastPhi !! 5,
-    (length $ slowPhi 6) @=? fastPhi !! 6,
-    (length $ slowPhi 7) @=? fastPhi !! 7,
-    (length $ slowPhi 10) @=? fastPhi !! 10,
-    (length $ slowPhi 100) @=? fastPhi !! 100
-    ]   
-
-fastPhiWorker :: Int -> [Int] -> [Int]
-fastPhiWorker i (x:xs)
-    | i == x = (x - 1) : fastPhiWorker (i+1) xs'
-    | otherwise = x : fastPhiWorker (i+1) xs
-        where
-            xs' = updateNth update (x-1) xs
-            update n = (x-1) * div n x
-
-updateNth :: (a -> a) -> Int -> [a] -> [a]
-updateNth update i xs = worker i xs
-    where
-        worker _ [] = []
-        worker 0 (x:xs) = update x : worker i xs
-        worker n (x:xs) = x : worker (n-1) xs
-
-factorPhi :: [Integer] -> Integer
-factorPhi primeFactors = foldl calculatePhi 1 $ group $ sort primeFactors
-    where
-        calculatePhi total ps@(p:_) = total * (p - 1) * (toInteger $ length ps)
-
-factorPhiTest = [
-    1 @=? factorPhi [2],
-    2 @=? factorPhi [3],
-    4 @=? factorPhi [5],
-    2 * 4 @=? factorPhi [3,5]
-    ]
-
-primeFactors :: Integer -> [Integer]
-primeFactors n = worker n primes
-    where
-        worker n ps@(p:ps')
-            | n == 1 = []   
-            | r == 0 = p : worker q ps
-            | otherwise = worker n ps'
-                where
-                    (q, r) = divMod n p
-
-primeFactorsTest = [
-    [2,5] @=? primeFactors 10,
-    [2,2,2] @=? primeFactors 8
-    ]
-
-primeFactorsList :: [[Integer]]
-primeFactorsList = []  : [] : (worker 2 $ repeat [])
-    where
-        worker i (x:xs) 
-            | x == [] = [i] : (worker (i+1) $ mapNth i (i:) xs)
-            | prod == i = x : (worker (i+1) xs)
-            | otherwise = ((primeFactorsList !! rem) ++ x) : (worker (i+1) xs)
-                where
-                    prod = foldl1 (*) x
-                    rem = fromInteger $ div i prod
-
-primeFactorsListTest = [
-    [] @=? primeFactorsList !! 0,
-    [] @=? primeFactorsList !! 1,
-    [2] @=? primeFactorsList !! 2,
-    [3] @=? primeFactorsList !! 3,
-    [2,2] @=? primeFactorsList !! 4,
-    [5] @=? primeFactorsList !! 5,
-    [3,2] @=? primeFactorsList !! 6,
-    [7] @=? primeFactorsList !! 7,
-    [2,2,2] @=? primeFactorsList !! 8,
-    [3,3] @=? primeFactorsList !! 9,
-    [5,2] @=? primeFactorsList !! 10
-    ]
-
-mapNth :: Integer -> (a -> a) -> [a] -> [a]
-mapNth n f xs = worker 2 xs
-    where
-        worker _ [] = []
-        worker i (x:xs) = x' : worker i' xs
-            where 
-                x' = if i == 1 then f x else x
-                i' = if i < n then i + 1 else 1
-
-mapNthTest = [
-    [1,2,1,2] @=? mapNth 2 (+1) [1,1,1,1],
-    [1,1,3,1] @=? mapNth 3 (+2) [1,1,1,1],
-    [[],[1],[],[1]] @=? mapNth 2 (1:) [[],[],[],[]]
-    ]
-
 unitTests = map TestCase $
-    phiTest ++
-    mapNthTest ++
-    primeFactorsListTest ++
-    factorPhiTest ++
-    primeFactorsTest ++
-    fastPhiTest ++
-    foldPhiWorkerTest ++
-    foldPhiTest
+    phiTest
 
 data Arg = Euler | UnitTest |
     AdHoc { adhocLowerLimit::Integer, adhocUpperLimit::Integer } 
