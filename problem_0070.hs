@@ -33,8 +33,24 @@ problem (Problem lower upper) = toInteger $ fst $ minimumBy aOverb $ filter perm
 
 adhoc :: Arg -> [AdHocReturn]
 adhoc (AdHoc start stop) = [AdHocReturn n p | 
-    phi <- [stop..start],
-    let p = primeFactors]
+    n <- [stop..start],
+    let p = toInteger $ length $ slowPhi n]
+
+phiFactors :: (Integral a) => a -> [[a]] 
+phiFactors = error "Not Implemented"
+
+phiFactorsTest = [
+    (sort $ map (toInteger . length . slowPhi) [1..10]) @=? 
+        (map (foldl (*) 1) $ phiFactors 10),
+    [29] @=? phiFactors 30 !! 0,
+    [23] @=? phiFactors 30 !! 1,
+    [19] @=? phiFactors 30 !! 2,
+    [17] @=? phiFactors 30 !! 3,
+    [13] @=? phiFactors 30 !! 4,
+    [3] @=? phiFactors 30 !! 10,
+    [2,11] @=? phiFactors 30 !! 20,
+    [] @=? phiFactors 30 !! 30
+    ]
 
 slowPhi :: (Integral a) => a -> [a]
 slowPhi 0 = []
@@ -55,7 +71,8 @@ phiTest = [
     ]
 
 unitTests = map TestCase $
-    phiTest
+    phiTest ++
+    phiFactorsTest
 
 data Arg = Euler | UnitTest |
     AdHoc { adhocLowerLimit::Integer, adhocUpperLimit::Integer } 
