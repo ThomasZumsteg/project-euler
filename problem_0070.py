@@ -14,9 +14,9 @@ import sys
 from time import time
 
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     stream=sys.stderr,
-    format='%(levelname): %(message)')
+    format='%(levelname)s: %(message)s')
 
 def main():
     phi_low = ()
@@ -24,11 +24,11 @@ def main():
     for n, f in factor_gen(limit):
         n_phi = phi(f, n)
         if is_perm(n,n_phi):
-            logging.debug("n:{}, phi(n):{}".format(n,n_phi))
+            logging.debug("n:{:7}, phi(n):{:7}".format(n,n_phi))
             phi_fract = n/n_phi
             if not phi_low or phi_low[2] > phi_fract:
                 phi_low = (n,n_phi,phi_fract)
-    print("Lowest n:{}, phi(n):{}, n/phi(n):%f".format(phi_low))
+    print("Lowest n:{}, phi(n):{}, n/phi(n):{}".format(*phi_low))
 
 def factor_gen(limit):
     limit -= 1
@@ -41,18 +41,17 @@ def factor_gen(limit):
         yield (i+offset, n)
 
 def is_perm(n,m):
-    n = sorted([int(x) for x in list(str(n))])
-    m = sorted([int(x) for x in list(str(m))])
-    if n == m: return True
-    else:      return False
+    n = sorted(str(n))
+    m = sorted(str(m))
+    return n == m
 
 def phi(fact, val):
     p = val
     for f in fact:
-        p *= 1-1.0/f
+        p *= (f-1) / f
     return int(p)
 
 if __name__ == "__main__":
     start = time()
     main()
-    logging.info("That took {:4.2} seconds".format(time() - start))
+    logging.info("That took {:4.2f} seconds".format(time() - start))
