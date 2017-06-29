@@ -48,10 +48,10 @@ phiFactorsTest = [
     [23] @=? phiFactors 30 !! 1,
     [19] @=? phiFactors 30 !! 2,
     [17] @=? phiFactors 30 !! 3,
-    [13] @=? phiFactors 30 !! 4
-    -- [3] @=? phiFactors 30 !! 10,
-    -- [2,11] @=? phiFactors 30 !! 20,
-    -- [] @=? phiFactors 30 !! 30
+    [13] @=? phiFactors 30 !! 4,
+    [3] @=? phiFactors 30 !! 10,
+    [2,11] @=? phiFactors 30 !! 20,
+    [] @=? phiFactors 30 !! 30
     ]
 
 
