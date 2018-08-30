@@ -1,14 +1,87 @@
 #!/usr/bin/python
 """Finds the number of ways to express 1/2 as a sum of inverse squares using distinct integers between 2 and 80 inclusive"""
 
+import math
+
 from time import time
 from sys import stdout
+from fractions import Fraction
 from itertools import combinations, count
-from common import prime_generator
+from collections import namedtuple
+
 
 def main():
-    find_group_sequentially(35)
-    return 0
+    sets = tree_for_factors([2,2,2,2,3,3,5,5,7,7,13,17])
+    return len(sets)
+
+def sets_for_factors(factors, limit = 80):
+    integers = []
+    seen = set()
+    for l in range(len(factors)):
+        for combo in combinations(factors, l + 1):
+            value = product(combo)
+            if value in seen or limit < value:
+                continue
+            seen.add(value)
+            integers.append((
+                product(inverse(factors, combo))**2,
+                value,
+                combo))
+    integers.sort(key=lambda e: e[1])
+    target = product(factors) ** 2 // 2
+    count = 0;
+    for l in range(len(integers)):
+        for combo in combinations(integers, l + 1):
+            if sum(c[0] for c in combo) == target:
+                count += 1
+                print('{:02}: {{{}}}'.format(count, ','.join(str(c[1]) for c in combo)))
+
+State = namedtuple("State", ("tree", "factors", "remaining"))
+
+def lcm(a, b):
+    cf = math.gcd(a, b)
+    return a * b / cf
+
+def tree_for_factors(factors, limit=80):
+    tree = []
+    least_common_multiple = product(factors) ** 2
+    for n in range(2, limit+1):
+        divisors = factors.copy()
+        remainer = n
+        while divisors:
+            d = divisors.pop()
+            if remainer % d == 0:
+                remainer /= d
+            if remainer == 1:
+                tree.append((n, least_common_multiple // (n**2)))
+                break
+    queue = [State(tree, (), least_common_multiple / 2)]
+        
+    seen = set()
+    while queue:
+        state = queue.pop()
+        if state.remaining == 0:
+            assert state.factors not in seen
+            seen.add(state.factors)
+            print("{:3}: {}".format(len(seen), state.factors))
+        elif state.remaining > 0 and state.tree and\
+            state.remaining <= sum(t[1] for t in state.tree):
+            queue.append(State(state.tree[1:], state.factors, state.remaining))
+            queue.append(State(state.tree[1:], state.factors + (state.tree[0][0],), 
+                state.remaining - state.tree[0][1]))
+    return seen
+
+def inverse(all_factors, factors):
+    result = list(all_factors[:])
+    for f in factors:
+        result.remove(f)
+    return tuple(result)
+
+def product(items):
+    result = 1
+    for item in items:
+        result *= item
+    return result
 
 def find_group_by_itteration(lim):
     queue = [(Fraction(1,2), [], 1)]
@@ -31,7 +104,7 @@ def find_group_by_itteration(lim):
             else: stdout.write("  Dropped\r")
         if remainer == 0:
             stdout.write(" " * 80 + "\r")
-            print "%s" %(group)
+            print("{}".format(group))
 
 def valid_group(group, current, limit):
     paired_factors = {}
@@ -51,7 +124,7 @@ def valid_group(group, current, limit):
     #print unpaired_factors
     for factor, power in unpaired_factors.iteritems():
         if current // (factor**power) >= limit // (factor**power):
-            print factor
+            print(factor)
             return False
     return True
 
@@ -71,54 +144,6 @@ def get_sums(lim):
         f_sum += Fraction(1, i**2)
     return convergent_sums
 
-class Fraction(object):
-    def __init__(self, numerator, denominator):
-        self.numerator = numerator
-        self.denominator = denominator
-
-    def __add__(self, f):
-        numerator = self.numerator * f.denominator + self.denominator * f.numerator
-        denominator = self.denominator * f.denominator
-        common_factor = self.gcd(numerator, denominator)
-        return Fraction(numerator / common_factor, denominator / common_factor)
-
-    def __sub__(self, f):
-        numerator = self.numerator * f.denominator - self.denominator * f.numerator
-        denominator = self.denominator * f.denominator
-        common_factor = self.gcd(numerator, denominator)
-        return Fraction(numerator / common_factor, denominator / common_factor)
-
-    def __neg__(self):
-        return Fraction(-self.numerator, self.denominator)
-
-    def __float__(self):
-        return float(self.numerator) / self.denominator
-
-    def __str__(self):
-        return "%d/%d" %(self.numerator, self.denominator)
-
-    def __repr__(self):
-        return self.__str__()
-
-    def __lt__(self, f):
-        return self.numerator * f.denominator < self.denominator * f.numerator
-
-    def __le__(self, f):
-        return self.numerator * f.denominator <= self.denominator * f.numerator
-
-    def __eq__(self, f):
-        return self.denominator * f.numerator == self.numerator * f.denominator
-
-    def __gt__(self, f):
-        return self.numerator * f.denominator > self.denominator * f.numerator
-
-    def __ge__(self, f):
-        return self.numerator * f.denominator >= self.denominator * f.numerator
-
-    def gcd(self, a, b):
-        """Finds the greatest common factor using Euclid's algorithm. See http://en.wikipedia.org/  wiki/Euclid%27s_algorithm"""
-        while b != 0: (a,b) = (b, a % b)
-        return a
 
 def find_group_sequentially(lim):
     """Finds valid groups by squentially updating potential groups from 1 to [lim]""" 
@@ -126,7 +151,7 @@ def find_group_sequentially(lim):
     out_queue = [(Fraction(1,2), [])]
     for n in range(1,lim+1):
         convergent_sum = sum([Fraction(1,x**2) for x in range(n+1,lim+1)], Fraction(0,1))
-        print "%2d: %9d" %(n, len(out_queue))
+        print("{:2d}: {9d}".format(n, len(out_queue)))
         in_queue = out_queue
         out_queue = []
         n_fraction = Fraction(1,n**2)
@@ -151,35 +176,35 @@ def find_group_dec(lim):
     i = 0
     while memory:
         (start, remainer, group) = memory.pop()
-        print "Got %2d" %(start)
+        print("Got {:2d}".format(start))
         for n in range(start+1,lim+1):
             if i > 200:
-                print "EXIT!"
+                print("EXIT!")
                 return 0
             i += 1
             sum_remaining = limits[n]
-            print "%2d: % 6f: % 6f" %(n, remainer - 1.0 / n**2, remainer - sum_remaining),
+            print("{:2d}: {: 6f}: {: 6f}".format(n, remainer - 1.0 / n**2, remainer - sum_remaining)),
             if 1.0 / n**2 > remainer: 
-                print "Too Big"
+                print("Too Big")
                 continue
             elif sum_remaining > remainer:
                 memory.append((n, remainer - 1.0 / n**2, group[:] + [n]))
-                print "Saved"
+                print("Saved")
             else:
-                print "Required"
+                print("Required")
                 remainer -= 1.0 / n**2
                 group.append(n)
-        if remainer == 0: print group
+        if remainer == 0: print(group)
     return 0
 
 def show_me(g):
-    print g
+    print(g)
     (n,d) = (0,1)
     for e in sorted(g):
         (n, d) = (n * e**2 + d, d * e**2)
         f = gcd(n,d)
         (n,d) = (n/f, d/f)
-        print "%2d: %10d / %10d" %(e, n,d)
+        print("{:2d}: {:10d} / {:10d}".format(e, n,d))
 
 def gcd(a,b):
     """Finds the greatest common factor using Euclid's algorithm. See http://en.wikipedia.org/wiki/Euclid%27s_algorithm"""
@@ -207,5 +232,5 @@ def lcm(group):
 
 if __name__ == "__main__":
     start = time()
-    print "Answer: %d" %(main())
-    print "That took %f seconds" %(time() - start)
+    print("Answer: {d}".format(main()))
+    print("That took {f} seconds".format(time() - start))
