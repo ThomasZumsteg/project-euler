@@ -1,0 +1,18 @@
+[package]
+name = "project-euler"
+version = "0.1.0"
+authors = ["Thomas Zumsteg <thomas.zumsteg@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+clap = "2.33.0"
+log = "0.4"
+env_logger = "0.7.1"
+
+[lib]
+path = "common.rs"
+name = "euler"
+
+[[bin]]
+name = "problem_0001"
+path = "problem_0001.rs"
