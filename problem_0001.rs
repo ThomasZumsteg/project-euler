@@ -26,8 +26,8 @@ fn main() {
     let args = clap_app!(app =>
         (about: "Solve Project Euler Problem 1, https://projecteuler.net/problem=1")
         (@arg limit: -l --limit +takes_value "Highest integer to include")
-        (@arg verbose: -v +multiple "Run the test suite")
-        (@arg multiple: +multiple "Integers to") 
+        (@arg verbose: -v +multiple "Increase log level")
+        (@arg multiple: +multiple "Integers to divide by") 
     ).get_matches();
 
     let log_level = match args.occurrences_of("verbose") {

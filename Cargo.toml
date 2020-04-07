@@ -16,3 +16,7 @@ name = "euler"
 [[bin]]
 name = "problem_0001"
 path = "problem_0001.rs"
+
+[[bin]]
+name = "problem_0002"
+path = "problem_0002.rs"

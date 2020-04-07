@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 def even_fib_sum(limit):
 	a = 1
 	b = 2
@@ -7,8 +5,8 @@ def even_fib_sum(limit):
 	while b < limit:
 		if b % 2 == 0:
 			the_sum += b
-		[a,b] = [b,a+b]
+		a, b = b, a+b
 	return the_sum
 
 if __name__ == "__main__":
-	print even_fib_sum(4e6)
+	print(even_fib_sum(4e6))
