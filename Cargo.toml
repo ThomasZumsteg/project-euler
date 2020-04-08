@@ -8,6 +8,7 @@ edition = "2018"
 clap = "2.33.0"
 log = "0.4"
 env_logger = "0.7.1"
+num = "0.2.1"
 
 [lib]
 path = "common.rs"
@@ -20,3 +21,7 @@ path = "problem_0001.rs"
 [[bin]]
 name = "problem_0002"
 path = "problem_0002.rs"
+
+[[bin]]
+name = "problem_0003"
+path = "problem_0003.rs"

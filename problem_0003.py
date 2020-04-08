@@ -18,7 +18,7 @@ def prime_factors(num):
 	factors = []
 	for prime in prime_generator():
 		while num % prime == 0:
-			factors += [prime]
+			factors.append(prime)
 			num /= prime
 		if num == 1:
 			return factors
@@ -43,4 +43,4 @@ def prime_generator():
 			new_prime += 2
 
 if __name__ == "__main__":
-	print prime_factors(600851475144)
+	print(prime_factors(600851475143)[-1])
