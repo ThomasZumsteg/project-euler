@@ -20,10 +20,10 @@ def list_of_n_digit_products(n):
 
 def is_palindrome(a_thing):
 	a_thing = str(a_thing)
-	for i in range(0,len(a_thing)/2):
+	for i in range(0,len(a_thing)//2):
 		if(a_thing[i] != a_thing[-i-1]):
 			return False
 	return True
 
 if __name__=="__main__":
-	print palindrome_number(3)
+	print(palindrome_number(3))
