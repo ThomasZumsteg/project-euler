@@ -12,7 +12,7 @@ num = "0.2.1"
 
 [lib]
 path = "common.rs"
-name = "euler"
+name = "common"
 
 [[bin]]
 name = "problem_0001"
@@ -29,3 +29,7 @@ path = "problem_0003.rs"
 [[bin]]
 name = "problem_0004"
 path = "problem_0004.rs"
+
+[[bin]]
+name = "problem_0005"
+path = "problem_0005.rs"

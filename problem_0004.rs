@@ -55,7 +55,7 @@ impl Iterator for Palendromes {
 
 fn main() {
     let args = clap_app!(app =>
-        (about: "Solve Project Euler Problem 3, https://projecteuler.net/problem=3")
+        (about: "Solve Project Euler Problem 4, https://projecteuler.net/problem=4")
         (@arg verbose: -v +multiple "Increase log level")
         (@arg start: "Lower limit of palendrome factors") 
         (@arg end: "Upper limit of palendrome factors") 

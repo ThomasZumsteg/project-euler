@@ -23,4 +23,4 @@ def contains_and_expand(list_a, list_b):
 	return list_a + list_b
 
 if __name__ == "__main__":
-	print smallest_product_of_primes_under_n(20)
+	print(smallest_product_of_primes_under_n(20))
