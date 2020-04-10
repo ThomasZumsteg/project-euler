@@ -10,4 +10,4 @@ def sum_square_difference(the_list):
 
 if __name__ == "__main__":
 	the_list = range(1,101)
-	print sum_square_difference(the_list)
+	print(sum_square_difference(the_list))
