@@ -9,4 +9,4 @@ def nth_prime(n):
 		if i > n: return prime
 
 if __name__ == "__main__":
-	print nth_prime(10001)
+	print(nth_prime(10001))
