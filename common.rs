@@ -6,9 +6,23 @@ pub mod primes {
 
     impl Primes {
         pub fn new() -> Primes {
+            const SIZE: usize = 1000000;
+            let mut block = [true; SIZE] ;
+            let mut primes = Vec::new();
+            log::debug!("Starting seive {}", SIZE);
+            for i in 2..SIZE {
+                if block[i] {
+                    log::debug!("Seived Prime: {} {}", primes.len(), i);
+                    primes.push(i);
+                    for i in ((2*i)..SIZE).step_by(i) {
+                        block[i] = false;
+                    }
+                }
+            }
+            log::debug!("Finished seive {}", SIZE);
             Primes {
-                primes: Vec::new(),
-                current: 1,
+                primes: primes,
+                current: 0,
             }
         }
     }
@@ -17,14 +31,25 @@ pub mod primes {
         type Item = usize;
 
         fn next(&mut self) -> Option<usize> {
-            loop {
-                self.current += if self.current > 2 { 2 } else { 1 };
-                if self.primes.iter().all(|p| self.current % p != 0) {
-                    self.primes.push(self.current);
-                    break;
+            let mut num: usize = self.primes.last().unwrap() + 2;
+            while self.current >= self.primes.len() {
+                let mut is_prime = true;
+                for prime in &self.primes {
+                    if num < prime * prime {
+                        break;
+                    } else if num % prime == 0 {
+                        is_prime = false;
+                        break;
+                    }
                 }
+                if is_prime {
+                    log::debug!("Found Prime {}: {}", self.current, num);
+                    self.primes.push(num);
+                }
+                num += 2;
             }
-            Some(self.current)
+            self.current += 1;
+            Some(self.primes[self.current-1])
         }
     }
 }
