@@ -7,7 +7,7 @@ def main():
 			return a*b*c
 
 def sum_n_equal_m(n,m):
-	num_set = range(1,n+1)
+	num_set = list(range(1,n+1))
 	num_set[-1] = m-sum(num_set[:-1])
 	while True:
 		yield num_set
@@ -41,4 +41,4 @@ def reorder(a_list):
 	return a_list
 
 if __name__ == "__main__":
-	print main()
+	print(main())
