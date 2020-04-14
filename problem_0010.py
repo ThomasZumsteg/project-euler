@@ -8,7 +8,7 @@ def main():
 	for prime in prime_generator():
 		if prime > limit: break
 		prime_sum += prime
-	print prime_sum
+	print(prime_sum)
 
 if __name__ == "__main__":
 	main()
