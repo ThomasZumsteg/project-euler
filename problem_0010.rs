@@ -10,7 +10,7 @@ use common::primes::Primes;
 
 fn main() {
     let args = clap_app!(app =>
-        (about: "Solve Project Euler Problem 9, https://projecteuler.net/problem=9")
+        (about: "Solve Project Euler Problem 10, https://projecteuler.net/problem=10")
         (@arg verbose: -v +multiple "Increase log level")
         (@arg limit: "Limit of primes to sum") 
     ).get_matches();
@@ -28,6 +28,7 @@ fn main() {
         .format(|buf, record| writeln!(buf, "[{}] {}", record.level(), record.args()))
         .init();
     info!("Set log level {}", log_level);
+
     let limit = args.value_of("limit").map(|n| n.parse::<usize>().unwrap()).unwrap_or(2000000);
     println!("{}", Primes::new().take_while(|&x| x < limit).sum::<usize>());
 }
