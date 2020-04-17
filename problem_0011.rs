@@ -12,7 +12,7 @@ struct Grid(Vec<Vec<usize>>);
 
 #[derive(PartialEq)]
 enum Direction {
-    Row,
+    Row = 0,
     Column,
     Down,
     Up
@@ -36,33 +36,50 @@ impl Grid {
     }
 }
 
+impl <'a> Adjacent<'a> {
+    fn step(&mut self) {
+        self.direction = match self.direction {
+            Direction::Row => Direction::Column,
+            Direction::Column => Direction::Down,
+            Direction::Down => Direction::Up,
+            Direction::Up => {
+                self.col += 1;
+                if self.col >= self.grid.0.len() {
+                    self.row += 1;
+                    self.col = 0;
+                }
+                Direction::Row
+            }
+        };
+    }
+}
+
 impl <'a> Iterator for Adjacent<'a> {
     type Item = Vec<usize>;
      
     fn next(&mut self) -> Option<Vec<usize>> {
-        if self.row + self.size > self.grid.0.len() {
-            return None
+        'search: loop {
+            if self.row > self.grid.0.len() {
+                return None;
+            }
+            let mut result = Vec::with_capacity(self.size);
+            for s in 0..self.size {
+                let (dr, dc) =  match self.direction {
+                    Direction::Row => (0, s),
+                    Direction::Column => (s, 0),
+                    Direction::Down => (s, s),
+                    Direction::Up => (self.size - s, s),
+                };
+                if !(dr <= self.row && self.row + dr < self.grid.0.len() && 
+                    dc <= self.col && self.col + dc < self.grid.0[self.row + dr].len()) {
+                    self.step();
+                    continue 'search;
+                }
+                result.push(self.grid.0[self.row + dr][self.col + dc]);
+            };
+            self.step();
+            return Some(result);
         }
-        let (diff_row, diff_col) = match self.direction {
-            Direction::Row => (0, 1),
-            Direction::Column => (1, 0),
-            Direction::Down => (1, 1),
-            Direction::Up => (-1, 1),
-        };
-        let mut result = Vec::with_capacity(self.size);
-        for s in 0isize..self.size as isize {
-            let row = self.row as isize + if self.direction != Direction::Up { s * diff_row } else { self.size as isize - s };
-            let col = s * diff_col + self.col as isize;
-            result.push(self.grid.0[row as usize][col as usize]);
-        };
-        self.col += 1;
-        if self.col < self.grid.0.len() {
-            self.direction = Direction::Column;
-        } else {
-            self.row += 1;
-            self.col = 0;
-        }
-        Some(result)
     }
 }
 
