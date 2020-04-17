@@ -10,12 +10,12 @@ def main():
 #		num_factors_in_num = 0
 		i += 1
 		if num_factors_in_num > 500:
-			print "%d: %d: %d" %(n*1000, triangle_num, num_factors_in_num)
+			print("%d: %d: %d" %(n*1000, triangle_num, num_factors_in_num))
 			break
 		if i >= 1000:
 			i = 0
 			n += 1
-			print "%d: %d: %d" %(n*1000, triangle_num, num_factors_in_num)
+			print("%d: %d: %d" %(n*1000, triangle_num, num_factors_in_num))
 
 def num_factors(number):
 	num_factors = 0

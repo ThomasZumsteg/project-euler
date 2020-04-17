@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 pub mod primes {
     pub struct Primes {
         primes: Vec<usize>,
@@ -52,4 +54,18 @@ pub mod primes {
             Some(self.primes[self.current-1])
         }
     }
+}
+
+pub fn find_divisors(num: usize) -> HashSet<usize> {
+    let mut result = HashSet::new();
+    for n in 1.. {
+        if n * n > num {
+            break
+        }
+        if num % n == 0 {
+            result.insert(n);
+            result.insert(num / n);
+        }
+    };
+    result
 }
