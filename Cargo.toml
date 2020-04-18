@@ -65,3 +65,7 @@ path = "problem_0012.rs"
 [[bin]]
 name = "problem_0013"
 path = "problem_0013.rs"
+
+[[bin]]
+name = "problem_0014"
+path = "problem_0014.rs"

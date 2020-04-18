@@ -19,18 +19,16 @@ def main():
 		i = 0
 		for num in collatz_seq_gen(start):
 			i += 1
-		if max_chain[1] < i:
+		if max_chain[1] is None or max_chain[1] < i:
 			max_chain = (start, i)
-		if start % 10000 == 0:
-			print "%d: %d " %(max_chain[0], max_chain[1])
-	print max_chain
+	print(max_chain[1])
 
 def collatz_seq_gen(start):
 	while True:
 		yield start
-		if(start == 1):
+		if start == 1:
 			break
-		elif(start % 2 == 0):
+		elif start % 2 == 0:
 			start /= 2
 		else:
 			start = start * 3 + 1
