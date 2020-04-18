@@ -1,11 +1,8 @@
 #[macro_use]
 extern crate clap;
-extern crate log;
-extern crate env_logger;
 
-use env_logger::Builder;
-use log::{debug, info, LevelFilter};
-use std::io::Write;
+use common::set_log_level;
+use log::{debug, info};
 
 #[derive(Debug, Copy, Clone)]
 struct SizedTriplet {
@@ -58,20 +55,7 @@ fn main() {
         (@arg verbose: -v +multiple "Increase log level")
         (@arg target: "Target value for a + b + c") 
     ).get_matches();
-
-    let log_level = match args.occurrences_of("verbose") {
-        0 => LevelFilter::Off,
-        1 => LevelFilter::Error,
-        2 => LevelFilter::Warn,
-        3 => LevelFilter::Info,
-        4 => LevelFilter::Debug,
-        _ => LevelFilter::Trace,
-    };
-    Builder::new()
-        .filter_level(log_level)
-        .format(|buf, record| writeln!(buf, "[{}] {}", record.level(), record.args()))
-        .init();
-    info!("Set log level {}", log_level);
+    set_log_level(&args);
 
     let target = args.value_of("target").map(|n| n.parse::<usize>().unwrap()).unwrap_or(1000);
     let trip = SizedTriplet::new(target);

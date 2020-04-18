@@ -1,12 +1,9 @@
 #[macro_use]
 extern crate clap;
-extern crate log;
-extern crate env_logger;
 
 use common::find_divisors;
-use env_logger::Builder;
-use log::{debug, info, LevelFilter};
-use std::io::Write;
+use log::debug;
+use common::set_log_level;
 
 struct TriangleNums {
     total: usize,
@@ -36,20 +33,7 @@ fn main() {
         (@arg verbose: -v +multiple "Increase log level")
         (@arg divisors: "divisors") 
     ).get_matches();
-
-    let log_level = match args.occurrences_of("verbose") {
-        0 => LevelFilter::Off,
-        1 => LevelFilter::Error,
-        2 => LevelFilter::Warn,
-        3 => LevelFilter::Info,
-        4 => LevelFilter::Debug,
-        _ => LevelFilter::Trace,
-    };
-    Builder::new()
-        .filter_level(log_level)
-        .format(|buf, record| writeln!(buf, "[{}] {}", record.level(), record.args()))
-        .init();
-    info!("Set log level {}", log_level);
+    set_log_level(&args);
 
     let num_divisors = args.value_of("divisors").map(|n| n.parse::<usize>().unwrap()).unwrap_or(500);
     for triangle in TriangleNums::new() {

@@ -1,4 +1,27 @@
+extern crate clap;
+
+use clap::ArgMatches;
+use env_logger::Builder;
+use log::{info, LevelFilter};
 use std::collections::HashSet;
+use std::io::Write;
+
+pub fn set_log_level(args: &ArgMatches) -> LevelFilter {
+    let log_level = match args.occurrences_of("verbose") {
+        0 => LevelFilter::Off,
+        1 => LevelFilter::Error,
+        2 => LevelFilter::Warn,
+        3 => LevelFilter::Info,
+        4 => LevelFilter::Debug,
+        _ => LevelFilter::Trace,
+    };
+    Builder::new()
+        .filter_level(log_level)
+        .format(|buf, record| writeln!(buf, "[{}] {}", record.level(), record.args()))
+        .init();
+    info!("Set log level {}", log_level);
+    log_level
+}
 
 pub mod primes {
     pub struct Primes {

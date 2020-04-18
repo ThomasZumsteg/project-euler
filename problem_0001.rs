@@ -1,11 +1,8 @@
 #[macro_use]
 extern crate clap;
-extern crate log;
-extern crate env_logger;
 
-use env_logger::Builder;
-use log::{debug, info, LevelFilter};
-use std::io::Write;
+use common::set_log_level;
+use log::{debug, info};
 
 fn sums<'a, I>(range: I, multiples: &Vec<usize>) -> usize 
         where I: Iterator<Item=usize> {
@@ -29,20 +26,7 @@ fn main() {
         (@arg verbose: -v +multiple "Increase log level")
         (@arg multiple: +multiple "Integers to divide by") 
     ).get_matches();
-
-    let log_level = match args.occurrences_of("verbose") {
-        0 => LevelFilter::Off,
-        1 => LevelFilter::Error,
-        2 => LevelFilter::Warn,
-        3 => LevelFilter::Info,
-        4 => LevelFilter::Debug,
-        _ => LevelFilter::Trace,
-    };
-    Builder::new()
-        .filter_level(log_level)
-        .format(|buf, record| writeln!(buf, "[{}] {}", record.level(), record.args()))
-        .init();
-    info!("Set log level {}", log_level);
+    set_log_level(&args);
 
     let max = args.value_of("limit").map(|n| n.parse::<usize>().unwrap()).unwrap_or(1000);
     info!("Max values {}", max);
@@ -69,21 +53,21 @@ mod tests {
 
     #[test]
     fn test_basic() {
-        assert_eq!(sums((1..11), &vec![1]), 55);
+        assert_eq!(sums(1..11, &vec![1]), 55);
     }
 
     #[test]
     fn test_evens() {
-        assert_eq!(sums((1..11), &vec![2]), 30);
+        assert_eq!(sums(1..11, &vec![2]), 30);
     }
 
     #[test]
     fn test_evens_and_threes() {
-        assert_eq!(sums((1..11), &vec![2, 3]), 42);
+        assert_eq!(sums(1..11, &vec![2, 3]), 42);
     }
 
     #[test]
     fn test_mutiples() {
-        assert_eq!(sums((1..11), &vec![]), 0);
+        assert_eq!(sums(1..11, &vec![]), 0);
     }
 }
