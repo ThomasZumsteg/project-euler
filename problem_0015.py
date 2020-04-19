@@ -6,7 +6,7 @@ How many such routes are there through a 20x20 grid?"""
 import time
 
 def main():
-    print new_method(20,20)
+    print(new_method(20,20))
 #   node_map = create_map(10,10)
 #   print unique_paths(len(node_map)-1, node_map)
 
@@ -51,4 +51,4 @@ def unique_paths(root, node_map):
 if __name__ == "__main__":
     start = time.time()
     main()
-    print "That took %0.5f seconds" % (time.time() - start)
+    print("That took %0.5f seconds" % (time.time() - start))
