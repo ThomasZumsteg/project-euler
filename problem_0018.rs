@@ -21,7 +21,7 @@ fn find_max(triangle: &Vec<Vec<usize>>) -> usize {
 
 fn main() {
     let args = clap_app!(app =>
-        (about: "Solve Project Euler Problem 16, https://projecteuler.net/problem=16")
+        (about: "Solve Project Euler Problem 18, https://projecteuler.net/problem=18")
         (@arg verbose: -v +multiple "Increase log level")
         (@arg file: "file") 
     ).get_matches();

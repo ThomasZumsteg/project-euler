@@ -65,7 +65,7 @@ fn to_english(number: usize) -> String {
 
 fn main() {
     let args = clap_app!(app =>
-        (about: "Solve Project Euler Problem 16, https://projecteuler.net/problem=16")
+        (about: "Solve Project Euler Problem 17, https://projecteuler.net/problem=17")
         (@arg verbose: -v +multiple "Increase log level")
         (@arg limit: "Limit") 
     ).get_matches();

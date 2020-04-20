@@ -5,17 +5,17 @@ def main():
 	count = 0
 	for date in date_generator():
 		if date[:-1] == (1,1,1901): 
-			print date
+			print(date)
 			start = True
 		if start:
 			if date[-1] == 6 and date[0] == 1:
 				count += 1
-				print date
+				print(date)
 #		if date[:-2] == (1,1): print "%r: %d: %d" %(start, count, date[2]) 
 		if date[:-1] == (31,12,2000): 
-			print date
+			print(date)
 			break
-	print count
+	print(count)
 
 def date_generator():
 	count = 0
