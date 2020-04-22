@@ -1,6 +1,5 @@
 #[macro_use]
 extern crate clap;
-extern crate chrono;
 
 use common::set_log_level;
 use log::info;
@@ -8,7 +7,7 @@ use num::BigUint;
 
 fn main() {
     let args = clap_app!(app =>
-        (about: "Solve Project Euler Problem 19, https://projecteuler.net/problem=19")
+        (about: "Solve Project Euler Problem 20, https://projecteuler.net/problem=20")
         (@arg verbose: -v +multiple "Increase log level")
         (@arg limit: "Power") 
     ).get_matches();
