@@ -8,7 +8,7 @@ use std::io::{Read, BufReader};
 
 fn main() {
     let args = clap_app!(app =>
-        (about: "Solve Project Euler Problem 21, https://projecteuler.net/problem=21")
+        (about: "Solve Project Euler Problem 22, https://projecteuler.net/problem=22")
         (@arg verbose: -v +multiple "Increase log level")
         (@arg file: "File with names") 
     ).get_matches();
