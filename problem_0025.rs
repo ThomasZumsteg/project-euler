@@ -5,7 +5,7 @@ use common::{set_log_level, Fibonacci};
 
 fn main() {
     let args = clap_app!(app =>
-        (about: "Solve Project Euler Problem 24, https://projecteuler.net/problem=24")
+        (about: "Solve Project Euler Problem 25, https://projecteuler.net/problem=25")
         (@arg verbose: -v +multiple "Increase log level")
         (@arg digits: "First fibonacci number with n digits")
     ).get_matches();
