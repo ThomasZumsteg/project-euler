@@ -26,7 +26,7 @@ pub fn set_log_level(args: &ArgMatches) -> LevelFilter {
 pub mod primes {
     pub struct Primes {
         primes: Vec<usize>,
-        current: usize,
+        pub current: usize,
     }
 
     impl Primes {
