@@ -5,6 +5,67 @@ use common::set_log_level;
 use log::debug;
 use std::collections::{HashSet, VecDeque};
 
+struct Change {
+    coins: Vec<usize>,
+    change: Option<Vec<usize>>,
+}
+
+impl Change {
+    fn new(total: usize, coins: &Vec<usize>) -> Change {
+        Change {
+            change: Change::make_change(&coins, total),
+            coins: coins.clone(),
+        }
+    }
+
+    fn make_change(coins: &[usize], total: usize) -> Option<Vec<usize>> {
+        let mut remaining = total;
+        let mut result = vec![0; coins.len()];
+        for (coin, count) in coins.iter().zip(result.iter_mut()).rev() {
+            while remaining >= *coin {
+                *count += 1;
+                remaining -= *coin;
+            }
+            if remaining == 0 {
+                return Some(result);
+            }
+        }
+        None
+    }
+}
+
+impl Iterator for Change {
+    type Item = Vec<usize>;
+
+    fn next(&mut self) -> Option<Vec<usize>> {
+        if self.change.is_none() {
+            return None;
+        }
+        let result = self.coins.iter()
+            .zip(self.change.unwrap().iter())
+            .map(|(&coin, &count)| vec![coin; count])
+            .flatten()
+            .collect();
+        let mut i = None;
+        for (c, change) in self.change.unwrap().iter_mut().enumerate().rev() {
+            if *change > 0 {
+                i = Some(c);
+                *change -= 1;
+                break;
+            }
+        }
+        if !i.is_none() {
+            let small_change = Change::make_change(&self.coins[0..i.unwrap()], self.coins[i.unwrap()]);
+            for (curr, diff) in self.change.unwrap().iter_mut().zip(small_change.unwrap().iter()) {
+                *curr += diff;
+            }
+        } else {
+            self.change = None;
+        }
+        Some(result)
+    }
+}
+
 fn make_change(total: usize, coins: &Vec<usize>) -> HashSet<Vec<usize>> {
     let mut queue: VecDeque<(usize, Vec<usize>, Vec<usize>)> = VecDeque::new();
     queue.push_back((total, coins.clone(), Vec::new()));
@@ -47,6 +108,27 @@ fn main() {
         )
         .unwrap_or(vec![1,2,5,10,20,50,100,200]);
     coins.sort();
-    coins.reverse();
     println!("{}", make_change(total, &coins).len());
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_make_change() {
+        let coins = vec![1,2,5,10,20, 50,100,200];
+        assert_eq!(Change::make_change(&coins, 100), Some(vec![0,0,0,0,0,0,1,0]));
+        assert_eq!(Change::make_change(&coins, 150), Some(vec![0,0,0,0,0,1,1,0]));
+    }
+
+    #[test]
+    fn test_ways_to_make_change() {
+        let mut change = Change::new(5, &vec![1,2,5]);
+        assert_eq!(change.next(), Some(vec![5]));
+        assert_eq!(change.next(), Some(vec![1,2,2]));
+        assert_eq!(change.next(), Some(vec![1,1,1,2]));
+        assert_eq!(change.next(), Some(vec![1,1,1,1,1]));
+        assert_eq!(change.next(), None);
+    }
 }
