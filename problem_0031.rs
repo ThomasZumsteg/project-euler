@@ -7,14 +7,16 @@ use std::collections::{HashSet, VecDeque};
 
 struct Change {
     coins: Vec<usize>,
-    change: Option<Vec<usize>>,
+    change: Vec<usize>,
+    done: bool,
 }
 
 impl Change {
     fn new(total: usize, coins: &Vec<usize>) -> Change {
         Change {
-            change: Change::make_change(&coins, total),
+            change: Change::make_change(&coins, total).unwrap(),
             coins: coins.clone(),
+            done: false,
         }
     }
 
@@ -38,29 +40,25 @@ impl Iterator for Change {
     type Item = Vec<usize>;
 
     fn next(&mut self) -> Option<Vec<usize>> {
-        if self.change.is_none() {
+        if self.done {
             return None;
         }
-        let result = self.coins.iter()
-            .zip(self.change.unwrap().iter())
+        let result: Vec<usize> = self.coins.iter()
+            .zip(self.change.iter())
             .map(|(&coin, &count)| vec![coin; count])
             .flatten()
             .collect();
-        let mut i = None;
-        for (c, change) in self.change.unwrap().iter_mut().enumerate().rev() {
-            if *change > 0 {
-                i = Some(c);
-                *change -= 1;
+        for (c, count) in self.change.iter_mut().enumerate().rev() {
+            if c == 0 {
+                self.done = true;
+            } else if *count > 0 {
+                *count -= 1;
+                let small_change = Change::make_change(&self.coins[0..c], self.coins[c]);
+                for (curr, diff) in self.change.iter_mut().zip(small_change.unwrap().iter()) {
+                    *curr += diff;
+                }
                 break;
             }
-        }
-        if !i.is_none() {
-            let small_change = Change::make_change(&self.coins[0..i.unwrap()], self.coins[i.unwrap()]);
-            for (curr, diff) in self.change.unwrap().iter_mut().zip(small_change.unwrap().iter()) {
-                *curr += diff;
-            }
-        } else {
-            self.change = None;
         }
         Some(result)
     }
@@ -108,7 +106,7 @@ fn main() {
         )
         .unwrap_or(vec![1,2,5,10,20,50,100,200]);
     coins.sort();
-    println!("{}", make_change(total, &coins).len());
+    println!("{}", Change::new(total, &coins).count());
 }
 
 #[cfg(test)]
