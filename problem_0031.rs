@@ -7,16 +7,14 @@ use std::collections::{HashSet, VecDeque};
 
 struct Change {
     coins: Vec<usize>,
-    change: Vec<usize>,
-    done: bool,
+    change: Option<Vec<usize>>
 }
 
 impl Change {
     fn new(total: usize, coins: &Vec<usize>) -> Change {
         Change {
-            change: Change::make_change(&coins, total).unwrap(),
+            change: Change::make_change(&coins, total),
             coins: coins.clone(),
-            done: false,
         }
     }
 
@@ -40,27 +38,23 @@ impl Iterator for Change {
     type Item = Vec<usize>;
 
     fn next(&mut self) -> Option<Vec<usize>> {
-        if self.done {
-            return None;
-        }
-        let result: Vec<usize> = self.coins.iter()
-            .zip(self.change.iter())
-            .map(|(&coin, &count)| vec![coin; count])
-            .flatten()
-            .collect();
-        for (c, count) in self.change.iter_mut().enumerate().rev() {
-            if c == 0 {
-                self.done = true;
-            } else if *count > 0 {
-                *count -= 1;
-                let small_change = Change::make_change(&self.coins[0..c], self.coins[c]);
-                for (curr, diff) in self.change.iter_mut().zip(small_change.unwrap().iter()) {
-                    *curr += diff;
+        let result = self.change.clone();
+        if self.change.is_some() && self.change.as_ref().unwrap()[1..].iter().all(|&c| c <= 0) {
+            self.change = None;
+        } else if let Some(change) = self.change.as_mut() {
+            for (c, value) in change.iter_mut().enumerate().skip(1) {
+                if *value > 0 {
+                    *value -= 1;
+                    let diffs = Change::make_change(&self.coins[0..c], self.coins[c] + change[0]);
+                    change[0] = 0;
+                    for (cng, diff) in change.iter_mut().zip(diffs.unwrap().iter()) {
+                        *cng += diff;
+                    }
+                    break;
                 }
-                break;
             }
         }
-        Some(result)
+        result
     }
 }
 
