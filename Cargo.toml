@@ -11,6 +11,7 @@ env_logger = "0.7.1"
 num = "0.2.1"
 threadpool = "1.1.71"
 chrono = "0.4.11"
+itertools = "0.9.0"
 
 [lib]
 path = "common.rs"
@@ -139,3 +140,7 @@ path = "problem_0030.rs"
 [[bin]]
 name = "problem_0031"
 path = "problem_0031.rs"
+
+[[bin]]
+name = "problem_0032"
+path = "problem_0032.rs"
