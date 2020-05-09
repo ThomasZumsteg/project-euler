@@ -117,3 +117,39 @@ impl Iterator for Fibonacci {
     }
 }
 
+pub mod digits {
+    #[derive(Debug, Clone)]
+    pub struct Digits {
+        pub digits: Vec<usize>
+    }
+
+    impl Digits {
+        pub fn filter(&self, digit: &usize) -> Digits {
+            Digits {
+                digits: self.digits.iter().map(|&d| d).filter(|d| d != digit).collect()
+            }
+        }
+    }
+
+    impl From<usize> for Digits {
+        fn from(number: usize) -> Self {
+            let mut digits = Vec::new();
+            let mut remainer = number;
+            while remainer > 0 {
+                digits.insert(0, remainer % 10);
+                remainer /= 10;
+            }
+            Digits { digits: digits }
+        }
+    }
+
+    impl From<Digits> for usize {
+        fn from(number: Digits) -> Self {
+            let mut result = 0;
+            for d in number.digits {
+                result = result * 10 + d;
+            }
+            result
+        }
+    }
+}

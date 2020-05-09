@@ -3,44 +3,10 @@ extern crate clap;
 extern crate num;
 
 use common::set_log_level;
+use common::digits::Digits;
 use log::debug;
 use num::integer::gcd;
 use std::collections::HashSet;
-
-#[derive(Debug, Clone)]
-struct Digits {
-    digits: Vec<usize>
-}
-
-impl Digits {
-    fn filter(&self, digit: &usize) -> Digits {
-        Digits {
-            digits: self.digits.iter().map(|&d| d).filter(|d| d != digit).collect()
-        }
-    }
-}
-
-impl From<usize> for Digits {
-    fn from(number: usize) -> Self {
-        let mut digits = Vec::new();
-        let mut remainer = number;
-        while remainer > 0 {
-            digits.insert(0, remainer % 10);
-            remainer /= 10;
-        }
-        Digits { digits: digits }
-    }
-}
-
-impl From<Digits> for usize {
-    fn from(number: Digits) -> Self {
-        let mut result = 0;
-        for d in number.digits {
-            result = result * 10 + d;
-        }
-        result
-    }
-}
 
 fn remove_duplicate_digits(numuerator: usize, denominator: usize) -> HashSet<(usize, usize)> {
     let num = Digits::from(numuerator);
@@ -59,7 +25,7 @@ fn remove_duplicate_digits(numuerator: usize, denominator: usize) -> HashSet<(us
 
 fn main() {
     let args = clap_app!(app =>
-        (about: "Solve Project Euler Problem 32, https://projecteuler.net/problem=32")
+        (about: "Solve Project Euler Problem 33, https://projecteuler.net/problem=33")
         (@arg verbose: -v +multiple "Increase log level")
         (@arg threads: -t --threads +takes_value "Threads")
     ).get_matches();
