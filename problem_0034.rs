@@ -4,6 +4,8 @@ extern crate clap;
 use common::set_log_level;
 use common::digits::Digits;
 use log::{info, debug};
+use std::sync::mpsc::channel;
+use threadpool::ThreadPool;
 
 fn factorial(num: usize) -> usize {
     if num == 0 {
@@ -22,16 +24,24 @@ fn main() {
 
     let threads = args.value_of("threads").map(|n| n.parse::<usize>().unwrap()).unwrap_or(1);
 
-    let mut total = 0;
-    for number in 3..(8 * factorial(9)) {
-        let digits = Digits::from(number);
-        debug!("{:?} == {}", digits.digits, number);
-        if digits.digits.iter().fold(0, |acc, &n| acc + factorial(n)) == number {
-            info!("{}", number);
-            total += number;
-        }
+    let pool = ThreadPool::new(threads);
+    let (tx, rx) = channel();
+    for t in 0..threads {
+        let tx = tx.clone();
+        pool.execute(move || {
+            for number in ((3+t)..(8 * factorial(9))).step_by(threads) {
+                let digits = Digits::from(number);
+                debug!("{:?} == {}", digits.digits, number);
+                if digits.digits.iter().fold(0, |acc, &n| acc + factorial(n)) == number {
+                    info!("{}", number);
+                    tx.send(number).unwrap();
+                }
+            }
+            drop(tx);
+        });
     }
-    println!("{}", total);
+    drop(tx);
+    println!("{}", rx.iter().sum::<usize>());
 }
 
 #[cfg(test)]
