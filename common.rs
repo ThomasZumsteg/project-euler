@@ -17,7 +17,7 @@ pub fn set_log_level(args: &ArgMatches) -> LevelFilter {
     };
     Builder::new()
         .filter_level(log_level)
-        .format(|buf, record| writeln!(buf, "[{}] {}", record.level(), record.args()))
+        .format(|buf, record| writeln!(buf, "[{}:{}] {}", record.level(), record.module_path().unwrap_or("None"), record.args()))
         .init();
     info!("Set log level {}", log_level);
     log_level
@@ -50,31 +50,66 @@ pub mod primes {
                 current: 0,
             }
         }
+
+        pub fn is_prime(&mut self, number: usize) -> bool {
+            let mut last_prime: usize = *self.primes.last().unwrap();
+            while last_prime * last_prime <= number {
+                last_prime = self.next_prime();
+                self.primes.push(last_prime);
+            }
+            for p in &self.primes { 
+                if number % p == 0 && &number != p {
+                    return false 
+                } else if number < p * p {
+                    return true 
+                }
+            }
+            panic!("We sould never run out of primes");
+        }
+
+        fn next_prime(&self) -> usize {
+            let mut num: usize = *self.primes.last().unwrap();
+            loop {
+                num += 2;
+                for prime in &self.primes {
+                    if num < prime * prime {
+                        return num;
+                    } else if num % prime == 0 {
+                        break;
+                    }
+                }
+            }
+        }
     }
 
     impl Iterator for Primes {
         type Item = usize;
 
         fn next(&mut self) -> Option<usize> {
-            let mut num: usize = self.primes.last().unwrap() + 2;
             while self.current >= self.primes.len() {
-                let mut is_prime = true;
-                for prime in &self.primes {
-                    if num < prime * prime {
-                        break;
-                    } else if num % prime == 0 {
-                        is_prime = false;
-                        break;
-                    }
-                }
-                if is_prime {
-                    log::debug!("Found Prime {}: {}", self.current, num);
-                    self.primes.push(num);
-                }
-                num += 2;
+                let next_prime = self.next_prime();
+                log::debug!("Found Prime {}: {}", self.current, next_prime);
+                self.primes.push(next_prime);
             }
             self.current += 1;
             Some(self.primes[self.current-1])
+        }
+    }
+
+    #[cfg(test)]
+    mod test {
+        use super::*;
+
+        #[test]
+        fn test_primes() {
+            let mut primes = Primes::new();
+            assert!(primes.is_prime(2));
+            assert!(primes.is_prime(3));
+            assert!(primes.is_prime(5));
+            assert!(primes.is_prime(7));
+            assert!(!primes.is_prime(4));
+            assert!(!primes.is_prime(9));
+            assert!(!primes.is_prime(100));
         }
     }
 }
