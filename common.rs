@@ -52,6 +52,9 @@ pub mod primes {
         }
 
         pub fn is_prime(&mut self, number: usize) -> bool {
+            if number < 2 {
+                return false;
+            }
             let mut last_prime: usize = *self.primes.last().unwrap();
             while last_prime * last_prime <= number {
                 last_prime = self.next_prime();
@@ -107,6 +110,8 @@ pub mod primes {
             assert!(primes.is_prime(3));
             assert!(primes.is_prime(5));
             assert!(primes.is_prime(7));
+            assert!(!primes.is_prime(0));
+            assert!(!primes.is_prime(1));
             assert!(!primes.is_prime(4));
             assert!(!primes.is_prime(9));
             assert!(!primes.is_prime(100));
