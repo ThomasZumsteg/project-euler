@@ -192,4 +192,10 @@ pub mod digits {
             result
         }
     }
+
+    impl From<Vec<usize>> for Digits {
+        fn from(digits: Vec<usize>) -> Self {
+            Digits { digits: digits }
+        }
+    }
 }

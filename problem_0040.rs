@@ -33,7 +33,7 @@ impl Iterator for ChampernowneConstant {
 
 fn main() {
     let args = clap_app!(app =>
-        (about: "Solve Project Euler Problem 40, https://projecteuler.net/problem=39")
+        (about: "Solve Project Euler Problem 40, https://projecteuler.net/problem=40")
         (@arg verbose: -v +multiple "Increase log level")
         (@arg threads: -t --threads +takes_value "threads")
         (@arg digits: "Digits to multiply")
