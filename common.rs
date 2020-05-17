@@ -23,6 +23,24 @@ pub fn set_log_level(args: &ArgMatches) -> LevelFilter {
     log_level
 }
 
+pub fn integer_square_root(number: usize) -> Option<usize> {
+    let root = (number as f64).sqrt() as usize;
+    if root * root == number { Some(root) } else { None }
+}
+
+#[cfg(test)]
+mod test {
+    use super::integer_square_root;
+    
+    #[test]
+    fn test_integer_square_root() {
+        assert_eq!(integer_square_root(12), None);
+        assert_eq!(integer_square_root(4), Some(2));
+        assert_eq!(integer_square_root(1), Some(1));
+        assert_eq!(integer_square_root(7), None);
+    }
+}
+
 pub mod primes {
     pub struct Primes {
         primes: Vec<usize>,

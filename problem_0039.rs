@@ -1,14 +1,9 @@
 #[macro_use]
 extern crate clap;
 
-use common::set_log_level;
+use common::{set_log_level, integer_square_root};
 use log::info;
 use std::collections::{HashMap, HashSet};
-
-fn integer_square_root(number: usize) -> Option<usize> {
-    let root = (number as f64).sqrt() as usize;
-    if root * root == number { Some(root) } else { None }
-}
 
 fn main() {
     let args = clap_app!(app =>
@@ -37,17 +32,4 @@ fn main() {
         }
     }
     println!("{}", result.iter().max_by_key(|(_, v)| v.len()).unwrap().0);
-}
-
-#[cfg(test)]
-mod test {
-    use super::*;
-    
-    #[test]
-    fn test_integer_square_root() {
-        assert_eq!(integer_square_root(12), None);
-        assert_eq!(integer_square_root(4), Some(2));
-        assert_eq!(integer_square_root(1), Some(1));
-        assert_eq!(integer_square_root(7), None);
-    }
 }
