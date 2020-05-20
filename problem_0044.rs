@@ -3,6 +3,9 @@ extern crate clap;
 
 use common::set_log_level;
 use log::{info, debug};
+use threadpool::ThreadPool;
+use std::sync::{Arc, RwLock};
+
 
 mod pentagonal {
     use common::integer_square_root;
@@ -54,21 +57,37 @@ fn main() {
     ).get_matches();
     set_log_level(&args);
 
-    let mut result: Option<usize> = None;
-    let mut n = 1;
-    while result.is_none() || result.unwrap() < pentagonal::pentagonal_number(n+1) - pentagonal::pentagonal_number(n) {
-        n += 1;
-        let p_n = pentagonal::pentagonal_number(n);
-        for n in 1..n {
-            let p_m = pentagonal::pentagonal_number(n);
-            debug!("Testing {} ± {}", p_n, p_m);
-            if pentagonal::pentagonal_index(p_n - p_m).is_some() && pentagonal::pentagonal_index(p_n + p_m).is_some() {
-                info!("{} ± {} is pentagonal", p_n, p_m);
-                if result.is_none() || result.unwrap() > p_n - p_m {
-                    result = Some(p_n - p_m);
+    let threads = args.value_of("threads").map(|n| n.parse::<usize>().unwrap()).unwrap_or(1);
+    info!("Running with {} threads", threads);
+
+    let result: Arc<RwLock<Option<usize>>> = Arc::new(RwLock::new(None));
+
+    let pool = ThreadPool::new(threads);
+    for t in 0..threads {
+        let result = result.clone();
+        pool.execute(move || {
+            for n in ((t+1)..).step_by(threads) {
+                let p_n = pentagonal::pentagonal_number(n);
+                let read = result.read().unwrap().clone();
+                if read.is_some() && read.unwrap() >= pentagonal::pentagonal_number(n+1) - p_n {
+                    return;
+                }
+                for m in 1..n {
+                    let p_m = pentagonal::pentagonal_number(m);
+                    debug!("{}: Testing {} ± {}", t, p_n, p_m);
+                    if pentagonal::pentagonal_index(p_n - p_m).is_some() && pentagonal::pentagonal_index(p_n + p_m).is_some() {
+                        info!("{} ± {} is pentagonal", p_n, p_m);
+                        if read.is_none() || read.unwrap() > p_n - p_m {
+                            let mut write_result = result.write().unwrap();
+                            if write_result.is_none() || write_result.unwrap() > p_n - p_m {
+                                *write_result = Some(p_n - p_m);
+                            }
+                        }
+                    }
                 }
             }
-        }
+        });
     }
-    println!("{}", result.unwrap());
+    pool.join();
+    println!("{}", result.read().unwrap().unwrap());
 }
