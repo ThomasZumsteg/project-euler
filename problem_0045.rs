@@ -2,7 +2,9 @@
 extern crate clap;
 
 use common::{set_log_level, integer_square_root};
-use log::debug;
+use log::{debug, info};
+use threadpool::ThreadPool;
+use std::sync::{Arc, RwLock};
 
 fn triangle_index(number: usize) -> Option<usize> {
     if let Some(root) = integer_square_root(1 + 4 * 2 * number) {
@@ -41,20 +43,39 @@ fn main() {
     set_log_level(&args);
 
     let mut start = args.value_of("start").map(|n| n.parse::<usize>().unwrap()).unwrap_or(40756);
+    let threads = args.value_of("threads").map(|n| n.parse::<usize>().unwrap()).unwrap_or(1);
+    info!("Threads {}", threads);
+
     while hexagonal_index(start).is_none() {
         start += 1;
     }
 
-    let mut result = None;
-    for hex_index in hexagonal_index(start).unwrap().. {
-        let number = hex_index * (2 * hex_index - 1);
-        debug!("{}", number);
-        if triangle_index(number).is_some() && pentagonal_index(number).is_some() {
-            result = Some(number);
-            break;
-        }
+    let result = Arc::new(RwLock::new(None));
+    let pool = ThreadPool::new(threads);
+    let hex_start = hexagonal_index(start).unwrap();
+    for t in 0..threads {
+        let result = result.clone();
+        pool.execute(move || {
+            for hex_index in ((t+hex_start)..).step_by(threads) {
+                let number = hex_index * (2 * hex_index - 1);
+                debug!("{}: {}", t, number);
+                if let Ok(read) = result.read() {
+                    if read.is_some() && read.unwrap() < number {
+                        break;
+                    }
+                }
+                if triangle_index(number).is_some() && pentagonal_index(number).is_some() {
+                    let mut write = result.write().unwrap();
+                    if write.is_none() || write.unwrap() > number {
+                        *write = Some(number);
+                        debug!("Updating");
+                    }
+                }
+            }
+        });
     }
-    println!("{}", result.unwrap());
+    pool.join();
+    println!("{}", result.read().unwrap().unwrap());
 }
 
 #[cfg(test)]
