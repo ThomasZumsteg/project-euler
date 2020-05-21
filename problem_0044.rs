@@ -51,7 +51,7 @@ mod pentagonal {
 
 fn main() {
     let args = clap_app!(app =>
-        (about: "Solve Project Euler Problem 43, https://projecteuler.net/problem=43")
+        (about: "Solve Project Euler Problem 44, https://projecteuler.net/problem=44")
         (@arg verbose: -v +multiple "Increase log level")
         (@arg threads: -t --threads +takes_value "threads")
     ).get_matches();
