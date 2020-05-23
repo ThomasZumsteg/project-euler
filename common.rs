@@ -42,6 +42,8 @@ mod test {
 }
 
 pub mod primes {
+    use std::collections::HashMap;
+
     pub struct Primes {
         primes: Vec<usize>,
         pub current: usize,
@@ -101,6 +103,32 @@ pub mod primes {
                 }
             }
         }
+
+        pub fn nth_prime(&mut self, nth: usize) -> usize {
+            while nth >= self.primes.len() {
+                self.primes.push(self.next_prime());
+            }
+            self.primes[nth]
+        }
+
+        pub fn prime_factors(&mut self, number: usize) -> HashMap<usize, usize> {
+            let mut result = HashMap::new();
+            let mut remainer = number;
+            for n in 0.. {
+                if self.is_prime(remainer) {
+                    *result.entry(remainer).or_insert(0) += 1;
+                    break;
+                } else if remainer == 1 {
+                    break;
+                }
+                let prime = self.nth_prime(n);
+                while remainer % prime == 0 {
+                    *result.entry(prime).or_insert(0) += 1;
+                    remainer /= prime;
+                }
+            }
+            result
+        }
     }
 
     impl Iterator for Primes {
@@ -120,6 +148,7 @@ pub mod primes {
     #[cfg(test)]
     mod test {
         use super::*;
+        use maplit::hashmap;
 
         #[test]
         fn test_primes() {
@@ -133,6 +162,18 @@ pub mod primes {
             assert!(!primes.is_prime(4));
             assert!(!primes.is_prime(9));
             assert!(!primes.is_prime(100));
+        }
+
+        #[test]
+        fn test_prime_factors() {
+            let mut primes = Primes::new();
+            assert_eq!(primes.prime_factors(4), hashmap!{2 => 2});
+            assert_eq!(primes.prime_factors(7), hashmap!{7 => 1});
+            assert_eq!(primes.prime_factors(14), hashmap!{2 => 1, 7 => 1});
+            assert_eq!(primes.prime_factors(15), hashmap!{3 => 1, 5 => 1});
+            assert_eq!(primes.prime_factors(644), hashmap!{2 => 2, 7 => 1, 23 => 1});
+            assert_eq!(primes.prime_factors(645), hashmap!{3 => 1, 5 => 1, 43 => 1});
+            assert_eq!(primes.prime_factors(646), hashmap!{2 => 1, 17 => 1, 19 => 1});
         }
     }
 }
