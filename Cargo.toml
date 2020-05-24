@@ -209,3 +209,7 @@ path = "problem_0047.rs"
 [[bin]]
 name = "problem_0048"
 path = "problem_0048.rs"
+
+[[bin]]
+name = "problem_0049"
+path = "problem_0049.rs"
