@@ -4,6 +4,8 @@ extern crate clap;
 use common::set_log_level;
 use common::primes::Primes;
 use log::info;
+use std::sync::{Arc, RwLock};
+use threadpool::ThreadPool;
 
 fn main() {
     let args = clap_app!(app =>
@@ -15,26 +17,33 @@ fn main() {
     set_log_level(&args);
 
     let limit = args.value_of("limit").map(|n| n.parse::<usize>().unwrap()).unwrap_or(1000000);
+    let threads = args.value_of("threads").map(|n| n.parse::<usize>().unwrap()).unwrap_or(1);
 
-    let mut primes = Primes::new();
-    let mut result: Option<(usize, usize)> = None;
-    for start in 0.. {
-        let mut total = primes.nth_prime(start);
-        if limit < total {
-            break;
-        }
-        for p in (start+1).. {
-            total += primes.nth_prime(p);
-            if limit < total {
-                break;
-            }
-            if primes.is_prime(total) {
-                info!("{} - {}", total, p - start);
-                if result.is_none() || result.unwrap().1 < p - start {
-                    result = Some((total, p - start));
+    let primes: Arc<Vec<usize>> = Arc::new(Primes::new().take_while(|&p| p <= limit).collect());
+    let pool = ThreadPool::new(threads);
+    let result: Arc<RwLock<Option<(usize, usize)>>> = Arc::new(RwLock::new(None));
+    for t in 0..threads {
+        let primes = primes.clone();
+        let result = result.clone();
+        pool.execute(move || {
+            for (p, &prime) in primes.iter().enumerate().filter(|(p, _)| p % threads == t) {
+                let mut total = prime;
+                for (len, &q) in primes[(p+1)..].iter().enumerate() {
+                    total += q;
+                    if total > limit {
+                        break;
+                    }
+                    if let Ok(_) = primes.binary_search(&total) {
+                        info!("({}) {} - {}", t, total, len);
+                        let mut write = result.write().unwrap();
+                        if write.is_none() || write.unwrap().1 < len {
+                            *write = Some((total, len));
+                        }
+                    }
                 }
             }
-        }
+        });
     }
-    println!("{}", result.unwrap().0);
+    pool.join();
+    println!("{}", result.read().unwrap().unwrap().0);
 }
