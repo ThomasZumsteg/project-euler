@@ -55,7 +55,7 @@ impl Hand {
             values.pop();
             values.insert(0, 1);
         }
-        let is_straight = value_count.len() == 5 && (0..3).all(|i| values[i] - values[i+1] == 1);
+        let is_straight = value_count.len() == 5 && (0..4).all(|i| values[i] - values[i+1] == 1);
         if is_straight && suits.len() == 1 && values[0] == 14 {
             debug!("{:?} Royal Flush {:?}", cards, values);
             Hand { rank: 10, values: values }
@@ -160,6 +160,16 @@ mod test {
         assert!(Hand::from(&vec!["2D","9C","AS","AH","AC"]) < Hand::from(&vec!["3D","6D","7D","TD","QD"]));
         assert!(Hand::from(&vec!["4D","6S","9H","QH","QC"]) > Hand::from(&vec!["3D","6D","7H","QD","QS"]));
         assert!(Hand::from(&vec!["2H","2D","4C","4D","4S"]) > Hand::from(&vec!["3C","3D","3S","9S","9D"]));
+
+        assert!(Hand::from(&vec!["2H","2D","4C","4D","4S"]) > Hand::from(&vec!["3C","3D","3S","9S","9D"]));
+        assert!(Hand::from(&vec!["2C","9D","KC","QH","TH"]) > Hand::from(&vec!["QS","JC","9C","4H","TS"]));
+        assert!(Hand::from(&vec!["JC","KC","6H","TS","QS"]) < Hand::from(&vec!["TD","KS","8H","8C","9S"]));
+        assert!(Hand::from(&vec!["9S","6S","TC","QS","JC"]) < Hand::from(&vec!["5C","5D","9C","TH","8C"]));
+        assert!(Hand::from(&vec!["TD","JD","QC","4D","9S"]) < Hand::from(&vec!["7S","TS","AD","7D","AC"]));
+        assert!(Hand::from(&vec!["9H","TD","3S","8H","7S"]) < Hand::from(&vec!["AC","5C","6C","AH","7C"]));
+        assert!(Hand::from(&vec!["AH","QH","3C","JD","KC"]) < Hand::from(&vec!["4S","5S","5D","TD","KS"]));
+        assert!(Hand::from(&vec!["AS","JS","2S","QD","KH"]) < Hand::from(&vec!["8H","4S","AC","8D","8S"]));
+        assert!(Hand::from(&vec!["TC","9H","8H","JC","3C"]) < Hand::from(&vec!["9S","8D","KS","AD","KC"]));
     }
 
 }
