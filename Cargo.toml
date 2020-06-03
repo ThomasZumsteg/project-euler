@@ -13,6 +13,7 @@ threadpool = "1.1.71"
 chrono = "0.4.11"
 itertools = "0.9.0"
 maplit = "1.0.2"
+num-traits="0.2.11"
 
 [lib]
 path = "common.rs"
@@ -237,3 +238,7 @@ path = "problem_0054.rs"
 [[bin]]
 name = "problem_0055"
 path = "problem_0055.rs"
+
+[[bin]]
+name = "problem_0056"
+path = "problem_0056.rs"

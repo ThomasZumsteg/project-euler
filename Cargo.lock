@@ -250,6 +250,7 @@ dependencies = [
  "log",
  "maplit",
  "num",
+ "num-traits",
  "threadpool",
 ]
 
