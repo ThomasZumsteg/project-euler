@@ -218,7 +218,6 @@ impl Iterator for Fibonacci {
 
 pub mod digits {
     use num::bigint::BigInt;
-    use num::traits::ToPrimitive;
 
     #[derive(Debug, Clone)]
     pub struct Digits {
@@ -247,13 +246,9 @@ pub mod digits {
 
     impl From<BigInt> for Digits {
         fn from(number: BigInt) -> Self {
-            let mut digits = Vec::new();
-            let mut remainer = number;
-            while remainer > BigInt::from(0) {
-                digits.insert(0, (remainer.clone() % BigInt::from(10)).to_usize().unwrap());
-                remainer /= BigInt::from(10);
+            Digits { 
+                digits: number.to_string().chars().map(|d| d.to_digit(10).unwrap() as usize).collect()
             }
-            Digits { digits: digits }
         }
     }
 
@@ -280,6 +275,18 @@ pub mod digits {
     impl From<Vec<usize>> for Digits {
         fn from(digits: Vec<usize>) -> Self {
             Digits { digits: digits }
+        }
+    }
+
+    #[cfg(test)]
+    mod test {
+        use super::*;
+
+        #[test]
+        fn test_from_big_int() {
+            assert_eq!(Digits::from(BigInt::from(123456)).digits, vec![1,2,3,4,5,6]);
+            assert_eq!(Digits::from(BigInt::from(0)).digits, vec![0]);
+            assert_eq!(Digits::from(BigInt::from(10)).digits, vec![1, 0]);
         }
     }
 }
