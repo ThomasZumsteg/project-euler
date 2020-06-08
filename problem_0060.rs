@@ -3,58 +3,11 @@ extern crate clap;
 
 use common::set_log_level;
 use common::primes::Primes;
-use std::cmp::Ordering;
-use std::collections::BinaryHeap;
+use log::{debug, info};
+use std::collections::{HashSet, HashMap};
 
-struct OrderPrimeSet {
-    set: Vec<usize>,
-    primes: Vec<usize>,
-}
-
-impl Ord for OrderPrimeSet {
-    fn cmp(&self, other: &Self) -> Ordering {
-        other.set.iter().sum::<usize>().cmp(
-            &self.set.iter().sum::<usize>()
-        )
-    }
-}
-
-impl PartialOrd for OrderPrimeSet {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl PartialEq for OrderPrimeSet {
-    fn eq(&self, other: &Self) -> bool {
-        self.set.iter().sum::<usize>() == other.set.iter().sum::<usize>()
-    }
-}
-
-impl Eq for OrderPrimeSet {
-}
-
-struct OrderedPrimeSets {
-    set_size: BinaryHeap<OrderPrimeSet>,
-    primes: Primes,
-}
-
-impl OrderedPrimeSets {
-    fn new(set_size: usize) -> OrderedPrimeSets {
-        let mut heap = BinaryHeap::new();
-        OrderedPrimeSets {
-            primes: Primes::new(),
-            set_size: set_size
-        }
-    }
-}
-
-impl Iterator for OrderedPrimeSets {
-    type Item = Vec<usize>;
-
-    fn next(&mut self) -> Option<Vec<usize>> {
-        unimplemented!();
-    }
+fn has_set_of(size: usize, root: usize, map: HashMap<usize, HashSet<usize>>) -> bool {
+    unimplemented!()
 }
 
 fn main() {
@@ -67,39 +20,24 @@ fn main() {
     set_log_level(&args);
     
     let set_size = args.value_of("set_size").map(|n| n.parse::<usize>().unwrap()).unwrap_or(5);
-}
 
-#[cfg(test)]
-mod test {
-    use super::*;
-
-    #[test]
-    fn test_single_iterator() {
-        let iterator = OrderedPrimeSet::new(1);
-        assert_eq!(iterator.next(), Some(2));
-        assert_eq!(iterator.next(), Some(3));
-        assert_eq!(iterator.next(), Some(5));
-        assert_eq!(iterator.next(), Some(7));
-        assert_eq!(iterator.next(), Some(11));
-        assert_eq!(iterator.next(), Some(13));
+    let mut primes = Primes::new();
+    let mut concat_primes: HashMap<usize, HashSet<usize>> = HashMap::new();
+    for p in 1.. {
+        let prime = primes.nth_prime(p);
+        for q in 0..p {
+            let qrime = primes.nth_prime(q);
+            let crime = (prime.to_string() + &qrime.to_string()).parse::<usize>().unwrap();
+            let drime = (qrime.to_string() + &prime.to_string()).parse::<usize>().unwrap();
+            if primes.is_prime(crime) && primes.is_prime(drime) {
+                info!("{} + {} = {}, {} + {} = {}", qrime, prime, drime, prime, qrime, crime);
+                concat_primes.entry(qrime).or_insert(HashSet::new()).insert(prime);
+                concat_primes.entry(prime).or_insert(HashSet::new()).insert(qrime);
+                if has_set_of(set_size, prime, concat_primes) {
+                    break;
+                }
+            }
+        }
     }
-
-    #[test]
-    fn test_double_iterator() {
-        let iterator = OrderedPrimeSet::new(2);
-        assert_eq!(iterator.next(), Some(vec![2, 3])); // 5
-        assert_eq!(iterator.next(), Some(vec![2, 5])); // 7
-        assert_eq!(iterator.next(), Some(vec![3, 5])); // 8
-        assert_eq!(iterator.next(), Some(vec![2, 7])); // 9
-        assert_eq!(iterator.next(), Some(vec![3, 7])); // 10
-    }
-
-    #[test]
-    fn test_triple_iterator() {
-        let iterator = OrderedPrimeSet::new(2);
-        assert_eq!(iterator.next(), Some(vec![2, 3, 5])); // 10
-        assert_eq!(iterator.next(), Some(vec![2, 3, 7])); // 12
-        assert_eq!(iterator.next(), Some(vec![2, 5, 7])); // 14
-        assert_eq!(iterator.next(), Some(vec![3, 5, 7])); // 15
-    }
+    unimplemented!();
 }
