@@ -162,6 +162,8 @@ pub mod primes {
             assert!(!primes.is_prime(4));
             assert!(!primes.is_prime(9));
             assert!(!primes.is_prime(100));
+            assert!(!primes.is_prime(68341));
+            assert!(!primes.is_prime(41683));
         }
 
         #[test]

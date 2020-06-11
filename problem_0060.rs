@@ -8,7 +8,7 @@ use log::{debug, info};
 use itertools::Itertools;
 use std::collections::{HashSet, HashMap};
 
-fn find_valid_set(candidates: HashSet<usize>, map: &HashMap<usize, HashSet<usize>>, size: usize) -> Option<HashSet<usize>> {
+fn find_valid_sets(candidates: HashSet<usize>, map: &HashMap<usize, HashSet<usize>>, size: usize) -> Vec<HashSet<usize>> {
     let candidate_set = candidates.iter()
         .map(|c| map[&c].clone())
         .fold(None, |acc: Option<HashSet<usize>>, s| {
@@ -19,6 +19,7 @@ fn find_valid_set(candidates: HashSet<usize>, map: &HashMap<usize, HashSet<usize
             }
         })
         .unwrap();
+    let mut results = Vec::new();
     for collection in candidate_set.iter().combinations(size - 2) {
         let collection = collection.iter().map(|&n| n.clone()).collect::<HashSet<usize>>();
         let collection_set = collection.iter()
@@ -37,11 +38,11 @@ fn find_valid_set(candidates: HashSet<usize>, map: &HashMap<usize, HashSet<usize
         );
         if candidates.is_subset(&collection_set) && collection.is_subset(&candidate_set) {
             let result = candidates.union(&collection).map(|&n| n.clone()).collect::<HashSet<usize>>();
-            debug!("Done: {:?}", result);
-            return Some(result);
+            debug!("Found: {:?}", result);
+            results.push(result); 
         }
     }
-    None
+    results
 }
 
 fn main() {
@@ -58,9 +59,13 @@ fn main() {
     let mut primes = Primes::new();
     let mut concat_primes: HashMap<usize, HashSet<usize>> = HashMap::new();
     let mut p = 1;
-    let result = 'outer: loop {
+    let mut result: Option<HashSet<usize>> = None;
+    loop {
         p += 1;
         let prime = primes.nth_prime(p);
+        if result.is_some() && result.clone().unwrap().iter().sum::<usize>() < prime {
+            break
+        }
         for q in 0..p {
             let qrime = primes.nth_prime(q);
             let crime = (prime.to_string() + &qrime.to_string()).parse::<usize>().unwrap();
@@ -70,15 +75,18 @@ fn main() {
                 concat_primes.entry(qrime).or_insert(HashSet::new()).insert(prime);
                 concat_primes.entry(prime).or_insert(HashSet::new()).insert(qrime);
                 let candidates = vec![prime, qrime].iter().map(|n| n.clone()).collect::<HashSet<usize>>();
-                if let Some(result) = find_valid_set(candidates, &concat_primes, set_size) {
-                    break 'outer result;
+                for set in find_valid_sets(candidates, &concat_primes, set_size) {
+                    if result.is_none() || result.clone().unwrap().iter().sum::<usize>() > set.iter().sum::<usize>() {
+                        info!("{:?}: {}", set, set.iter().sum::<usize>());
+                        result = Some(set);
+                    }
                 }
             }
         }
     };
-    info!("{:?}", concat_primes);
+    debug!("{:?}", concat_primes);
     info!("{:?}", result);
-    println!("{}", result.iter().sum::<usize>());
+    println!("{}", result.unwrap().iter().sum::<usize>());
 }
 
 #[cfg(test)]
@@ -95,8 +103,8 @@ mod test {
             673 => hashset!{3, 7, 109}
         };
         assert_eq!(
-            find_valid_set(hashset!{3, 7}, &map, 4),
-            Some(hashset!{3, 7, 109, 673}),
+            find_valid_sets(hashset!{3, 7}, &map, 4),
+            vec![hashset!{3, 7, 109, 673}],
         )
     }
 
@@ -225,8 +233,8 @@ mod test {
             673 => hashset!{3, 7, 109}, 
         };
         assert_eq!(
-            find_valid_set(hashset!{109, 673}, &map, 4),
-            Some(hashset!{3, 7, 109, 673})
+            find_valid_sets(hashset!{109, 673}, &map, 4),
+            vec![hashset!{3, 7, 109, 673}]
         )
     }
 }
