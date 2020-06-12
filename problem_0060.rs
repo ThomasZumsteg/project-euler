@@ -20,26 +20,14 @@ fn find_valid_sets(candidates: HashSet<usize>, map: &HashMap<usize, HashSet<usiz
         })
         .unwrap();
     let mut results = Vec::new();
-    for collection in candidate_set.iter().combinations(size - 2) {
-        let collection = collection.iter().map(|&n| n.clone()).collect::<HashSet<usize>>();
-        let collection_set = collection.iter()
-            .map(|c| map[&c].clone())
-            .fold(None, |acc: Option<HashSet<usize>>, s| {
-                if let Some(values) = acc {
-                    Some(values.intersection(&s).map(|&n| n).collect())
-                } else {
-                    Some(s)
-                }
-            })
-            .unwrap();
-        debug!("Testing ({:?}).is_subset({:?} == {}) ({:?}).is_subset({:?} == {})",
-            candidates, collection_set, candidates.is_subset(&collection_set),
-            collection, candidate_set, collection.is_subset(&candidate_set)
-        );
-        if candidates.is_subset(&collection_set) && collection.is_subset(&candidate_set) {
-            let result = candidates.union(&collection).map(|&n| n.clone()).collect::<HashSet<usize>>();
-            debug!("Found: {:?}", result);
-            results.push(result); 
+    for combination in candidate_set.iter().combinations(size - candidates.len()) {
+        let collection = candidates.iter()
+            .map(|&n| n.clone())
+            .chain(combination.iter().map(|&n| n.clone()))
+            .collect::<HashSet<usize>>();
+        if collection.iter().all(|c| collection.iter().all(|d| d == c || map[c].contains(d))) {
+            info!("Found: {:?}", collection);
+            results.push(collection);
         }
     }
     results
