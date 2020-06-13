@@ -35,7 +35,7 @@ fn find_valid_sets(candidates: HashSet<usize>, map: &HashMap<usize, HashSet<usiz
 
 fn main() {
     let args = clap_app!(app =>
-        (about: "Solve Project Euler Problem 58, https://projecteuler.net/problem=58")
+        (about: "Solve Project Euler Problem 60, https://projecteuler.net/problem=60")
         (@arg verbose: -v +multiple "Increase log level")
         (@arg threads: -t --threads +takes_value "threads")
         (@arg set_size: +takes_value "Number of primes to take")
