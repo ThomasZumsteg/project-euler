@@ -2,14 +2,8 @@
 extern crate clap;
 
 use common::{set_log_level, integer_square_root};
-// def is_poly(p):
-//     def test_poly(m):
-//         iterm = (16 - 8 * p) * (1 - m) + p ** 2
-//         print(iterm)
-//         if math.isqrt(iterm) ** 2 == iterm:
-//             return (p - 4 + iterm) % (2 * (p -2)) == 0
-//         return False
-//     return test_poly
+use log::{debug, info};
+use std::collections::VecDeque;
 
 fn is_poly(p: usize) -> Box<dyn Fn(usize) -> bool> {
     let poly = Box::new(move |m: usize| -> bool {
@@ -19,6 +13,39 @@ fn is_poly(p: usize) -> Box<dyn Fn(usize) -> bool> {
         false
     });
     poly
+}
+
+struct Chain {
+    pre: usize,
+    post: usize,
+    limit: usize,
+}
+
+impl Chain {
+    fn new(number: usize, replace: u32) -> Chain {
+        debug!("{} - {}", number, replace);
+        let replaced = 10usize.pow(replace);
+        let digits = number.to_string().len();
+        Chain {
+            pre: (number % replaced) * 10usize.pow(digits as u32 - replace),
+            post: 0,
+            limit: replaced,
+        }
+    }
+}
+
+
+impl Iterator for Chain {
+    type Item = usize;
+
+    fn next(&mut self) -> Option<usize> {
+        if self.limit <= self.post {
+            return None;
+        }
+        let result = self.pre + self.post;
+        self.post += 1;
+        Some(result)
+    }
 }
 
 
@@ -32,6 +59,31 @@ fn main() {
     set_log_level(&args);
 
     let set_size = args.value_of("set_size").map(|n| n.parse::<usize>().unwrap()).unwrap_or(6);
+    let poly_funcs: Vec<Box<dyn Fn(usize) -> bool>> = (3..(set_size+3)).map(|p| is_poly(p)).collect();
+    let mut set: Vec<usize> = Vec::new();
+    let mut stack: VecDeque<Box<dyn Iterator<Item=usize>>> = VecDeque::new();
+    stack.push_front(Box::new(1000..10000));
+    'outer: loop {
+        let mut num = None;
+        while num.is_none() {
+            if let Some(iter) = stack.front_mut() {
+                num = iter.next();
+                if let Some(n) = num {
+                    stack.push_front(Box::new(Chain::new(n, 2)));
+                } else {
+                    stack.pop_front();
+                }
+            } else {
+                break 'outer;
+            }
+        }
+        info!("{:?}", num);
+    //     let matchs = poly_funcs.iter().enumerate();
+    //     if len(matches) == 1 {
+    //         set.push((num, matches[0])); 
+    //         stack.push(Chain::new(num));
+    //     }
+    }
 }
 
 #[cfg(test)]
@@ -81,5 +133,19 @@ mod test {
         assert!(!is_poly(8)(7));
         assert!(is_poly(8)(8));
         assert!(is_poly(8)(21));
+    }
+
+    #[test]
+    fn test_chain() {
+        let mut chain = Chain::new(8128, 2);
+        assert_eq!(chain.next(), Some(2800));
+        assert_eq!(chain.next(), Some(2801));
+        assert_eq!(chain.next(), Some(2802));
+        assert_eq!(chain.next(), Some(2803));
+        assert_eq!(chain.next(), Some(2804));
+        for _ in 0..(100-5) {
+            assert_ne!(chain.next(), None);
+        }
+        assert_eq!(chain.next(), None);
     }
 }
