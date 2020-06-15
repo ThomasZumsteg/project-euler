@@ -3,7 +3,7 @@ extern crate clap;
 
 use common::{set_log_level, integer_square_root};
 use log::{debug, info};
-use std::collections::VecDeque;
+use std::collections::{HashSet, VecDeque};
 
 fn is_poly(p: usize) -> Box<dyn Fn(usize) -> bool> {
     let poly = Box::new(move |m: usize| -> bool {
@@ -32,6 +32,10 @@ impl Chain {
             limit: replaced,
         }
     }
+
+    fn chain_factory(replace: u32) -> Box<dyn Fn(usize) -> Chain> {
+        Box::new(move |number: usize| Chain::new(number, replace))
+    }
 }
 
 
@@ -49,6 +53,35 @@ impl Iterator for Chain {
 }
 
 
+struct Stack {
+    stack: VecDeque<Box<dyn Iterator<Item=usize>>>,
+    stack_generator: Box<dyn Fn(usize) -> Chain>,
+    current: Vec<usize>,
+    size: usize,
+}
+
+impl Stack {
+    fn new(initial: Box<dyn Iterator<Item=usize>>, size: usize, push_stack: Box<dyn Fn(usize) -> Chain>) -> Stack {
+        let mut stack = VecDeque::new();
+        stack.push_front(initial);
+        Stack {
+            stack: stack,
+            stack_generator: push_stack,
+            current: Vec::new(),
+            size: size,
+        }
+    }
+}
+
+impl Iterator for Stack {
+    type Item = Vec<usize>;
+
+    fn next(&mut self) -> Option<Vec<usize>> {
+        unimplemented!()
+    }
+}
+
+
 fn main() {
     let args = clap_app!(app =>
         (about: "Solve Project Euler Problem 61, https://projecteuler.net/problem=61")
@@ -60,29 +93,9 @@ fn main() {
 
     let set_size = args.value_of("set_size").map(|n| n.parse::<usize>().unwrap()).unwrap_or(6);
     let poly_funcs: Vec<Box<dyn Fn(usize) -> bool>> = (3..(set_size+3)).map(|p| is_poly(p)).collect();
-    let mut set: Vec<usize> = Vec::new();
-    let mut stack: VecDeque<Box<dyn Iterator<Item=usize>>> = VecDeque::new();
-    stack.push_front(Box::new(1000..10000));
-    'outer: loop {
-        let mut num = None;
-        while num.is_none() {
-            if let Some(iter) = stack.front_mut() {
-                num = iter.next();
-                if let Some(n) = num {
-                    stack.push_front(Box::new(Chain::new(n, 2)));
-                } else {
-                    stack.pop_front();
-                }
-            } else {
-                break 'outer;
-            }
-        }
-        info!("{:?}", num);
-    //     let matchs = poly_funcs.iter().enumerate();
-    //     if len(matches) == 1 {
-    //         set.push((num, matches[0])); 
-    //         stack.push(Chain::new(num));
-    //     }
+    let mut sets: Vec<Vec<usize>> = Vec::new();
+    for set in Stack::new(Box::new(1000..10000), set_size, Chain::chain_factory(2)) {
+        info!("{:?}", set);
     }
 }
 
@@ -147,5 +160,11 @@ mod test {
             assert_ne!(chain.next(), None);
         }
         assert_eq!(chain.next(), None);
+    }
+
+    #[test]
+    fn test_stack() {
+        let mut stack = Stack::new(10..100, 2, Chain::chain_factory(1));
+        assert_eq!(stack.next(), Some(vec![11, 11]));
     }
 }
