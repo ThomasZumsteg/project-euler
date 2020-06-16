@@ -16,68 +16,35 @@ fn is_poly(p: usize) -> Box<dyn Fn(usize) -> bool> {
 }
 
 struct Chain {
-    pre: usize,
-    post: usize,
-    limit: usize,
+    root: Box<Iterator<Item=usize>>,
+    replace: usize,
+    set_size: usize,
+    current: Vec<usize>,
 }
 
 impl Chain {
-    fn new(number: usize, replace: u32) -> Chain {
-        debug!("{} - {}", number, replace);
-        let replaced = 10usize.pow(replace);
-        let digits = number.to_string().len();
+    fn new(digits: usize, replace: usize, set_size: usize) -> Chain {
+        let root = Box::new(10usize.pow(digits as u32 - 1)..10usize.pow(digits as u32));
         Chain {
-            pre: (number % replaced) * 10usize.pow(digits as u32 - replace),
-            post: 0,
-            limit: replaced,
+            root: root,
+            replace: replace,
+            set_size: set_size,
+            current: Vec::new(),
         }
     }
-
-    fn chain_factory(replace: u32) -> Box<dyn Fn(usize) -> Chain> {
-        Box::new(move |number: usize| Chain::new(number, replace))
-    }
 }
-
 
 impl Iterator for Chain {
-    type Item = usize;
-
-    fn next(&mut self) -> Option<usize> {
-        if self.limit <= self.post {
-            return None;
-        }
-        let result = self.pre + self.post;
-        self.post += 1;
-        Some(result)
-    }
-}
-
-
-struct Stack {
-    stack: VecDeque<Box<dyn Iterator<Item=usize>>>,
-    stack_generator: Box<dyn Fn(usize) -> Chain>,
-    current: Vec<usize>,
-    size: usize,
-}
-
-impl Stack {
-    fn new(initial: Box<dyn Iterator<Item=usize>>, size: usize, push_stack: Box<dyn Fn(usize) -> Chain>) -> Stack {
-        let mut stack = VecDeque::new();
-        stack.push_front(initial);
-        Stack {
-            stack: stack,
-            stack_generator: push_stack,
-            current: Vec::new(),
-            size: size,
-        }
-    }
-}
-
-impl Iterator for Stack {
     type Item = Vec<usize>;
 
     fn next(&mut self) -> Option<Vec<usize>> {
-        unimplemented!()
+        while self.current.len() + 1 < self.set_size {
+            unimplemented!()
+        }
+        let pre = self.current[0].to_string()[0..self.replace].to_string();
+        let post = self.current.last().unwrap().to_string()[self.replace..].to_string();
+        self.current.push((post + &pre).parse::<usize>().unwrap());
+        Some(self.current.clone())
     }
 }
 
@@ -87,14 +54,17 @@ fn main() {
         (about: "Solve Project Euler Problem 61, https://projecteuler.net/problem=61")
         (@arg verbose: -v +multiple "Increase log level")
         (@arg threads: -t --threads +takes_value "threads")
-        (@arg set_size: +takes_value "Number of numbers in the set")
+        (@arg set_size: +takes_value "Size of the set")
+        (@arg digits: +takes_value "Digits in each number")
+        (@arg replace: +takes_value "Number of digits in common")
     ).get_matches();
     set_log_level(&args);
 
     let set_size = args.value_of("set_size").map(|n| n.parse::<usize>().unwrap()).unwrap_or(6);
+    let digits = args.value_of("digits").map(|n| n.parse::<usize>().unwrap()).unwrap_or(4);
     let poly_funcs: Vec<Box<dyn Fn(usize) -> bool>> = (3..(set_size+3)).map(|p| is_poly(p)).collect();
     let mut sets: Vec<Vec<usize>> = Vec::new();
-    for set in Stack::new(Box::new(1000..10000), set_size, Chain::chain_factory(2)) {
+    for set in Chain::new(digits, digits / 2, set_size) {
         info!("{:?}", set);
     }
 }
@@ -150,21 +120,9 @@ mod test {
 
     #[test]
     fn test_chain() {
-        let mut chain = Chain::new(8128, 2);
-        assert_eq!(chain.next(), Some(2800));
-        assert_eq!(chain.next(), Some(2801));
-        assert_eq!(chain.next(), Some(2802));
-        assert_eq!(chain.next(), Some(2803));
-        assert_eq!(chain.next(), Some(2804));
-        for _ in 0..(100-5) {
-            assert_ne!(chain.next(), None);
-        }
-        assert_eq!(chain.next(), None);
-    }
-
-    #[test]
-    fn test_stack() {
-        let mut stack = Stack::new(10..100, 2, Chain::chain_factory(1));
-        assert_eq!(stack.next(), Some(vec![11, 11]));
+        let mut chain = Chain::new(8128..8129, 2, 3);
+        assert_eq!(chain.next(), Some(vec![8128, 2810, 1081]));
+        assert_eq!(chain.next(), Some(vec![8128, 2811, 1181]));
+        assert_eq!(chain.next(), Some(vec![8128, 2812, 1281]));
     }
 }
