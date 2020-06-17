@@ -16,20 +16,18 @@ fn is_poly(p: usize) -> Box<dyn Fn(usize) -> bool> {
 }
 
 struct Chain {
-    root: Box<Iterator<Item=usize>>,
-    replace: usize,
+    digits: usize,
     set_size: usize,
     current: Vec<usize>,
 }
 
 impl Chain {
-    fn new(digits: usize, replace: usize, set_size: usize) -> Chain {
-        let root = Box::new(10usize.pow(digits as u32 - 1)..10usize.pow(digits as u32));
+    fn new(digits: usize, set_size: usize) -> Chain {
+        let current = vec![10usize.pow(digits as u32 - 1) - 1];
         Chain {
-            root: root,
-            replace: replace,
+            digits: digits,
             set_size: set_size,
-            current: Vec::new(),
+            current: current,
         }
     }
 }
@@ -39,10 +37,12 @@ impl Iterator for Chain {
 
     fn next(&mut self) -> Option<Vec<usize>> {
         while self.current.len() + 1 < self.set_size {
+            let item = self.current.pop().unwrap() + 1;
             unimplemented!()
         }
-        let pre = self.current[0].to_string()[0..self.replace].to_string();
-        let post = self.current.last().unwrap().to_string()[self.replace..].to_string();
+        let pre = self.current[0].to_string()[0..(self.digits/2)].to_string();
+        let post = self.current.last().unwrap().to_string()[(self.digits/2)..].to_string();
+        println!("Appending {}", pre.clone() + &post);
         self.current.push((post + &pre).parse::<usize>().unwrap());
         Some(self.current.clone())
     }
@@ -64,7 +64,7 @@ fn main() {
     let digits = args.value_of("digits").map(|n| n.parse::<usize>().unwrap()).unwrap_or(4);
     let poly_funcs: Vec<Box<dyn Fn(usize) -> bool>> = (3..(set_size+3)).map(|p| is_poly(p)).collect();
     let mut sets: Vec<Vec<usize>> = Vec::new();
-    for set in Chain::new(digits, digits / 2, set_size) {
+    for set in Chain::new(digits, set_size) {
         info!("{:?}", set);
     }
 }
