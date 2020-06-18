@@ -18,12 +18,13 @@ fn is_poly(p: usize) -> Box<dyn Fn(usize) -> bool> {
 struct Chain {
     digits: usize,
     set_size: usize,
-    current: Vec<usize>,
+    current: usize,
 }
 
 impl Chain {
     fn new(digits: usize, set_size: usize) -> Chain {
-        let current = vec![10usize.pow(digits as u32 - 1) - 1];
+        let current = 10usize.pow(((set_size * digits / 2) - 1) as u32);
+        info!("Initial: {}", current);
         Chain {
             digits: digits,
             set_size: set_size,
@@ -36,18 +37,36 @@ impl Iterator for Chain {
     type Item = Vec<usize>;
 
     fn next(&mut self) -> Option<Vec<usize>> {
-        while self.current.len() + 1 < self.set_size {
-            let item = self.current.pop().unwrap() + 1;
-            unimplemented!()
+        'search: loop {
+            let digits = self.current.to_string();
+            if (self.digits * self.set_size / 2) != digits.len() {
+                return None;
+            }
+            info!("Digits: {}", digits);
+            self.current += 1;
+            let mut result = Vec::new();
+            for step in (0..((self.set_size-1) * self.digits / 2)).step_by(self.digits/2) {
+                let element = digits[step..(step+self.digits)].to_string();
+                if &element[0..1] == "0" {
+                    let next = digits.chars().enumerate().map(
+                        |(e, d)| if e < step { d } else if e == step { '1' } else { '0' }
+
+                    ).collect::<String>();
+                    self.current = next.parse::<usize>().unwrap();
+                    continue 'search;
+                }
+                result.push(element.parse::<usize>().unwrap());
+            }
+            let pre = digits[..(self.digits / 2)].to_string();
+            let post = digits[(digits.len()-(self.digits/2))..].to_string();
+            if &pre[0..1] == "0" || &post[0..1] == "0" {
+                continue;
+            }
+            result.push((post + &pre).parse::<usize>().unwrap());
+            return Some(result);
         }
-        let pre = self.current[0].to_string()[0..(self.digits/2)].to_string();
-        let post = self.current.last().unwrap().to_string()[(self.digits/2)..].to_string();
-        println!("Appending {}", pre.clone() + &post);
-        self.current.push((post + &pre).parse::<usize>().unwrap());
-        Some(self.current.clone())
     }
 }
-
 
 fn main() {
     let args = clap_app!(app =>
@@ -120,9 +139,17 @@ mod test {
 
     #[test]
     fn test_chain() {
-        let mut chain = Chain::new(8128..8129, 2, 3);
-        assert_eq!(chain.next(), Some(vec![8128, 2810, 1081]));
-        assert_eq!(chain.next(), Some(vec![8128, 2811, 1181]));
-        assert_eq!(chain.next(), Some(vec![8128, 2812, 1281]));
+        let mut chain = Chain::new(4, 3);
+        assert_eq!(chain.next(), Some(vec![1010, 1010, 1010]));
+        assert_eq!(chain.next(), Some(vec![1010, 1011, 1110]));
+        assert_eq!(chain.next(), Some(vec![1010, 1012, 1210]));
+        assert_eq!(chain.next(), Some(vec![1010, 1013, 1310]));
+        for set in chain {
+            assert_eq!(set.len(), 3);
+            assert!(set.iter().all(|n| n.to_string().len() == 4));
+            for (a, b) in set.iter().zip([&set[1..], &vec![set[0]]].concat().iter()) {
+                assert_eq!(a.to_string()[2..], b.to_string()[..2], "{:?}", set);
+            }
+        }
     }
 }
