@@ -16,19 +16,37 @@ fn is_poly(p: usize) -> Box<dyn Fn(usize) -> bool> {
 }
 
 struct Chain {
+    tests: Vec<Box<dyn Fn(usize)->bool>>,
+    chain: Box<dyn Iterator<Item=usize>>,
     digits: usize,
-    set_size: usize,
     current: usize,
+    next_chain: Option<Box<Chain>>,
 }
 
 impl Chain {
-    fn new(digits: usize, set_size: usize) -> Chain {
-        let current = 10usize.pow(((set_size * digits / 2) - 1) as u32);
-        info!("Initial: {}", current);
-        Chain {
+    fn new(digits: usize, chain: Box<dyn Iterator<Item=usize>>, tests: Vec<Box<dyn Fn(usize)->bool>>) -> Chain {
+        let mut chain = Chain {
+            tests: tests,
+            chain: chain,
             digits: digits,
-            set_size: set_size,
-            current: current,
+            current: 0,
+            next_chain: None,
+        };
+        chain.next_chain = chain.step();
+        chain
+    }
+
+    fn step(&mut self) -> Option<Box<Chain>> {
+        loop {
+            if let Some(current) = self.chain.next() {
+                self.current = current;
+                let prefix = current.to_string()[self.digits/2..].to_string();
+                let from = (prefix.clone() + &"0".repeat(self.digits/2)).parse::<usize>().unwrap();
+                let to = (prefix.clone() + &"9".repeat(self.digits/2)).parse::<usize>().unwrap() + 1;
+                unimplemented!()
+            } else {
+                return None;
+            }
         }
     }
 }
@@ -37,34 +55,7 @@ impl Iterator for Chain {
     type Item = Vec<usize>;
 
     fn next(&mut self) -> Option<Vec<usize>> {
-        'search: loop {
-            let digits = self.current.to_string();
-            if (self.digits * self.set_size / 2) != digits.len() {
-                return None;
-            }
-            info!("Digits: {}", digits);
-            self.current += 1;
-            let mut result = Vec::new();
-            for step in (0..((self.set_size-1) * self.digits / 2)).step_by(self.digits/2) {
-                let element = digits[step..(step+self.digits)].to_string();
-                if &element[0..1] == "0" {
-                    let next = digits.chars().enumerate().map(
-                        |(e, d)| if e < step { d } else if e == step { '1' } else { '0' }
-
-                    ).collect::<String>();
-                    self.current = next.parse::<usize>().unwrap();
-                    continue 'search;
-                }
-                result.push(element.parse::<usize>().unwrap());
-            }
-            let pre = digits[..(self.digits / 2)].to_string();
-            let post = digits[(digits.len()-(self.digits/2))..].to_string();
-            if &pre[0..1] == "0" || &post[0..1] == "0" {
-                continue;
-            }
-            result.push((post + &pre).parse::<usize>().unwrap());
-            return Some(result);
-        }
+        unimplemented!()
     }
 }
 
@@ -81,9 +72,11 @@ fn main() {
 
     let set_size = args.value_of("set_size").map(|n| n.parse::<usize>().unwrap()).unwrap_or(6);
     let digits = args.value_of("digits").map(|n| n.parse::<usize>().unwrap()).unwrap_or(4);
-    let poly_funcs: Vec<Box<dyn Fn(usize) -> bool>> = (3..(set_size+3)).map(|p| is_poly(p)).collect();
+    let tests: Vec<Box<dyn Fn(usize) -> bool>> = (3..(set_size+3)).map(|p| is_poly(p)).collect();
     let mut sets: Vec<Vec<usize>> = Vec::new();
-    for set in Chain::new(digits, set_size) {
+    let from = 10usize.pow(digits as u32 - 1);
+    let to = 10usize.pow(digits as u32);
+    for set in Chain::new(digits, Box::new(from..to), tests) {
         info!("{:?}", set);
     }
 }
@@ -135,21 +128,5 @@ mod test {
         assert!(!is_poly(8)(7));
         assert!(is_poly(8)(8));
         assert!(is_poly(8)(21));
-    }
-
-    #[test]
-    fn test_chain() {
-        let mut chain = Chain::new(4, 3);
-        assert_eq!(chain.next(), Some(vec![1010, 1010, 1010]));
-        assert_eq!(chain.next(), Some(vec![1010, 1011, 1110]));
-        assert_eq!(chain.next(), Some(vec![1010, 1012, 1210]));
-        assert_eq!(chain.next(), Some(vec![1010, 1013, 1310]));
-        for set in chain {
-            assert_eq!(set.len(), 3);
-            assert!(set.iter().all(|n| n.to_string().len() == 4));
-            for (a, b) in set.iter().zip([&set[1..], &vec![set[0]]].concat().iter()) {
-                assert_eq!(a.to_string()[2..], b.to_string()[..2], "{:?}", set);
-            }
-        }
     }
 }
