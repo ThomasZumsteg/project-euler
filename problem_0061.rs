@@ -6,48 +6,28 @@ use log::{debug, info};
 use std::collections::{HashSet, VecDeque};
 
 fn is_poly(p: usize) -> Box<dyn Fn(usize) -> bool> {
-    let poly = Box::new(move |m: usize| -> bool {
-        if let Some(root) = integer_square_root(p * p + 16 + 8 * p * m - 8 * p - 16 * m ) {
+    Box::new(move |n: usize| -> bool {
+        if let Some(root) = integer_square_root(p * p + 16 + 8 * p * n - 8 * p - 16 * n ) {
             return (root + p - 4) % (2 * p - 4) == 0;
         }
         false
-    });
-    poly
+    })
 }
 
 struct Chain {
-    tests: Vec<Box<dyn Fn(usize)->bool>>,
     chain: Box<dyn Iterator<Item=usize>>,
-    digits: usize,
-    current: usize,
     next_chain: Option<Box<Chain>>,
 }
 
 impl Chain {
-    fn new(digits: usize, chain: Box<dyn Iterator<Item=usize>>, tests: Vec<Box<dyn Fn(usize)->bool>>) -> Chain {
-        let mut chain = Chain {
-            tests: tests,
-            chain: chain,
-            digits: digits,
-            current: 0,
-            next_chain: None,
-        };
-        chain.next_chain = chain.step();
-        chain
-    }
-
-    fn step(&mut self) -> Option<Box<Chain>> {
-        loop {
-            if let Some(current) = self.chain.next() {
-                self.current = current;
-                let prefix = current.to_string()[self.digits/2..].to_string();
-                let from = (prefix.clone() + &"0".repeat(self.digits/2)).parse::<usize>().unwrap();
-                let to = (prefix.clone() + &"9".repeat(self.digits/2)).parse::<usize>().unwrap() + 1;
-                unimplemented!()
-            } else {
-                return None;
-            }
+    fn new(digits: usize, chain: Box<dyn Iterator<Item=usize>>, tests: VecDeque<Box<dyn Fn(usize) -> bool>>) -> Option<Chain> {
+        if tests.len() <= 0 {
+            return None;
         }
+        Some(Chain {
+            chain: chain,
+            next_chain: None,
+        })
     }
 }
 
@@ -55,6 +35,10 @@ impl Iterator for Chain {
     type Item = Vec<usize>;
 
     fn next(&mut self) -> Option<Vec<usize>> {
+        if let Some(next_chain) = &mut self.next_chain {
+        } else {
+            unimplemented!()
+        }
         unimplemented!()
     }
 }
@@ -72,13 +56,12 @@ fn main() {
 
     let set_size = args.value_of("set_size").map(|n| n.parse::<usize>().unwrap()).unwrap_or(6);
     let digits = args.value_of("digits").map(|n| n.parse::<usize>().unwrap()).unwrap_or(4);
-    let tests: Vec<Box<dyn Fn(usize) -> bool>> = (3..(set_size+3)).map(|p| is_poly(p)).collect();
-    let mut sets: Vec<Vec<usize>> = Vec::new();
+    let tests: VecDeque<Box<dyn Fn(usize) -> bool>> = (3..(set_size+3)).map(|n| is_poly(n)).collect();
     let from = 10usize.pow(digits as u32 - 1);
     let to = 10usize.pow(digits as u32);
-    for set in Chain::new(digits, Box::new(from..to), tests) {
-        info!("{:?}", set);
-    }
+    let sets: Vec<Vec<usize>> = Chain::new(digits, Box::new(from..to), tests).unwrap().collect();
+    assert_eq!(sets.len(), 1);
+    println!("{}", sets[0].iter().sum::<usize>());
 }
 
 #[cfg(test)]
@@ -94,7 +77,7 @@ mod test {
         assert!(!is_poly(3)(5));
         assert!(is_poly(3)(6));
         assert!(!is_poly(3)(7));
-        assert!(is_poly(3)(10));
+        assert!(is_poly(3)(1));
 
         assert!(is_poly(4)(1));
         assert!(!is_poly(4)(2));
@@ -107,7 +90,7 @@ mod test {
         assert!(!is_poly(5)(3));
         assert!(!is_poly(5)(4));
         assert!(is_poly(5)(5));
-        assert!(is_poly(5)(12));
+        assert!(is_poly(5)(1));
 
         assert!(is_poly(6)(1));
         assert!(!is_poly(6)(2));
@@ -128,5 +111,11 @@ mod test {
         assert!(!is_poly(8)(7));
         assert!(is_poly(8)(8));
         assert!(is_poly(8)(21));
+    }
+
+    #[test]
+    fn test_chain() {
+        let mut chain = Chain::new(2, Box::new(10..100), vec![is_poly(3), is_poly(4)].iter().collect());
+        assert_eq!(chain.next(), Some(vec![12, 21]));
     }
 }
