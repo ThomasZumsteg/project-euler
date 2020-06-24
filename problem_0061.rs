@@ -9,12 +9,12 @@ type PolyFunc = Box<dyn Fn(usize) -> bool>;
 struct Frame<'a> {
     elements: Vec<usize>,
     element: usize, 
-    tests: &'a Vec<PolyFunc>,
+    tests: Vec<&'a PolyFunc>,
     test: usize,
 }
 
 impl <'a> Frame<'a> {
-    fn new(elements: Vec<usize>, tests: &'a Vec<PolyFunc>) -> Frame {
+    fn new(elements: Vec<usize>, tests: Vec<&'a PolyFunc>) -> Frame {
         Frame {
             elements: elements,
             element: 0,
@@ -35,16 +35,18 @@ fn is_poly(p: usize) -> PolyFunc {
 
 struct Chain<'a> {
     stack: VecDeque<Frame<'a>>,
-    tests: &'a Vec<PolyFunc>,
+    digits: usize,
+    set_size: usize,
 }
 
 impl <'a> Chain<'a> {
-    fn new(chain: Vec<usize>, tests: &'a Vec<PolyFunc>) -> Chain {
+    fn new(chain: Vec<usize>, tests: Vec<&'a PolyFunc>, digits: usize) -> Chain {
         let mut stack = VecDeque::new();
-        stack.push_back(Frame::new(chain, tests));
+        stack.push_back(Frame::new(chain, tests.clone()));
         Chain {
             stack: stack,
-            tests: tests,
+            set_size: tests.len(),
+            digits: digits,
         }
     }
 }
@@ -53,10 +55,42 @@ impl <'a> Iterator for Chain<'a> {
     type Item = Vec<usize>;
 
     fn next(&mut self) -> Option<Vec<usize>> {
-        while self.stack.len() < self.tests.len() {
-            unimplemented!();
+        while self.stack.len() < self.set_size {
+            if let Some(frame) = self.stack.back_mut() {
+                if frame.test < frame.tests.len() {
+                    let test = &frame.tests[frame.test];
+                    frame.test += 1;
+                    let element = frame.elements[frame.element];
+                    if test(element) {
+                        let mut tests: Vec<&PolyFunc> = frame.tests.clone();
+                        tests.remove(frame.test);
+                        let prefix = element.to_string()[(self.digits/2)..].to_string();
+                        if &prefix[0..1] == "0" {
+                            continue;
+                        }
+                        let start = (prefix.clone() + &"0".repeat(self.digits/2)).parse::<usize>().unwrap();
+                        let end = (prefix.clone() + &"9".repeat(self.digits/2)).parse::<usize>().unwrap();
+                        let next_frame = Frame::new(
+                            (start..(end+1)).collect(),
+                            tests,
+                        );
+                        self.stack.push_back(next_frame);
+                        continue;
+                    }
+                } else {
+                    frame.element +=  1;
+                    frame.test = 0;
+                    if frame.element < frame.elements.len() {
+                        self.stack.pop_back();
+                    } 
+                }
+            } else {
+                return None;
+            }
         }
-        Some(self.stack.iter().map(|f| f.elements[f.element]).collect())
+        let mut result: Vec<usize> = self.stack.iter().map(|f| f.elements[f.element]).collect();
+        println!("{:?}", result);
+        unimplemented!()
     }
 }
 
@@ -76,7 +110,7 @@ fn main() {
     let from = 10usize.pow(digits as u32 - 1);
     let to = 10usize.pow(digits as u32);
     let tests: Vec<PolyFunc> = (3..(set_size+3)).map(|n| is_poly(n)).collect();
-    let sets: Vec<Vec<usize>> = Chain::new((from..to).collect(), &tests).collect();
+    let sets: Vec<Vec<usize>> = Chain::new((from..to).collect(), tests.iter().collect(), digits).collect();
     assert_eq!(sets.len(), 1);
     println!("{}", sets[0].iter().sum::<usize>());
 }
@@ -133,7 +167,7 @@ mod test {
     #[test]
     fn test_chain() {
         let tests = vec![is_poly(3), is_poly(4)];
-        let mut chain = Chain::new((10..100).collect(), &tests);
+        let mut chain = Chain::new((10..100).collect(), tests.iter().collect(), 2);
         assert_eq!(chain.next(), Some(vec![12, 21]));
     }
 }
