@@ -2,7 +2,8 @@
 extern crate clap;
 
 use common::{set_log_level, integer_square_root};
-use std::collections::VecDeque;
+use std::collections::{HashSet, VecDeque};
+use log::{debug, info};
 
 type PolyFunc = Box<dyn Fn(usize) -> bool>;
 
@@ -36,16 +37,15 @@ fn is_poly(p: usize) -> PolyFunc {
 struct Chain<'a> {
     stack: VecDeque<Frame<'a>>,
     digits: usize,
-    set_size: usize,
 }
 
 impl <'a> Chain<'a> {
     fn new(chain: Vec<usize>, tests: Vec<&'a PolyFunc>, digits: usize) -> Chain {
         let mut stack = VecDeque::new();
         stack.push_back(Frame::new(chain, tests.clone()));
+        debug!("{}@{}", tests.len(), digits);
         Chain {
             stack: stack,
-            set_size: tests.len(),
             digits: digits,
         }
     }
@@ -55,15 +55,28 @@ impl <'a> Iterator for Chain<'a> {
     type Item = Vec<usize>;
 
     fn next(&mut self) -> Option<Vec<usize>> {
-        while self.stack.len() < self.set_size {
+        while self.stack.len() > 0 {
+            if self.stack.back().unwrap().tests.len() <= 0 {
+                let result: Vec<usize> = self.stack.iter().take(self.stack.len()-1).map(|f| f.elements[f.element]).collect();
+                self.stack.pop_back();
+                let first = result[0].to_string();
+                let last = result[result.len()-1].to_string();
+                if first[..(self.digits/2)] == last[(self.digits/2)..] {
+                    info!("{:?}", result);
+                    return Some(result);
+                }
+            }
+            let stack_len = self.stack.len();
             if let Some(frame) = self.stack.back_mut() {
                 if frame.test < frame.tests.len() {
                     let test = &frame.tests[frame.test];
                     frame.test += 1;
                     let element = frame.elements[frame.element];
+                    debug!("Stack: {}, Index {}, element: {}, test index: {}", stack_len, frame.element, element, frame.test);
                     if test(element) {
                         let mut tests: Vec<&PolyFunc> = frame.tests.clone();
-                        tests.remove(frame.test);
+                        debug!("Element {} passed test {}/{}", element, frame.test, tests.len());
+                        tests.remove(frame.test-1);
                         let prefix = element.to_string()[(self.digits/2)..].to_string();
                         if &prefix[0..1] == "0" {
                             continue;
@@ -80,7 +93,7 @@ impl <'a> Iterator for Chain<'a> {
                 } else {
                     frame.element +=  1;
                     frame.test = 0;
-                    if frame.element < frame.elements.len() {
+                    if frame.elements.len() <= frame.element {
                         self.stack.pop_back();
                     } 
                 }
@@ -88,9 +101,7 @@ impl <'a> Iterator for Chain<'a> {
                 return None;
             }
         }
-        let mut result: Vec<usize> = self.stack.iter().map(|f| f.elements[f.element]).collect();
-        println!("{:?}", result);
-        unimplemented!()
+        None
     }
 }
 
@@ -110,9 +121,10 @@ fn main() {
     let from = 10usize.pow(digits as u32 - 1);
     let to = 10usize.pow(digits as u32);
     let tests: Vec<PolyFunc> = (3..(set_size+3)).map(|n| is_poly(n)).collect();
-    let sets: Vec<Vec<usize>> = Chain::new((from..to).collect(), tests.iter().collect(), digits).collect();
-    assert_eq!(sets.len(), 1);
-    println!("{}", sets[0].iter().sum::<usize>());
+    let result: HashSet<usize> = Chain::new((from..to).collect(), tests.iter().collect(), digits)
+        .map(|set| set.iter().sum()).collect();
+    assert_eq!(result.len(), 1);
+    println!("{}", result.iter().next().unwrap());
 }
 
 #[cfg(test)]
