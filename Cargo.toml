@@ -8,7 +8,7 @@ edition = "2018"
 clap = "2.33.0"
 log = "0.4"
 env_logger = "0.7.1"
-num = "0.2.1"
+num = "0.3.0"
 threadpool = "1.1.71"
 chrono = "0.4.11"
 itertools = "0.9.0"
@@ -262,3 +262,7 @@ path = "problem_0060.rs"
 [[bin]]
 name = "problem_0061"
 path = "problem_0061.rs"
+
+[[bin]]
+name = "problem_0062"
+path = "problem_0062.rs"
